@@ -89,13 +89,23 @@ Este repositório é dedicado à **manutenção e administração do MOSK Toolki
 
 ### 📦 Instalação em Projetos
 
-Para instalar o MOSK Toolkit em qualquer projeto (Greenfield ou Brownfield), basta copiar o conteúdo da pasta `mosk` para a raiz do seu projeto:
+Para instalar o MOSK Toolkit em qualquer projeto (Greenfield ou Brownfield) utilize os comandos abaixo:
 
 ```bash
-# Copie a pasta .cursor e a pasta toolkit para a raiz do seu projeto
-cp -r mosk/.cursor /caminho/do/seu/projeto/
-cp -r mosk/toolkit /caminho/do/seu/projeto/
+# Instalar no diretório atual
+npx degit rogerznts/mosk/mosk .
+
+# Instalar em um diretório específico
+npx degit rogerznts/mosk/mosk ./meu-projeto
+
+# Forçar instalação (sobrescrever arquivos)
+npx degit rogerznts/mosk/mosk . --force
 ```
+
+**Após instalação:**
+1. Reinicie o Cursor IDE
+2. Digite `/` para ver os 21 comandos disponíveis
+
 
 Estrutura que será copiada:
 ```
@@ -107,6 +117,16 @@ seu-projeto/
     ├── .specify/         # Templates e scripts do SpecKit
     └── openspec/         # Configurações do OpenSpec
 ```
+
+
+Para instalar o MOSK Toolkit manualmente em qualquer projeto (Greenfield ou Brownfield), basta copiar o conteúdo abaixo para a raiz do seu projeto:
+
+```bash
+# Copie a pasta .cursor e a pasta toolkit para a raiz do seu projeto
+cp -r mosk/.cursor /caminho/do/seu/projeto/
+cp -r mosk/toolkit /caminho/do/seu/projeto/
+```
+
 
 ### ⚡ Slash Commands
 
@@ -324,4 +344,6 @@ Para correções, ajustes e mudanças pontuais que não justificam todo o proces
 ---
 
 **MOSK Toolkit** - Transformando especificações em realidade, uma feature por vez.
+
+
 
