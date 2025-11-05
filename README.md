@@ -114,58 +114,212 @@ O MOSK Toolkit utiliza **slash commands customizados** para o Cursor IDE, facili
 
 #### 🧙 BMAD Core - Agentes de Discovery
 
-**`/bmad-master`** - Executor universal de tarefas do BMAD. Use quando precisar de expertise em múltiplas áreas ou executar tarefas pontuais sem ativar uma persona específica. Ideal para criar documentos, executar checklists ou rodar workflows sem transformação de agente.
+**`/mosk-ag-master`** - Executor universal de tarefas do BMAD. Use quando precisar de expertise em múltiplas áreas ou executar tarefas pontuais sem ativar uma persona específica. Ideal para criar documentos, executar checklists ou rodar workflows sem transformação de agente.
 
-**`/bmad-orchestrator`** - Orquestrador principal que coordena múltiplos agentes e workflows. Use quando não tiver certeza de qual especialista consultar ou quando precisar coordenar trabalho entre várias áreas. Ele guia você na escolha do agente certo para cada necessidade.
+**`/mosk-ag-orchestrator`** - Orquestrador principal que coordena múltiplos agentes e workflows. Use quando não tiver certeza de qual especialista consultar ou quando precisar coordenar trabalho entre várias áreas. Ele guia você na escolha do agente certo para cada necessidade.
 
-**`/bmad-analyst`** - Analista de negócios especializado em pesquisa de mercado, brainstorming, análise competitiva e criação de project briefs. Use para discovery inicial, pesquisa estratégica e documentação de projetos existentes (brownfield).
+**`/mosk-ag-analyst`** - Analista de negócios especializado em pesquisa de mercado, brainstorming, análise competitiva e criação de project briefs. Use para discovery inicial, pesquisa estratégica e documentação de projetos existentes (brownfield).
 
-**`/bmad-architect`** - Arquiteto de sistemas para design técnico, seleção de tecnologia, design de APIs e planejamento de infraestrutura. Use quando precisar criar documentos de arquitetura (backend, frontend ou fullstack) ou tomar decisões técnicas estruturais.
+**`/mosk-ag-architect`** - Arquiteto de sistemas para design técnico, seleção de tecnologia, design de APIs e planejamento de infraestrutura. Use quando precisar criar documentos de arquitetura (backend, frontend ou fullstack) ou tomar decisões técnicas estruturais.
 
-**`/bmad-dev`** - Desenvolvedor fullstack para implementação de código, debugging e refatoração. Use quando for implementar stories, aplicar correções de QA ou executar o desenvolvimento propriamente dito seguindo as especificações criadas.
+**`/mosk-ag-dev`** - Desenvolvedor fullstack para implementação de código, debugging e refatoração. Use quando for implementar stories, aplicar correções de QA ou executar o desenvolvimento propriamente dito seguindo as especificações criadas.
 
-**`/bmad-po`** - Product Owner para gestão de backlog, refinamento de stories, critérios de aceitação e planejamento de sprints. Use para validar artefatos, criar epics e stories, ou garantir a integridade e consistência da documentação.
+**`/mosk-ag-po`** - Product Owner para gestão de backlog, refinamento de stories, critérios de aceitação e planejamento de sprints. Use para validar artefatos, criar epics e stories, ou garantir a integridade e consistência da documentação.
 
-**`/bmad-pm`** - Product Manager para criação de PRDs, estratégia de produto, priorização de features e planejamento de roadmap. Use quando precisar criar documentos de requisitos de produto (PRD) ou definir estratégia e visão de produto.
+**`/mosk-ag-pm`** - Product Manager para criação de PRDs, estratégia de produto, priorização de features e planejamento de roadmap. Use quando precisar criar documentos de requisitos de produto (PRD) ou definir estratégia e visão de produto.
 
-**`/bmad-qa`** - Test Architect para revisão de arquitetura de testes, decisões de quality gates e avaliação abrangente de qualidade. Use para reviews completos de stories, avaliação de riscos, design de testes e validação de requisitos não-funcionais.
+**`/mosk-ag-qa`** - Test Architect para revisão de arquitetura de testes, decisões de quality gates e avaliação abrangente de qualidade. Use para reviews completos de stories, avaliação de riscos, design de testes e validação de requisitos não-funcionais.
 
-**`/bmad-sm`** - Scrum Master para criação de stories, gestão de epics, retrospectivas e orientação em processos ágeis. Use quando precisar preparar stories detalhadas e acionáveis para desenvolvedores, garantindo clareza e handoffs precisos.
+**`/mosk-ag-sm`** - Scrum Master para criação de stories, gestão de epics, retrospectivas e orientação em processos ágeis. Use quando precisar preparar stories detalhadas e acionáveis para desenvolvedores, garantindo clareza e handoffs precisos.
 
-**`/bmad-ux-expert`** - Expert em UX para design de UI/UX, wireframes, protótipos e especificações de front-end. Use quando precisar criar especificações visuais, otimizar experiência do usuário ou gerar prompts para ferramentas de geração de UI (como v0 ou Lovable).
+**`/mosk-ag-ux-expert`** - Expert em UX para design de UI/UX, wireframes, protótipos e especificações de front-end. Use quando precisar criar especificações visuais, otimizar experiência do usuário ou gerar prompts para ferramentas de geração de UI (como v0 ou Lovable).
 
 #### 🎯 SpecKit - Desenvolvimento Orientado a Specs
 
-**`/speckit-constitution`** - Cria ou atualiza a constituição do projeto, definindo princípios e regras não-negociáveis que governam todo o desenvolvimento. Use no início do projeto ou quando precisar estabelecer/revisar os princípios fundamentais de qualidade e governança.
+**`/mosk-spec-constitution`** - Cria ou atualiza a constituição do projeto, definindo princípios e regras não-negociáveis que governam todo o desenvolvimento. Use no início do projeto ou quando precisar estabelecer/revisar os princípios fundamentais de qualidade e governança.
 
-**`/speckit-specify`** - Cria uma nova especificação de feature a partir de descrição em linguagem natural. Gera automaticamente uma branch, extrai requisitos, define critérios de sucesso e cria o documento spec.md completo. Use quando iniciar uma nova feature.
+**`/mosk-spec-specify`** - Cria uma nova especificação de feature a partir de descrição em linguagem natural. Gera automaticamente uma branch, extrai requisitos, define critérios de sucesso e cria o documento spec.md completo. Use quando iniciar uma nova feature.
 
-**`/speckit-clarify`** - Identifica áreas ambíguas na especificação e faz até 5 perguntas direcionadas para reduzir incertezas. Atualiza automaticamente a spec.md com as respostas. Use após criar a spec para resolver ambiguidades antes do planejamento.
+**`/mosk-spec-clarify`** - Identifica áreas ambíguas na especificação e faz até 5 perguntas direcionadas para reduzir incertezas. Atualiza automaticamente a spec.md com as respostas. Use após criar a spec para resolver ambiguidades antes do planejamento.
 
-**`/speckit-plan`** - Executa o workflow de planejamento de implementação, gerando artefatos de design (data-model.md, contracts/, research.md). Segue a estrutura do plan.md template para definir arquitetura técnica. Use após a especificação estar clara e validada.
+**`/mosk-spec-plan`** - Executa o workflow de planejamento de implementação, gerando artefatos de design (data-model.md, contracts/, research.md). Segue a estrutura do plan.md template para definir arquitetura técnica. Use após a especificação estar clara e validada.
 
-**`/speckit-tasks`** - Gera lista de tarefas ordenadas e acionáveis (tasks.md) baseada nos artefatos de design. Organiza por user story, identifica dependências e oportunidades de paralelização. Use após o planejamento estar completo.
+**`/mosk-spec-tasks`** - Gera lista de tarefas ordenadas e acionáveis (tasks.md) baseada nos artefatos de design. Organiza por user story, identifica dependências e oportunidades de paralelização. Use após o planejamento estar completo.
 
-**`/speckit-checklist`** - Cria checklists customizados de qualidade para validar requisitos ("testes unitários para documentação"). Valida completude, clareza e consistência da especificação. Use quando precisar verificar qualidade dos requisitos em domínios específicos.
+**`/mosk-spec-checklist`** - Cria checklists customizados de qualidade para validar requisitos ("testes unitários para documentação"). Valida completude, clareza e consistência da especificação. Use quando precisar verificar qualidade dos requisitos em domínios específicos.
 
-**`/speckit-analyze`** - Realiza análise de consistência cross-artifacts entre spec.md, plan.md e tasks.md. Detecta duplicações, ambiguidades e gaps de cobertura. Use após gerar tasks para validar antes da implementação.
+**`/mosk-spec-analyze`** - Realiza análise de consistência cross-artifacts entre spec.md, plan.md e tasks.md. Detecta duplicações, ambiguidades e gaps de cobertura. Use após gerar tasks para validar antes da implementação.
 
-**`/speckit-implement`** - Executa o plano de implementação processando todas as tarefas do tasks.md. Verifica checklists, segue dependências e reporta progresso. Use quando tudo estiver validado e pronto para implementar.
+**`/mosk-spec-implement`** - Executa o plano de implementação processando todas as tarefas do tasks.md. Verifica checklists, segue dependências e reporta progresso. Use quando tudo estiver validado e pronto para implementar.
 
 #### 🔧 OpenSpec - Mudanças Rápidas
 
-**`/openspec-proposal`** - Cria uma proposta de mudança OpenSpec com scaffold completo (proposal.md, tasks.md, design.md). Valida estritamente e mapeia mudanças em specs deltas organizados por capability. Use para GMUDs, bugfixes e mudanças pontuais.
+**`/mosk-chore-proposal`** - Cria uma proposta de mudança OpenSpec com scaffold completo (proposal.md, tasks.md, design.md). Valida estritamente e mapeia mudanças em specs deltas organizados por capability. Use para GMUDs, bugfixes e mudanças pontuais.
 
-**`/openspec-apply`** - Implementa uma mudança OpenSpec aprovada, executando as tarefas definidas e mantendo sincronia com a proposta. Use após a proposta ser revisada e aprovada para aplicar as mudanças.
+**`/mosk-chore-apply`** - Implementa uma mudança OpenSpec aprovada, executando as tarefas definidas e mantendo sincronia com a proposta. Use após a proposta ser revisada e aprovada para aplicar as mudanças.
 
-**`/openspec-archive`** - Arquiva uma mudança OpenSpec deployada, movendo para o histórico e atualizando as specs principais. Use após deployment bem-sucedido para consolidar as mudanças nas especificações permanentes.
+**`/mosk-chore-archive`** - Arquiva uma mudança OpenSpec deployada, movendo para o histórico e atualizando as specs principais. Use após deployment bem-sucedido para consolidar as mudanças nas especificações permanentes.
 
 ## 🚀 Começando
 
 1. **Instale o toolkit** copiando as pastas `.cursor` e `toolkit` para seu projeto
-2. **Inicie com BMAD Core** (`/bmad-orchestrator` ou agentes específicos) para discovery e gerar especificações
-3. **Use SpecKit** (`/speckit-specify` → `/speckit-plan` → `/speckit-implement`) para implementar features
-4. **Aplique OpenSpec** (`/openspec-proposal`) para manutenções rápidas e correções
+2. **Inicie com BMAD Core** (`/mosk-ag-orchestrator` ou agentes específicos) para discovery e gerar especificações
+3. **Use SpecKit** (`/mosk-spec-specify` → `/mosk-spec-plan` → `/mosk-spec-implement`) para implementar features
+4. **Aplique OpenSpec** (`/mosk-chore-proposal`) para manutenções rápidas e correções
+
+## 📚 Recomendações de Uso
+
+### 📊 Fluxograma de Uso
+
+```mermaid
+flowchart TD
+    Start([Início do Projeto]) --> ProjectType{Tipo de Projeto?}
+    
+    %% Greenfield Flow
+    ProjectType -->|Novo Projeto<br/>Greenfield| Analyst[/mosk-ag-analyst<br/>Project Brief/]
+    Analyst --> Architect[/mosk-ag-architect<br/>Arquitetura & Stack/]
+    Architect --> PO[/mosk-ag-po<br/>Épicos & Stories/]
+    PO --> Constitution[/mosk-spec-constitution<br/>Memória & Padrões/]
+    
+    %% Brownfield Flow
+    ProjectType -->|Projeto Existente<br/>Brownfield| WorkType{Tipo de Trabalho?}
+    
+    %% SpecKit Flow - New Features
+    WorkType -->|Nova Feature| Constitution
+    Constitution --> Specify[/mosk-spec-specify<br/>Especificação & Branch/]
+    Specify --> ClarifyOpt{Precisa<br/>Clarificar?}
+    ClarifyOpt -->|Sim| Clarify[/mosk-spec-clarify<br/>Resolver Ambiguidades/]
+    ClarifyOpt -->|Não| Plan
+    Clarify --> Plan[/mosk-spec-plan<br/>Planejamento Técnico/]
+    Plan --> AnalyzeOpt{Validar<br/>Consistência?}
+    AnalyzeOpt -->|Sim| Analyze[/mosk-spec-analyze<br/>Análise Cross-Artifacts/]
+    AnalyzeOpt -->|Não| ChecklistOpt
+    Analyze --> ChecklistOpt{Criar<br/>Checklists?}
+    ChecklistOpt -->|Sim| Checklist[/mosk-spec-checklist<br/>Testes de Qualidade/]
+    ChecklistOpt -->|Não| Tasks
+    Checklist --> Tasks[/mosk-spec-tasks<br/>Definição de Tarefas/]
+    Tasks --> Implement[/mosk-spec-implement<br/>Execução & Testes/]
+    Implement --> FeatureDone([Feature Completa])
+    
+    %% OpenSpec Flow - Quick Changes
+    WorkType -->|Mudança Rápida<br/>GMUD/Bugfix| Proposal[/mosk-chore-proposal<br/>Proposta de Mudança/]
+    Proposal --> Apply[/mosk-chore-apply<br/>Aplicar Mudança/]
+    Apply --> Archive[/mosk-chore-archive<br/>Arquivar & Consolidar/]
+    Archive --> ChangeDone([Mudança Completa])
+    
+    %% Styling
+    classDef greenfield fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef speckit fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    classDef openspec fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    classDef optional fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    classDef decision fill:#6b7280,stroke:#4b5563,stroke-width:2px,color:#fff
+    classDef endpoint fill:#ec4899,stroke:#db2777,stroke-width:2px,color:#fff
+    
+    class Analyst,Architect,PO greenfield
+    class Constitution,Specify,Plan,Tasks,Implement speckit
+    class Clarify,Analyze,Checklist optional
+    class Proposal,Apply,Archive openspec
+    class ProjectType,WorkType,ClarifyOpt,AnalyzeOpt,ChecklistOpt decision
+    class Start,FeatureDone,ChangeDone endpoint
+```
+
+### 🌱 Modelo Greenfield - Iniciando um Novo Projeto
+
+Para projetos que estão começando do zero, recomendamos seguir esta sequência com os agentes do BMAD Core:
+
+1. **`/mosk-ag-analyst`** - Criação do Project Brief
+   - Faça o discovery inicial do projeto
+   - Crie o brief completo com contexto, objetivos e requisitos
+   - Documente a visão estratégica e análise de mercado
+
+2. **`/mosk-ag-architect`** - Definição de Tecnologias e Infraestrutura
+   - Defina o stack tecnológico (backend, frontend, banco de dados)
+   - Planeje a arquitetura e infraestrutura
+   - Tome decisões técnicas estruturais fundamentais
+   - Crie documentos de arquitetura técnica
+
+3. **`/mosk-ag-po`** - Criação de Épicos e Stories
+   - Valide e refine os artefatos criados
+   - Defina os épicos principais do projeto
+   - Quebre épicos em user stories acionáveis
+   - Estabeleça critérios de aceitação
+
+Após essa fase inicial, você terá toda a fundação documentada para começar a implementação de features usando o **SpecKit**.
+
+### 🏗️ Modelo Brownfield - Projetos Existentes
+
+Para projetos já em andamento, o MOSK oferece duas abordagens dependendo do tipo de trabalho:
+
+#### ✨ Para Novas Features - Use o SpecKit
+
+Siga este fluxo completo para desenvolver features com qualidade e rastreabilidade:
+
+1. **`/mosk-spec-constitution`** - Definição de Memória e Padrões com os arquivos do BMAD
+   - Estabeleça os princípios e regras do projeto
+   - Defina padrões de código e arquitetura
+   - Crie a base de governança para todas as features
+   - **Use apenas uma vez no início ou quando precisar revisar princípios**
+
+2. **`/mosk-spec-specify`** - Início da Especificação
+   - Crie uma nova branch de feature automaticamente
+   - Use um épico ou story como base
+   - Gere o documento `spec.md` completo
+   - Defina requisitos e critérios de sucesso
+
+3. **`/mosk-spec-clarify`** - Resolução de Ambiguidades **(Opcional)**
+   - Identifique áreas que precisam de clarificação
+   - Responda até 5 perguntas direcionadas
+   - Reduza incertezas antes do planejamento
+
+4. **`/mosk-spec-plan`** - Planejamento da Feature
+   - Gere artefatos de design técnico
+   - Crie modelo de dados (`data-model.md`)
+   - Defina contratos de API (`contracts/`)
+   - Documente pesquisas técnicas (`research.md`)
+
+5. **`/mosk-spec-analyze`** - Validação de Consistência **(Opcional)**
+   - Detecte divergências entre artefatos
+   - Identifique gaps de cobertura
+   - Valide consistência cross-artifacts
+
+6. **`/mosk-spec-checklist`** - Testes de Qualidade **(Opcional)**
+   - Crie checklists customizados
+   - Valide completude dos requisitos
+   - Use antes ou depois de gerar as tasks
+
+7. **`/mosk-spec-tasks`** - Definição de Tarefas
+   - Gere lista ordenada e acionável (`tasks.md`)
+   - Identifique dependências entre tarefas
+   - Organize por user story e prioridade
+
+8. **`/mosk-spec-implement`** - Execução
+   - Execute todas as tarefas do `tasks.md`
+   - Siga as dependências definidas
+   - Realize revisões e testes
+   - Reporte progresso continuamente
+
+#### 🔧 Para Mudanças e Ajustes - Use o OpenSpec
+
+Para correções, ajustes e mudanças pontuais que não justificam todo o processo do SpecKit:
+
+1. **`/mosk-chore-proposal`** - Propor Mudança
+   - Crie proposta completa com scaffold
+   - Documente a mudança em `proposal.md`
+   - Defina tarefas em `tasks.md`
+   - Mapeie design em `design.md`
+   - Use para GMUDs, bugfixes e hotfixes
+
+2. **`/mosk-chore-apply`** - Aplicar Mudança
+   - Implemente a proposta aprovada
+   - Execute as tarefas definidas
+   - Mantenha sincronia com a proposta
+   - Valide antes do deploy
+
+3. **`/mosk-chore-archive`** - Finalizar Proposta
+   - Archive após deployment bem-sucedido
+   - Mova para histórico
+   - Consolide mudanças nas specs principais
+   - Mantenha rastreabilidade completa
 
 ---
 
