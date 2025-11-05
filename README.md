@@ -94,10 +94,14 @@ Para instalar o MOSK Toolkit em qualquer projeto (Greenfield ou Brownfield) util
 ```bash
 # Instalar no diretório atual
 npx degit rogerznts/mosk/mosk .
+```
 
+```bash
 # Instalar em um diretório específico
 npx degit rogerznts/mosk/mosk ./meu-projeto
+```
 
+```bash
 # Forçar instalação (sobrescrever arquivos)
 npx degit rogerznts/mosk/mosk . --force
 ```
@@ -122,8 +126,11 @@ seu-projeto/
 Para instalar o MOSK Toolkit manualmente em qualquer projeto (Greenfield ou Brownfield), basta copiar o conteúdo abaixo para a raiz do seu projeto:
 
 ```bash
-# Copie a pasta .cursor e a pasta toolkit para a raiz do seu projeto
+# Copie a pasta .cursor para a raiz do seu projeto
 cp -r mosk/.cursor /caminho/do/seu/projeto/
+```
+```bash
+# Copie a pasta toolkit para a raiz do seu projeto
 cp -r mosk/toolkit /caminho/do/seu/projeto/
 ```
 
