@@ -7,8 +7,9 @@ get_repo_root() {
         git rev-parse --show-toplevel
     else
         # Fall back to script location for non-git repos
+        # Script is in toolkit/.specify/scripts/bash/, so go up 4 levels to reach repo root
         local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        (cd "$script_dir/../../.." && pwd)
+        (cd "$script_dir/../../../.." && pwd)
     fi
 }
 
