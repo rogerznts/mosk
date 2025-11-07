@@ -41,8 +41,8 @@ Skip proposal for:
 - Tests for existing behavior
 
 **Workflow**
-1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
+1. Review `toolkit/openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
+2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `toolkit/openspec/changes/<id>/`.
 3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
 4. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
 
@@ -66,9 +66,9 @@ After deployment, create separate PR to:
 ## Before Any Task
 
 **Context Checklist:**
-- [ ] Read relevant specs in `specs/[capability]/spec.md`
-- [ ] Check pending changes in `changes/` for conflicts
-- [ ] Read `openspec/project.md` for conventions
+- [ ] Read relevant specs in `toolkit/openspec/specs/[capability]/spec.md`
+- [ ] Check pending changes in `toolkit/openspec/changes/` for conflicts
+- [ ] Read `toolkit/openspec/project.md` for conventions
 - [ ] Run `openspec list` to see active changes
 - [ ] Run `openspec list --specs` to see existing capabilities
 
@@ -84,7 +84,7 @@ After deployment, create separate PR to:
 - Show details:
   - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
   - Change: `openspec show <change-id> --json --deltas-only`
-- Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" openspec/specs`
+- Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" toolkit/openspec/specs`
 
 ## Quick Start
 
@@ -123,7 +123,7 @@ openspec validate [change] --strict
 ## Directory Structure
 
 ```
-openspec/
+toolkit/openspec/
 ├── project.md              # Project conventions
 ├── specs/                  # Current truth - what IS built
 │   └── [capability]/       # Single focused capability
@@ -272,7 +272,7 @@ Headers matched with `trim(header)` - whitespace ignored.
 Common pitfall: Using MODIFIED to add a new concern without including the previous text. This causes loss of detail at archive time. If you aren’t explicitly changing the existing requirement, add a new requirement under ADDED instead.
 
 Authoring a MODIFIED requirement correctly:
-1) Locate the existing requirement in `openspec/specs/<capability>/spec.md`.
+1) Locate the existing requirement in `toolkit/openspec/specs/<capability>/spec.md`.
 2) Copy the entire requirement block (from `### Requirement: ...` through its scenarios).
 3) Paste it under `## MODIFIED Requirements` and edit to reflect the new behavior.
 4) Ensure the header text matches exactly (whitespace-insensitive) and keep at least one `#### Scenario:`.
@@ -320,17 +320,17 @@ openspec show [spec] --json -r 1
 openspec spec list --long
 openspec list
 # Optional full-text search:
-# rg -n "Requirement:|Scenario:" openspec/specs
-# rg -n "^#|Requirement:" openspec/changes
+# rg -n "Requirement:|Scenario:" toolkit/openspec/specs
+# rg -n "^#|Requirement:" toolkit/openspec/changes
 
 # 2) Choose change id and scaffold
 CHANGE=add-two-factor-auth
-mkdir -p openspec/changes/$CHANGE/{specs/auth}
-printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > openspec/changes/$CHANGE/proposal.md
-printf "## 1. Implementation\n- [ ] 1.1 ...\n" > openspec/changes/$CHANGE/tasks.md
+mkdir -p toolkit/openspec/changes/$CHANGE/{specs/auth}
+printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > toolkit/openspec/changes/$CHANGE/proposal.md
+printf "## 1. Implementation\n- [ ] 1.1 ...\n" > toolkit/openspec/changes/$CHANGE/tasks.md
 
 # 3) Add deltas (example)
-cat > openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
+cat > toolkit/openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
 ## ADDED Requirements
 ### Requirement: Two-Factor Authentication
 Users MUST provide a second factor during login.
@@ -347,7 +347,7 @@ openspec validate $CHANGE --strict
 ## Multi-Capability Example
 
 ```
-openspec/changes/add-2fa-notify/
+toolkit/openspec/changes/add-2fa-notify/
 ├── proposal.md
 ├── tasks.md
 └── specs/
@@ -387,7 +387,7 @@ Only add complexity with:
 
 ### Clear References
 - Use `file.ts:42` format for code locations
-- Reference specs as `specs/auth/spec.md`
+- Reference specs as `toolkit/openspec/specs/auth/spec.md`
 - Link related changes and PRs
 
 ### Capability Naming
