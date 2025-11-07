@@ -116,10 +116,17 @@ Estrutura que será copiada:
 seu-projeto/
 ├── .cursor/
 │   └── commands/          # Slash commands personalizados
-└── toolkit/
-    ├── .bmad-core/       # Agentes e recursos do BMAD
-    ├── .specify/         # Templates e scripts do SpecKit
-    └── openspec/         # Configurações do OpenSpec
+├── toolkit/
+│   ├── .bmad-core/       # Agentes e recursos do BMAD
+│   ├── .specify/         # Templates e scripts do SpecKit
+│   └── openspec/         # Configurações do OpenSpec
+└── docs/                 # Criado automaticamente ao usar SpecKit
+    └── specs/            # Especificações de features
+        └── 001-feature/  # Cada feature em seu diretório
+            ├── spec.md
+            ├── plan.md
+            ├── tasks.md
+            └── ...
 ```
 
 
@@ -134,6 +141,52 @@ cp -r mosk/.cursor /caminho/do/seu/projeto/
 cp -r mosk/toolkit /caminho/do/seu/projeto/
 ```
 
+### 📁 Organização dos Documentos
+
+O MOSK Toolkit mantém duas estruturas de documentação distintas:
+
+#### 📋 SpecKit - Features (`/docs/specs/`)
+
+Documentação de features criadas com o SpecKit, organizadas por branch:
+
+```
+docs/specs/
+├── 001-user-authentication/
+│   ├── spec.md          # Especificação da feature
+│   ├── plan.md          # Plano de implementação
+│   ├── research.md      # Pesquisas técnicas
+│   ├── data-model.md    # Modelo de dados
+│   ├── quickstart.md    # Guia rápido
+│   ├── contracts/       # Contratos de API
+│   └── tasks.md         # Lista de tarefas
+├── 002-payment-system/
+│   └── ...
+└── 003-dashboard/
+    └── ...
+```
+
+#### 🔧 OpenSpec - Mudanças (`/toolkit/openspec/`)
+
+Propostas de mudança e specs principais do OpenSpec (GMUDs, bugfixes, hotfixes):
+
+```
+toolkit/openspec/
+├── project.md          # Convenções do projeto
+├── specs/              # Especificações principais por capability
+│   └── [capability]/
+│       ├── spec.md
+│       └── design.md
+└── changes/            # Propostas de mudança
+    ├── [change-id]/
+    │   ├── proposal.md
+    │   ├── tasks.md
+    │   └── specs/      # Deltas das mudanças
+    └── archive/        # Mudanças arquivadas
+```
+
+**Quando usar cada uma:**
+- **`/docs/specs/`** → Use para features completas criadas com `/mosk-spec-*` commands
+- **`/toolkit/openspec/`** → Use para mudanças pontuais com `/mosk-chore-*` commands
 
 ### ⚡ Slash Commands
 
