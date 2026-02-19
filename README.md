@@ -39,7 +39,7 @@ O BMAD Core utiliza agentes inteligentes para produzir documentação de alto n�
 
 O SpecKit transforma a documentação estratégica do BMAD em código mais objetivo, mantendo total alinhamento entre o que foi planejado e o que está sendo desenvolvido.
 
-### 3. **OpenSpec** - Manutenção & Operações
+### 3. **Chore Mode (Plan Mode)** - Manutenção & Operações
 
 **Quando usar:** Ações rápidas, correções e operações do dia a dia
 
@@ -48,9 +48,9 @@ O SpecKit transforma a documentação estratégica do BMAD em código mais objet
 - 🐛 **Bugfix** e correções
 - 🔥 **Hotfix** emergenciais
 - ⚡ **Ações rápidas** e pontuais
-- 🚀 **Deploy** e operações
+- 🗂️ **Registro leve** de propostas, tarefas e decisões
 
-O OpenSpec é otimizado para situações que requerem agilidade, mantendo ainda assim a documentação e rastreabilidade necessárias para operações seguras.
+O Chore Mode usa o Plan Mode nativo do Cursor para mudanças rápidas com documentação enxuta e rastreável, sem dependência de CLI externa.
 
 ## 🔄 Fluxo de Trabalho SDD
 
@@ -63,7 +63,7 @@ O OpenSpec é otimizado para situações que requerem agilidade, mantendo ainda 
    └─> Implementação de Features
        └─> Criação de branches baseadas em especificações
            
-3. 🔧 OpenSpec
+3. 🔧 Chore Mode (Plan Mode)
    └─> Manutenção & Hotfixes
        └─> Correções e mudanças rápidas
 ```
@@ -119,7 +119,7 @@ seu-projeto/
 ├── toolkit/
 │   ├── .bmad-core/       # Agentes e recursos do BMAD
 │   ├── .specify/         # Templates e scripts do SpecKit
-│   └── openspec/         # Configurações do OpenSpec
+│   └── changes/          # Mudanças rápidas (proposal/tasks/design)
 └── docs/                 # Criado automaticamente ao usar SpecKit
     └── specs/            # Especificações de features
         └── 001-feature/  # Cada feature em seu diretório
@@ -165,28 +165,22 @@ docs/specs/
     └── ...
 ```
 
-#### 🔧 OpenSpec - Mudanças (`/toolkit/openspec/`)
+#### 🔧 Chore Mode - Mudanças (`/toolkit/changes/`)
 
-Propostas de mudança e specs principais do OpenSpec (GMUDs, bugfixes, hotfixes):
+Propostas de mudança para GMUDs, bugfixes e hotfixes com fluxo leve baseado em Plan Mode:
 
 ```
-toolkit/openspec/
-├── project.md          # Convenções do projeto
-├── specs/              # Especificações principais por capability
-│   └── [capability]/
-│       ├── spec.md
-│       └── design.md
-└── changes/            # Propostas de mudança
-    ├── [change-id]/
-    │   ├── proposal.md
-    │   ├── tasks.md
-    │   └── specs/      # Deltas das mudanças
-    └── archive/        # Mudanças arquivadas
+toolkit/changes/
+├── [change-id]/
+│   ├── proposal.md
+│   ├── tasks.md
+│   └── design.md       # Opcional
+└── archive/            # Histórico manual opcional
 ```
 
 **Quando usar cada uma:**
 - **`/docs/specs/`** → Use para features completas criadas com `/mosk-spec-*` commands
-- **`/toolkit/openspec/`** → Use para mudanças pontuais com `/mosk-chore-*` commands
+- **`/toolkit/changes/`** → Use para mudanças pontuais com `/mosk-chore-*` commands e Plan Mode
 
 ### ⚡ Slash Commands
 
@@ -232,20 +226,20 @@ O MOSK Toolkit utiliza **slash commands customizados** para o Cursor IDE, facili
 
 **`/mosk-spec-implement`** - Executa o plano de implementação processando todas as tarefas do tasks.md. Verifica checklists, segue dependências e reporta progresso. Use quando tudo estiver validado e pronto para implementar.
 
-#### 🔧 OpenSpec - Mudanças Rápidas
+#### 🔧 Chore Mode - Mudanças Rápidas (Plan Mode)
 
-**`/mosk-chore-proposal`** - Cria uma proposta de mudança OpenSpec com scaffold completo (proposal.md, tasks.md, design.md). Valida estritamente e mapeia mudanças em specs deltas organizados por capability. Use para GMUDs, bugfixes e mudanças pontuais.
+**`/mosk-chore-proposal`** - Cria uma proposta de mudança rápida com scaffold completo (`proposal.md`, `tasks.md`, `design.md`) em `toolkit/changes/<change-id>/`. Use para GMUDs, bugfixes e ajustes pontuais.
 
-**`/mosk-chore-apply`** - Implementa uma mudança OpenSpec aprovada, executando as tarefas definidas e mantendo sincronia com a proposta. Use após a proposta ser revisada e aprovada para aplicar as mudanças.
+**`/mosk-chore-apply`** - Implementa uma mudança aprovada, executando as tarefas definidas e mantendo sincronia com a proposta. Use após revisão e aprovação.
 
-**`/mosk-chore-archive`** - Arquiva uma mudança OpenSpec deployada, movendo para o histórico e atualizando as specs principais. Use após deployment bem-sucedido para consolidar as mudanças nas especificações permanentes.
+**`/mosk-chore-archive`** - Finaliza uma mudança concluída com encerramento manual (registro e histórico opcional), sem merge automático de specs.
 
 ## 🚀 Começando
 
 1. **Instale o toolkit** copiando as pastas `.cursor` e `toolkit` para seu projeto
 2. **Inicie com BMAD Core** (`/mosk-ag-orchestrator` ou agentes específicos) para discovery e gerar especificações
 3. **Use SpecKit** (`/mosk-spec-specify` → `/mosk-spec-plan` → `/mosk-spec-implement`) para implementar features
-4. **Aplique OpenSpec** (`/mosk-chore-proposal`) para manutenções rápidas e correções
+4. **Aplique Chore Mode** (`/mosk-chore-proposal`) para manutenções rápidas e correções
 
 ## 📚 Recomendações de Uso
 
@@ -281,16 +275,17 @@ flowchart TD
     Tasks --> Implement[/mosk-spec-implement<br/>Execução & Testes/]
     Implement --> FeatureDone([Feature Completa])
     
-    %% OpenSpec Flow - Quick Changes
+    %% Chore Flow - Quick Changes
     WorkType -->|Mudança Rápida<br/>GMUD/Bugfix| Proposal[/mosk-chore-proposal<br/>Proposta de Mudança/]
-    Proposal --> Apply[/mosk-chore-apply<br/>Aplicar Mudança/]
-    Apply --> Archive[/mosk-chore-archive<br/>Arquivar & Consolidar/]
+    Proposal --> PlanMode[/Plan Mode<br/>Escopo & Tarefas/]
+    PlanMode --> Apply[/mosk-chore-apply<br/>Aplicar Mudança/]
+    Apply --> Archive[/mosk-chore-archive<br/>Encerramento Manual/]
     Archive --> ChangeDone([Mudança Completa])
     
     %% Styling
     classDef greenfield fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
     classDef speckit fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
-    classDef openspec fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    classDef chore fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
     classDef optional fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
     classDef decision fill:#6b7280,stroke:#4b5563,stroke-width:2px,color:#fff
     classDef endpoint fill:#ec4899,stroke:#db2777,stroke-width:2px,color:#fff
@@ -298,7 +293,7 @@ flowchart TD
     class Analyst,Architect,PO greenfield
     class Constitution,Specify,Plan,Tasks,Implement speckit
     class Clarify,Analyze,Checklist optional
-    class Proposal,Apply,Archive openspec
+    class Proposal,PlanMode,Apply,Archive chore
     class ProjectType,WorkType,ClarifyOpt,AnalyzeOpt,ChecklistOpt decision
     class Start,FeatureDone,ChangeDone endpoint
 ```
@@ -378,15 +373,15 @@ Siga este fluxo completo para desenvolver features com qualidade e rastreabilida
    - Realize revisões e testes
    - Reporte progresso continuamente
 
-#### 🔧 Para Mudanças e Ajustes - Use o OpenSpec
+#### 🔧 Para Mudanças e Ajustes - Use Chore Mode (Plan Mode)
 
 Para correções, ajustes e mudanças pontuais que não justificam todo o processo do SpecKit:
 
 1. **`/mosk-chore-proposal`** - Propor Mudança
-   - Crie proposta completa com scaffold
+   - Crie proposta completa com scaffold em `toolkit/changes/<change-id>/`
    - Documente a mudança em `proposal.md`
    - Defina tarefas em `tasks.md`
-   - Mapeie design em `design.md`
+   - Use Plan Mode para refinar escopo e execução
    - Use para GMUDs, bugfixes e hotfixes
 
 2. **`/mosk-chore-apply`** - Aplicar Mudança
@@ -396,10 +391,10 @@ Para correções, ajustes e mudanças pontuais que não justificam todo o proces
    - Valide antes do deploy
 
 3. **`/mosk-chore-archive`** - Finalizar Proposta
-   - Archive após deployment bem-sucedido
-   - Mova para histórico
-   - Consolide mudanças nas specs principais
-   - Mantenha rastreabilidade completa
+   - Finalize após deployment bem-sucedido
+   - Mova para histórico opcional (`toolkit/changes/archive/`)
+   - Registre resultado e evidências de validação
+   - Sem merge automático de specs
 
 ---
 

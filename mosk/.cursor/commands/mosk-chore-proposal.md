@@ -1,27 +1,26 @@
 ---
-name: /openspec-proposal
-id: openspec-proposal
-category: OpenSpec
-description: Scaffold a new OpenSpec change and validate strictly.
+name: /mosk-chore-proposal
+id: mosk-chore-proposal
+category: Chore Mode
+description: Scaffold a new quick-change proposal using Plan Mode.
 ---
-<!-- OPENSPEC:START -->
+<!-- CHORE:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
 - Keep changes tightly scoped to the requested outcome.
-- Refer to `./toolkit/openspec/AGENTS.md` (located inside the `./toolkit/openspec/` directory—run `ls ./toolkit/openspec` or `openspec update` if you don't see it) if you need additional OpenSpec conventions or clarifications.
 - Identify any vague or ambiguous details and ask the necessary follow-up questions before editing files.
 
 **Steps**
-1. Review `./toolkit/openspec/project.md`, run `cd ./toolkit/ && openspec list` and `cd ./toolkit/ && openspec list --specs`, and inspect related code or docs (e.g., via `rg`/`ls`) to ground the proposal in current behaviour; note any gaps that require clarification.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, and `design.md` (when needed) under `./toolkit/openspec/changes/<id>/`.
-3. Map the change into concrete capabilities or requirements, breaking multi-scope efforts into distinct spec deltas with clear relationships and sequencing.
-4. Capture architectural reasoning in `design.md` when the solution spans multiple systems, introduces new patterns, or demands trade-off discussion before committing to specs.
-5. Draft spec deltas in `toolkit/openspec/changes/<id>/specs/<capability>/spec.md` (one folder per capability) using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement and cross-reference related capabilities when relevant.
-6. Draft `tasks.md` as an ordered list of small, verifiable work items that deliver user-visible progress, include validation (tests, tooling), and highlight dependencies or parallelizable work.
-7. Validate with `cd ./toolkit/ && openspec validate <id> --strict` and resolve every issue before sharing the proposal.
+1. Inspect existing quick changes in `./toolkit/changes/` (if present) and related code/docs to ground the proposal in current behavior.
+2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, and `design.md` (when needed) under `./toolkit/changes/<id>/`.
+3. Use Plan Mode to refine scope, constraints, and execution order before implementation.
+4. Draft `proposal.md` with context, objective, expected impact, and explicit acceptance criteria.
+5. Draft `tasks.md` as an ordered list of small, verifiable work items that include validation (tests/tooling) and dependencies.
+6. Add `design.md` only when the change spans multiple systems or needs trade-off documentation.
+7. Before handoff, ensure docs and tasks are consistent and that no step depends on external CLIs.
 
 **Reference**
-- Use `cd ./toolkit/ && openspec show <id> --json --deltas-only` or `cd ./toolkit/ && openspec show <spec> --type spec` to inspect details when validation fails.
-- Search existing requirements with `rg -n "Requirement:|Scenario:" ./toolkit/openspec/specs` before writing new ones.
+- Use direct file reads under `./toolkit/changes/<id>/` as the source of truth.
+- Re-run Plan Mode if scope changes during proposal drafting.
 - Explore the codebase with `rg <keyword>`, `ls`, or direct file reads so proposals align with current implementation realities.
-<!-- OPENSPEC:END -->
+<!-- CHORE:END -->
