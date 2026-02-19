@@ -1,9 +1,8 @@
 ---
-name: /mosk-chore-apply
-id: mosk-chore-apply
-category: Chore Mode
+name: mosk-chore-apply
 description: Implement an approved quick change and keep tasks in sync.
 ---
+
 <!-- CHORE:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

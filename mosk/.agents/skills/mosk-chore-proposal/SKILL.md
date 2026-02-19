@@ -1,9 +1,8 @@
 ---
-name: /mosk-chore-proposal
-id: mosk-chore-proposal
-category: Chore Mode
+name: mosk-chore-proposal
 description: Scaffold a new quick-change proposal using Plan Mode.
 ---
+
 <!-- CHORE:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.

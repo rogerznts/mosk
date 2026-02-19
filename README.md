@@ -50,7 +50,7 @@ O SpecKit transforma a documentação estratégica do BMAD em código mais objet
 - ⚡ **Ações rápidas** e pontuais
 - 🗂️ **Registro leve** de propostas, tarefas e decisões
 
-O Chore Mode usa o Plan Mode nativo do Cursor para mudanças rápidas com documentação enxuta e rastreável, sem dependência de CLI externa.
+O Chore Mode usa o modo de planejamento da IA em uso (Plan Mode), permitindo mudanças rápidas com documentação enxuta e rastreável, sem dependência de CLI externa.
 
 ## 🔄 Fluxo de Trabalho SDD
 
@@ -107,8 +107,11 @@ npx degit rogerznts/mosk/mosk . --force
 ```
 
 **Após instalação:**
-1. Reinicie o Cursor IDE
-2. Digite `/` para ver os 21 comandos disponíveis
+1. Reinicie sua IA/IDE (`Cursor`, `Codex CLI` ou `Claude Code`)
+2. Use o MOSK conforme sua plataforma:
+   - Cursor: comandos slash (`/mosk-...`)
+   - Claude Code: skills em `.claude/skills` (viram comandos slash)
+   - Codex: skills em `.agents/skills` (ativacao por intencao/nome da skill)
 
 
 Estrutura que será copiada:
@@ -116,12 +119,16 @@ Estrutura que será copiada:
 seu-projeto/
 ├── .cursor/
 │   └── commands/          # Slash commands personalizados
+├── .agents/
+│   └── skills/            # Skills do projeto para Codex
+├── .claude/
+│   └── skills/            # Skills do projeto para Claude Code
 ├── toolkit/
 │   ├── .bmad-core/       # Agentes e recursos do BMAD
-│   ├── .specify/         # Templates e scripts do SpecKit
-│   └── changes/          # Mudanças rápidas (proposal/tasks/design)
-└── docs/                 # Criado automaticamente ao usar SpecKit
-    └── specs/            # Especificações de features
+│   └── .specify/         # Templates e scripts do SpecKit
+└── docs/
+    ├── changes/          # Mudanças rápidas (proposal/tasks/design)
+    └── specs/            # Especificações de features (criadas pelo SpecKit)
         └── 001-feature/  # Cada feature em seu diretório
             ├── spec.md
             ├── plan.md
@@ -137,8 +144,20 @@ Para instalar o MOSK Toolkit manualmente em qualquer projeto (Greenfield ou Brow
 cp -r mosk/.cursor /caminho/do/seu/projeto/
 ```
 ```bash
+# Copie a pasta .agents para a raiz do seu projeto (Codex Skills)
+cp -r mosk/.agents /caminho/do/seu/projeto/
+```
+```bash
+# Copie a pasta .claude para a raiz do seu projeto (Claude Skills)
+cp -r mosk/.claude /caminho/do/seu/projeto/
+```
+```bash
 # Copie a pasta toolkit para a raiz do seu projeto
 cp -r mosk/toolkit /caminho/do/seu/projeto/
+```
+```bash
+# Copie a pasta docs para a raiz do seu projeto
+cp -r mosk/docs /caminho/do/seu/projeto/
 ```
 
 ### 📁 Organização dos Documentos
@@ -165,12 +184,12 @@ docs/specs/
     └── ...
 ```
 
-#### 🔧 Chore Mode - Mudanças (`/toolkit/changes/`)
+#### 🔧 Chore Mode - Mudanças (`/docs/changes/`)
 
 Propostas de mudança para GMUDs, bugfixes e hotfixes com fluxo leve baseado em Plan Mode:
 
 ```
-toolkit/changes/
+docs/changes/
 ├── [change-id]/
 │   ├── proposal.md
 │   ├── tasks.md
@@ -179,12 +198,22 @@ toolkit/changes/
 ```
 
 **Quando usar cada uma:**
-- **`/docs/specs/`** → Use para features completas criadas com `/mosk-spec-*` commands
-- **`/toolkit/changes/`** → Use para mudanças pontuais com `/mosk-chore-*` commands e Plan Mode
+- **`/docs/specs/`** → Use para features completas criadas com fluxos `mosk-spec-*`
+- **`/docs/changes/`** → Use para mudanças pontuais com fluxos `mosk-chore-*` e Plan Mode
 
-### ⚡ Slash Commands
+### ⚡ Skills e Comandos
 
-O MOSK Toolkit utiliza **slash commands customizados** para o Cursor IDE, facilitando o acesso rápido aos agentes e funcionalidades. Todos os comandos estão disponíveis digitando `/` no Cursor.
+O MOSK Toolkit mantém os **mesmos 21 fluxos funcionais** para `Cursor`, `Codex` e `Claude Code`, mudando apenas o mecanismo de execucao.
+
+Formato por plataforma:
+- **Cursor** (arquivos em `.cursor/commands`): comandos slash `/mosk-*`
+- **Claude Code** (arquivos em `.claude/skills/<skill>/SKILL.md`): skills viram slash commands usando o `name` do frontmatter
+- **Codex** (arquivos em `.agents/skills/<skill>/SKILL.md`): skills acionadas por intencao/nome da skill
+
+Referências rápidas por pasta:
+- `.cursor/README.md`
+- `.claude/README.md`
+- `.agents/README.md`
 
 #### 🧙 BMAD Core - Agentes de Discovery
 
@@ -228,7 +257,7 @@ O MOSK Toolkit utiliza **slash commands customizados** para o Cursor IDE, facili
 
 #### 🔧 Chore Mode - Mudanças Rápidas (Plan Mode)
 
-**`/mosk-chore-proposal`** - Cria uma proposta de mudança rápida com scaffold completo (`proposal.md`, `tasks.md`, `design.md`) em `toolkit/changes/<change-id>/`. Use para GMUDs, bugfixes e ajustes pontuais.
+**`/mosk-chore-proposal`** - Cria uma proposta de mudança rápida com scaffold completo (`proposal.md`, `tasks.md`, `design.md`) em `docs/changes/<change-id>/`. Use para GMUDs, bugfixes e ajustes pontuais.
 
 **`/mosk-chore-apply`** - Implementa uma mudança aprovada, executando as tarefas definidas e mantendo sincronia com a proposta. Use após revisão e aprovação.
 
@@ -236,7 +265,7 @@ O MOSK Toolkit utiliza **slash commands customizados** para o Cursor IDE, facili
 
 ## 🚀 Começando
 
-1. **Instale o toolkit** copiando as pastas `.cursor` e `toolkit` para seu projeto
+1. **Instale o toolkit** copiando as pastas `.cursor`, `.claude`, `.agents`, `toolkit` e `docs` para seu projeto
 2. **Inicie com BMAD Core** (`/mosk-ag-orchestrator` ou agentes específicos) para discovery e gerar especificações
 3. **Use SpecKit** (`/mosk-spec-specify` → `/mosk-spec-plan` → `/mosk-spec-implement`) para implementar features
 4. **Aplique Chore Mode** (`/mosk-chore-proposal`) para manutenções rápidas e correções
@@ -378,7 +407,7 @@ Siga este fluxo completo para desenvolver features com qualidade e rastreabilida
 Para correções, ajustes e mudanças pontuais que não justificam todo o processo do SpecKit:
 
 1. **`/mosk-chore-proposal`** - Propor Mudança
-   - Crie proposta completa com scaffold em `toolkit/changes/<change-id>/`
+   - Crie proposta completa com scaffold em `docs/changes/<change-id>/`
    - Documente a mudança em `proposal.md`
    - Defina tarefas em `tasks.md`
    - Use Plan Mode para refinar escopo e execução
@@ -392,13 +421,10 @@ Para correções, ajustes e mudanças pontuais que não justificam todo o proces
 
 3. **`/mosk-chore-archive`** - Finalizar Proposta
    - Finalize após deployment bem-sucedido
-   - Mova para histórico opcional (`toolkit/changes/archive/`)
+   - Mova para histórico opcional (`docs/changes/archive/`)
    - Registre resultado e evidências de validação
    - Sem merge automático de specs
 
 ---
 
 **MOSK Toolkit** - Transformando especificações em realidade, uma feature por vez.
-
-
-
