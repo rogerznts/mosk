@@ -1,9 +1,8 @@
 ---
-name: /mosk-chore-archive
-id: mosk-chore-archive
-category: Chore Mode
+name: mosk-chore-archive
 description: Manually close a deployed quick change without spec merge automation.
 ---
+
 <!-- CHORE:START -->
 **Guardrails**
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
