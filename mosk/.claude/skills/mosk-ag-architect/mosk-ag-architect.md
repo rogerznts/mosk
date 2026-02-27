@@ -1,8 +1,9 @@
 ---
-name: mosk-ag-architect
+name: /bmad-architect
+id: bmad-architect
+category: BMad
 description: Activate the Architect agent persona for system design, architecture documents, technology selection, and infrastructure planning.
 ---
-
 
 ## Agent Activation
 

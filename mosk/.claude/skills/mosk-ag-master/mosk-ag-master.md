@@ -1,8 +1,9 @@
 ---
-name: mosk-ag-master
+name: /bmad-master
+id: bmad-master
+category: BMad
 description: Activate the BMad Master Task Executor agent persona for comprehensive expertise across all domains.
 ---
-
 
 ## Agent Activation
 

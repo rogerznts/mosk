@@ -1,8 +1,6 @@
 ---
-name: mosk-spec-checklist
 description: Generate a custom checklist for the current feature based on user requirements.
 ---
-
 
 ## Checklist Purpose: "Unit Tests for English"
 

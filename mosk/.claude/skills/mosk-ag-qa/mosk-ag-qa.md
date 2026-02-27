@@ -1,8 +1,9 @@
 ---
-name: mosk-ag-qa
+name: /bmad-qa
+id: bmad-qa
+category: BMad
 description: Activate the Test Architect & Quality Advisor agent persona for comprehensive test architecture review and quality gate decisions.
 ---
-
 
 ## Agent Activation
 

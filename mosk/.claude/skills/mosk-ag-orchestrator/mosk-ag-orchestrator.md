@@ -1,8 +1,9 @@
 ---
-name: mosk-ag-orchestrator
+name: /bmad-orchestrator
+id: bmad-orchestrator
+category: BMad
 description: Activate the BMad Master Orchestrator agent persona for workflow coordination, multi-agent tasks, and role switching guidance.
 ---
-
 
 ## Agent Activation
 

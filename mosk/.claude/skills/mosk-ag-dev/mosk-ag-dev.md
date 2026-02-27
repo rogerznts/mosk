@@ -1,8 +1,9 @@
 ---
-name: mosk-ag-dev
+name: /bmad-dev
+id: bmad-dev
+category: BMad
 description: Activate the Full Stack Developer agent persona for code implementation, debugging, refactoring, and development best practices.
 ---
-
 
 ## Agent Activation
 
