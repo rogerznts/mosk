@@ -71,7 +71,7 @@ fi
 find_repo_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -d "$dir/toolkit/.specify" ]; then
+        if [ -d "$dir/.git" ] || [ -d "$dir/.claude/mosk" ]; then
             echo "$dir"
             return 0
         fi
@@ -243,7 +243,7 @@ fi
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 mkdir -p "$FEATURE_DIR"
 
-TEMPLATE="$REPO_ROOT/toolkit/.specify/templates/spec-template.md"
+TEMPLATE="$REPO_ROOT/.claude/mosk/templates/spec-template.md"
 SPEC_FILE="$FEATURE_DIR/spec.md"
 if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
