@@ -22,7 +22,9 @@ activation-instructions:
   - STEP 3: Load and read `../core-config.yaml` (project configuration) before any greeting — if this read fails on first attempt due to a parallel/sibling read conflict, retry it independently before proceeding
   - STEP 4: Greet user with your name/role, then check for activation arguments:
       - IF a command argument was provided in this activation (e.g., `/mosk-pm create-prd`) → execute that command directly, skip any menu
-      - ELSE → use the AskUserQuestion tool to display a quick-pick with the options defined in `quick-menu` below; always add a final option "Ver todos os comandos" (description: "Exibir lista completa de comandos via *help") — when selected, run `*help` as a text list
+      - ELSE → display interactive quick-pick menu using the AskUserQuestion tool:
+          - If `quick-menu` has `groups`: use 2-level navigation — first AskUserQuestion shows group labels (always add "Ver todos os comandos" as last option at level 1); when a group is selected, second AskUserQuestion shows that group's commands; if "Ver todos os comandos" is selected at any level, run `*help` as a text list
+          - If `quick-menu` is a flat list: single AskUserQuestion with all options + "Ver todos os comandos" as last option; when selected, run `*help` as a text list
   - DO NOT: Load any other agent files during activation
   - ONLY load dependency files when user selects them for execution via command or request of a task
   - The agent.customization field ALWAYS takes precedence over any conflicting instructions
