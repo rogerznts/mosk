@@ -59,8 +59,14 @@ commands:
     - create-brownfield-prd: Criar PRD brownfield → task create-doc + brownfield-prd-tmpl.yaml
     - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
 
+  stories:
+    - create-epic: Criar épico → task brownfield-create-epic.md
+    - create-story: Criar story → task brownfield-create-story.md
+    - create-brownfield-epic: Criar épico brownfield
+    - create-brownfield-story: Criar story brownfield
+
   spec-pipeline:
-    - spec-specify {desc}: Criar spec de feature → task spec-specify.md
+    - spec-specify {desc}: Criar spec de feature/story → task spec-specify.md
     - spec-plan: Gerar data-model, contratos, pesquisa → task spec-plan.md
     - spec-tasks: Gerar tasks.md ordenado → task spec-tasks.md
 
@@ -68,12 +74,6 @@ commands:
     - spec-clarify: Resolver ambiguidades da spec
     - spec-analyze: Análise de consistência cross-artifact
     - spec-checklist {tipo}: Checklist de qualidade da spec
-
-  stories:
-    - create-epic: Criar épico → task brownfield-create-epic.md
-    - create-story: Criar story → task brownfield-create-story.md
-    - create-brownfield-epic: Criar épico brownfield
-    - create-brownfield-story: Criar story brownfield
 
   utils:
     - doc-out: Salvar documento atual
