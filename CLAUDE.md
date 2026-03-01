@@ -24,8 +24,8 @@ mosk/                              # The installable template (ships to target p
 │   │   ├── agents/                # 10 agent definition files
 │   │   │   ├── analyst.md         # Maria — discovery, brief, research
 │   │   │   ├── architect.md       # Vinicius — architecture, stack, APIs
-│   │   │   ├── pm.md              # João — PRD, product, SpecKit owner
-│   │   │   ├── po.md              # Sara — backlog, stories, AC
+│   │   │   ├── pm.md              # João — PRD, product, spec-constitution
+│   │   │   ├── po.md              # Sara — backlog, stories, AC, SpecKit pipeline
 │   │   │   ├── sm.md              # Roberto — dev-readiness, agile
 │   │   │   ├── dev.md             # Jaime — implementation, Chore Mode
 │   │   │   ├── qa.md              # Joaquim — testing, quality gates, NFR
@@ -75,10 +75,15 @@ Ten specialized AI agent personas with Brazilian names. Each agent is a fully se
 
 ### SpecKit (tasks in `.claude/mosk/tasks/spec-*.md`)
 
-Transforms natural language descriptions into executable implementation plans. **Owned by PM (João)**:
+Transforms natural language descriptions into executable implementation plans.
 
+**Owned by PM (João)** — strategic foundation (run ONCE per project):
 ```
-*spec-constitution  → derive project principles from PRD + architecture (run ONCE)
+*spec-constitution  → derive project principles from PRD + architecture
+```
+
+**Owned by PO (Sara)** — full spec pipeline per feature:
+```
 *spec-specify       → create spec.md from description
 *spec-clarify       → resolve ambiguities (optional)
 *spec-plan          → generate data-model, contracts, research
@@ -143,10 +148,10 @@ The relative path `../../mosk/agents/` resolves correctly from any folder inside
 
 | Agent | Skill | SpecKit | Chore |
 |---|---|---|---|
-| João (pm) | `/mosk-pm` | Owns full spec pipeline (constitution→tasks) | — |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` only | Owns all chore commands |
-| Sara (po) | `/mosk-po` | Creates stories with AC | — |
+| João (pm) | `/mosk-pm` | `spec-constitution` only (run once) | — |
+| Sara (po) | `/mosk-po` | Owns full spec pipeline (specify→tasks) + stories with AC | — |
 | Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories | — |
+| Jaime (dev) | `/mosk-dev` | `spec-implement` only | Owns all chore commands |
 
 ## What Gets Installed in Target Projects
 

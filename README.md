@@ -84,8 +84,8 @@ seu-projeto/
 |---|---|---|
 | `/mosk-analyst` | Maria | Pesquisa de mercado, brainstorming, project brief, análise competitiva |
 | `/mosk-architect` | Vinicius | Arquitetura de sistemas, stack, APIs, infraestrutura |
-| `/mosk-pm` | João | PRDs, estratégia de produto, feature specs (SpecKit) |
-| `/mosk-po` | Sara | Backlog, stories com AC, critérios de aceitação |
+| `/mosk-pm` | João | PRDs, estratégia de produto, spec-constitution |
+| `/mosk-po` | Sara | Backlog, épicos, stories com AC, SpecKit (spec-specify → spec-tasks) |
 | `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
 | `/mosk-dev` | Jaime | Implementação, debugging, refatoração, Chore Mode |
 | `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
@@ -108,42 +108,42 @@ flowchart TD
     A1 --> A2["/mosk-architect
     Arquitetura & Stack"]
     A2 --> A3["/mosk-pm
-    PRD & Épicos"]
+    PRD"]
     A3 --> C["/mosk-pm
     *spec-constitution
     — executa UMA VEZ —"]
 
-    C --> S["/mosk-pm
+    C --> PO["/mosk-po
+    Épicos & Stories"]
+    PO --> S["/mosk-po
     *spec-specify
     Criar Spec da Feature"]
     S --> CQ{"Ambiguidades
     na spec?"}
-    CQ -->|Sim| CL["/mosk-pm
+    CQ -->|Sim| CL["/mosk-po
     *spec-clarify
     Resolver Ambiguidades"]
     CQ -->|Não| P
-    CL --> P["/mosk-pm
+    CL --> P["/mosk-po
     *spec-plan
     Planejar Implementação"]
     P --> AQ{"Validar
     consistência?"}
-    AQ -->|Sim| AN["/mosk-pm
+    AQ -->|Sim| AN["/mosk-po
     *spec-analyze
     Análise Cross-Artifact"]
     AQ -->|Não| CHQ
     AN --> CHQ{"Checklist
     de qualidade?"}
-    CHQ -->|Sim| CH["/mosk-pm
+    CHQ -->|Sim| CH["/mosk-po
     *spec-checklist
     Checklist por Domínio"]
     CHQ -->|Não| T
-    CH --> T["/mosk-pm
+    CH --> T["/mosk-po
     *spec-tasks
     Gerar Tasks Ordenadas"]
 
-    T --> PO["/mosk-po
-    Stories com AC"]
-    PO --> SM["/mosk-sm
+    T --> SM["/mosk-sm
     Dev-Readiness"]
     SM --> DQ{"Abordagem
     de implementação?"}
@@ -190,36 +190,36 @@ flowchart TD
     CQ -->|Não| C["/mosk-pm
     *spec-constitution
     — executa UMA VEZ —"]
-    CQ -->|Sim| S
-    C --> S["/mosk-pm
+    CQ -->|Sim| PO
+    C --> PO["/mosk-po
+    Épicos & Stories"]
+    PO --> S["/mosk-po
     *spec-specify
     Criar Spec da Feature"]
 
     S --> AQ{"Ambiguidades
     na spec?"}
-    AQ -->|Sim| CL["/mosk-pm
+    AQ -->|Sim| CL["/mosk-po
     *spec-clarify"]
     AQ -->|Não| P
-    CL --> P["/mosk-pm
+    CL --> P["/mosk-po
     *spec-plan
     Planejar Implementação"]
     P --> VQ{"Validar
     consistência?"}
-    VQ -->|Sim| AN["/mosk-pm
+    VQ -->|Sim| AN["/mosk-po
     *spec-analyze"]
     VQ -->|Não| CHQ
     AN --> CHQ{"Checklist
     de qualidade?"}
-    CHQ -->|Sim| CH["/mosk-pm
+    CHQ -->|Sim| CH["/mosk-po
     *spec-checklist"]
     CHQ -->|Não| T
-    CH --> T["/mosk-pm
+    CH --> T["/mosk-po
     *spec-tasks
     Gerar Tasks Ordenadas"]
 
-    T --> PO["/mosk-po
-    Stories com AC"]
-    PO --> SM["/mosk-sm
+    T --> SM["/mosk-sm
     Dev-Readiness"]
     SM --> DI["/mosk-dev
     *spec-implement"]
@@ -269,8 +269,8 @@ flowchart TD
 | `/mosk-master` | Tarefa pontual sem persona específica; expertise geral |
 | `/mosk-analyst` | Discovery inicial, brief, pesquisa |
 | `/mosk-architect` | Arquitetura técnica, stack, decisões estruturais |
-| `/mosk-pm` | PRD, estratégia, feature specs (SpecKit completo) |
-| `/mosk-po` | Backlog, épicos, stories com AC |
+| `/mosk-pm` | PRD, estratégia, spec-constitution (uma vez) |
+| `/mosk-po` | Backlog, épicos, stories com AC, SpecKit completo (specify → tasks) |
 | `/mosk-sm` | Refinar stories para dev; garantir clareza para implementação |
 | `/mosk-dev` | Implementar stories, spec-implement, Chore Mode |
 | `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
@@ -281,12 +281,12 @@ flowchart TD
 | Comando | Dono | O que faz |
 |---|---|---|
 | `*spec-constitution` | PM — uma vez | Deriva princípios do projeto a partir de PRD + arquitetura |
-| `*spec-specify` | PM | Cria `spec.md` a partir de descrição em linguagem natural |
-| `*spec-clarify` | PM — opcional | Resolve ambiguidades com até 5 perguntas direcionadas |
-| `*spec-plan` | PM | Gera artefatos de design (`data-model`, `contracts`, `research`) |
-| `*spec-analyze` | PM — opcional | Valida consistência cross-artifact (não-destrutivo) |
-| `*spec-checklist` | PM — opcional | Gera checklist de qualidade por domínio (ux, api, security…) |
-| `*spec-tasks` | PM | Gera `tasks.md` ordenado e acionável |
+| `*spec-specify` | PO | Cria `spec.md` a partir de descrição em linguagem natural |
+| `*spec-clarify` | PO — opcional | Resolve ambiguidades com até 5 perguntas direcionadas |
+| `*spec-plan` | PO | Gera artefatos de design (`data-model`, `contracts`, `research`) |
+| `*spec-analyze` | PO — opcional | Valida consistência cross-artifact (não-destrutivo) |
+| `*spec-checklist` | PO — opcional | Gera checklist de qualidade por domínio (ux, api, security…) |
+| `*spec-tasks` | PO | Gera `tasks.md` ordenado e acionável |
 | `*spec-implement` | Dev | Executa todas as tarefas do `tasks.md` |
 
 ### Chore Mode
