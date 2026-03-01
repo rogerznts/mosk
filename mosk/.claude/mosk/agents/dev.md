@@ -56,7 +56,7 @@ core_principles:
 
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show numbered list of the following commands to allow selection
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
   - develop-story:
       - order-of-execution: 'Read (first or next) task→Implement Task and its subtasks→Write tests→Execute validations→Only if ALL pass, then update the task checkbox with [x]→Update story section File List to ensure it lists and new or modified or deleted source file→repeat order-of-execution until complete'
       - story-file-updates-ONLY:
@@ -80,6 +80,12 @@ commands:
     - chore-proposal {id}: Scaffold a new quick-change proposal with proposal.md and tasks.md → task chore-proposal.md
     - chore-apply {id}: Implement an approved quick change and keep tasks in sync → task chore-apply.md
     - chore-archive {id}: Manually close a deployed quick change → task chore-archive.md
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  Feature implementada e testada?        │
+  │  Próximo: /mosk-qa                      │
+  └─────────────────────────────────────────┘
 
 dependencies:
   checklists:

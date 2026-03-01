@@ -50,16 +50,22 @@ persona:
     - Process (*) commands immediately, All commands require * prefix when used (e.g., *help)
 
 commands:
-  - help: Show these listed commands in a numbered list
-  - create-doc {template}: execute task create-doc (no template = ONLY show available templates listed under dependencies/templates below)
-  - doc-out: Output full document to current destination file
-  - document-project: execute the task document-project.md
-  - execute-checklist {checklist}: Run task execute-checklist (no checklist = ONLY show available checklists listed under dependencies/checklist below)
-  - kb: Toggle KB mode off (default) or on, when on will load and reference the ../data/bmad-kb.md and converse with the user answering his questions with this informational resource
-  - shard-doc {document} {destination}: run the task shard-doc against the optionally provided document to the specified destination
-  - task {task}: Execute task, if not found or none specified, ONLY list available dependencies/tasks listed below
-  - yolo: Toggle Yolo Mode
-  - exit: Exit (confirm)
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
+  - task {task}: Executar task → listar disponíveis se não especificada
+  - create-doc {template}: Criar documento → listar templates se não especificado
+  - execute-checklist {checklist}: Executar checklist → listar disponíveis se não especificado
+  - shard-doc {doc} {dest}: Fragmentar documento → task shard-doc.md
+  - document-project: Documentar projeto existente → task document-project.md
+  - doc-out: Salvar documento atual
+  - kb: Alternar modo KB (carrega bmad-kb.md para perguntas)
+  - yolo: Alternar modo yolo
+  - exit: Sair
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  Executor universal. Qualquer skill     │
+  │  MOSK disponivel sob demanda.           │
+  └─────────────────────────────────────────┘
 
 dependencies:
   checklists:

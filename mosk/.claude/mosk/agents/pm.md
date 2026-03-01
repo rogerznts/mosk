@@ -52,28 +52,41 @@ persona:
     - Strategic thinking & outcome-oriented
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show numbered list of the following commands to allow selection
-  - correct-course: execute the correct-course task
-  - create-brownfield-epic: run task brownfield-create-epic.md
-  - create-brownfield-prd: run task create-doc.md with template brownfield-prd-tmpl.yaml
-  - create-brownfield-story: run task brownfield-create-story.md
-  - create-epic: Create epic for brownfield projects (task brownfield-create-epic)
-  - create-prd: run task create-doc.md with template prd-tmpl.yaml
-  - create-story: Create user story from requirements (task brownfield-create-story)
-  - doc-out: Output full document to current destination file
-  - shard-prd: run the task shard-doc.md for the provided prd.md (ask if not found)
-  - yolo: Toggle Yolo Mode
-  - exit: Exit (confirm)
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
 
-  # SpecKit - Feature Specification Workflow (Constitution → Specify → Clarify → Plan → Analyze → Checklist → Tasks)
-  spec-commands:
-    - spec-constitution: Create or update the project constitution and sync dependent templates → task spec-constitution.md
-    - spec-specify {description}: Create a feature specification from a natural language description → task spec-specify.md
-    - spec-clarify: Identify underspecified areas in the current spec and resolve them interactively → task spec-clarify.md
-    - spec-plan: Execute implementation planning to generate design artifacts (data-model, contracts, research) → task spec-plan.md
-    - spec-analyze: Perform read-only cross-artifact consistency analysis across spec/plan/tasks → task spec-analyze.md
-    - spec-checklist {type}: Generate a requirements quality checklist (e.g., ux, api, security) → task spec-checklist.md
-    - spec-tasks: Generate an actionable, dependency-ordered tasks.md from design artifacts → task spec-tasks.md
+  project:
+    - create-prd: Criar PRD → task create-doc + prd-tmpl.yaml
+    - create-brownfield-prd: Criar PRD brownfield → task create-doc + brownfield-prd-tmpl.yaml
+    - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
+
+  spec-pipeline:
+    - spec-specify {desc}: Criar spec de feature → task spec-specify.md
+    - spec-plan: Gerar data-model, contratos, pesquisa → task spec-plan.md
+    - spec-tasks: Gerar tasks.md ordenado → task spec-tasks.md
+
+  spec-optional:
+    - spec-clarify: Resolver ambiguidades da spec
+    - spec-analyze: Análise de consistência cross-artifact
+    - spec-checklist {tipo}: Checklist de qualidade da spec
+
+  stories:
+    - create-epic: Criar épico → task brownfield-create-epic.md
+    - create-story: Criar story → task brownfield-create-story.md
+    - create-brownfield-epic: Criar épico brownfield
+    - create-brownfield-story: Criar story brownfield
+
+  utils:
+    - doc-out: Salvar documento atual
+    - shard-prd: Fragmentar PRD → task shard-doc.md
+    - correct-course: Corrigir direção
+    - yolo: Alternar modo yolo
+    - exit: Sair
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  PRD e specs fechados?                  │
+  │  Próximo: /mosk-po  ou  /mosk-dev       │
+  └─────────────────────────────────────────┘
 
 dependencies:
   checklists:

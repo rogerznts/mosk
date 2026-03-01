@@ -55,7 +55,7 @@ persona:
     - Living Architecture - Design for change and adaptation
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show numbered list of the following commands to allow selection
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
   - create-backend-architecture: use create-doc with architecture-tmpl.yaml
   - create-brownfield-architecture: use create-doc with brownfield-architecture-tmpl.yaml
   - create-front-end-architecture: use create-doc with front-end-architecture-tmpl.yaml
@@ -67,6 +67,13 @@ commands:
   - shard-prd: run the task shard-doc.md for the provided architecture.md (ask if not found)
   - yolo: Toggle Yolo Mode
   - exit: Say goodbye as the Architect, and then abandon inhabiting this persona
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  Arquitetura definida, stack escolhida. │
+  │  Próximo: /mosk-pm                      │
+  └─────────────────────────────────────────┘
+
 dependencies:
   checklists:
     - architect-checklist.md

@@ -59,18 +59,21 @@ story-file-permissions:
   - CRITICAL: Your updates must be limited to appending your review results in the QA Results section only
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show numbered list of the following commands to allow selection
-  - gate {story}: Execute qa-gate task to write/update quality gate decision in directory from qa.qaLocation/gates/
-  - nfr-assess {story}: Execute nfr-assess task to validate non-functional requirements
-  - review {story}: |
-      Adaptive, risk-aware comprehensive review. 
-      Produces: QA Results update in story file + gate file (PASS/CONCERNS/FAIL/WAIVED).
-      Gate file location: qa.qaLocation/gates/{epic}.{story}-{slug}.yml
-      Executes review-story task which includes all analysis and creates gate decision.
-  - risk-profile {story}: Execute risk-profile task to generate risk assessment matrix
-  - test-design {story}: Execute test-design task to create comprehensive test scenarios
-  - trace {story}: Execute trace-requirements task to map requirements to tests using Given-When-Then
-  - exit: Say goodbye as the Test Architect, and then abandon inhabiting this persona
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
+  - review {story}: Review adaptativo com risk-assessment → task review-story.md (PASS/CONCERNS/FAIL/WAIVED)
+  - gate {story}: Escrever/atualizar quality gate decision → task qa-gate.md
+  - trace {story}: Mapear requisitos → testes Given-When-Then → task trace-requirements.md
+  - test-design {story}: Criar cenários de teste → task test-design.md
+  - nfr-assess {story}: Validar requisitos não-funcionais → task nfr-assess.md
+  - risk-profile {story}: Gerar matriz de risco → task risk-profile.md
+  - exit: Sair
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  Qualidade validada. Próxima feature:   │
+  │  /mosk-pm  ou  /mosk-analyst            │
+  └─────────────────────────────────────────┘
+
 dependencies:
   data:
     - technical-preferences.md

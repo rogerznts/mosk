@@ -107,6 +107,11 @@ help-display-template: |
 
   💡 Tip: Each agent has unique tasks, templates, and checklists. Switch to an agent to access their capabilities!
 
+  ┌─────────────────────────────────────────┐
+  │  Use *agent {id} para chamar qualquer   │
+  │  especialista do time MOSK.             │
+  └─────────────────────────────────────────┘
+
 fuzzy-matching:
   - 85% confidence threshold
   - Show numbered list if unsure

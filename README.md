@@ -103,30 +103,58 @@ Para projetos que partem do zero: discovery completo, definição de arquitetura
 
 ```mermaid
 flowchart TD
-    Start(["🚀 Novo Projeto"]) --> A1["/mosk-analyst\nProject Brief & Pesquisa"]
-    A1 --> A2["/mosk-architect\nArquitetura & Stack"]
-    A2 --> A3["/mosk-pm\nPRD & Épicos"]
-    A3 --> C["/mosk-pm\n*spec-constitution\n— executa UMA VEZ —"]
+    Start(["🚀 Novo Projeto"]) --> A1["/mosk-analyst
+    Project Brief & Pesquisa"]
+    A1 --> A2["/mosk-architect
+    Arquitetura & Stack"]
+    A2 --> A3["/mosk-pm
+    PRD & Épicos"]
+    A3 --> C["/mosk-pm
+    *spec-constitution
+    — executa UMA VEZ —"]
 
-    C --> S["/mosk-pm\n*spec-specify\nCriar Spec da Feature"]
-    S --> CQ{"Ambiguidades\nna spec?"}
-    CQ -->|Sim| CL["/mosk-pm\n*spec-clarify\nResolver Ambiguidades"]
+    C --> S["/mosk-pm
+    *spec-specify
+    Criar Spec da Feature"]
+    S --> CQ{"Ambiguidades
+    na spec?"}
+    CQ -->|Sim| CL["/mosk-pm
+    *spec-clarify
+    Resolver Ambiguidades"]
     CQ -->|Não| P
-    CL --> P["/mosk-pm\n*spec-plan\nPlanejar Implementação"]
-    P --> AQ{"Validar\nconsistência?"}
-    AQ -->|Sim| AN["/mosk-pm\n*spec-analyze\nAnálise Cross-Artifact"]
+    CL --> P["/mosk-pm
+    *spec-plan
+    Planejar Implementação"]
+    P --> AQ{"Validar
+    consistência?"}
+    AQ -->|Sim| AN["/mosk-pm
+    *spec-analyze
+    Análise Cross-Artifact"]
     AQ -->|Não| CHQ
-    AN --> CHQ{"Checklist\nde qualidade?"}
-    CHQ -->|Sim| CH["/mosk-pm\n*spec-checklist\nChecklist por Domínio"]
+    AN --> CHQ{"Checklist
+    de qualidade?"}
+    CHQ -->|Sim| CH["/mosk-pm
+    *spec-checklist
+    Checklist por Domínio"]
     CHQ -->|Não| T
-    CH --> T["/mosk-pm\n*spec-tasks\nGerar Tasks Ordenadas"]
+    CH --> T["/mosk-pm
+    *spec-tasks
+    Gerar Tasks Ordenadas"]
 
-    T --> PO["/mosk-po\nStories com AC"]
-    PO --> SM["/mosk-sm\nDev-Readiness"]
-    SM --> DQ{"Abordagem\nde implementação?"}
-    DQ -->|"Feature completa\n(SpecKit)"| DI["/mosk-dev\n*spec-implement"]
-    DQ -->|"Story por story\n(BMAD)"| DS["/mosk-dev\n*develop-story"]
-    DI --> QA["/mosk-qa\nQuality Gate"]
+    T --> PO["/mosk-po
+    Stories com AC"]
+    PO --> SM["/mosk-sm
+    Dev-Readiness"]
+    SM --> DQ{"Abordagem
+    de implementação?"}
+    DQ -->|"Feature completa
+    (SpecKit)"| DI["/mosk-dev
+    *spec-implement"]
+    DQ -->|"Story por story
+    (BMAD)"| DS["/mosk-dev
+    *develop-story"]
+    DI --> QA["/mosk-qa
+    Quality Gate"]
     DS --> QA
     QA --> Done(["✅ Feature Completa"])
     QA -->|Issues encontradas| SM
@@ -154,34 +182,61 @@ Para projetos em andamento, o fluxo bifurca conforme o tipo de trabalho: nova fe
 
 ```mermaid
 flowchart TD
-    Start(["📦 Projeto Existente"]) --> WT{"Tipo de\ntrabalho?"}
+    Start(["📦 Projeto Existente"]) --> WT{"Tipo de
+    trabalho?"}
 
-    WT -->|"Nova Feature"| CQ{"constitution.md\njá existe?"}
-    CQ -->|Não| C["/mosk-pm\n*spec-constitution\n— executa UMA VEZ —"]
+    WT -->|"Nova Feature"| CQ{"constitution.md
+    já existe?"}
+    CQ -->|Não| C["/mosk-pm
+    *spec-constitution
+    — executa UMA VEZ —"]
     CQ -->|Sim| S
-    C --> S["/mosk-pm\n*spec-specify\nCriar Spec da Feature"]
+    C --> S["/mosk-pm
+    *spec-specify
+    Criar Spec da Feature"]
 
-    S --> AQ{"Ambiguidades\nna spec?"}
-    AQ -->|Sim| CL["/mosk-pm\n*spec-clarify"]
+    S --> AQ{"Ambiguidades
+    na spec?"}
+    AQ -->|Sim| CL["/mosk-pm
+    *spec-clarify"]
     AQ -->|Não| P
-    CL --> P["/mosk-pm\n*spec-plan\nPlanejar Implementação"]
-    P --> VQ{"Validar\nconsistência?"}
-    VQ -->|Sim| AN["/mosk-pm\n*spec-analyze"]
+    CL --> P["/mosk-pm
+    *spec-plan
+    Planejar Implementação"]
+    P --> VQ{"Validar
+    consistência?"}
+    VQ -->|Sim| AN["/mosk-pm
+    *spec-analyze"]
     VQ -->|Não| CHQ
-    AN --> CHQ{"Checklist\nde qualidade?"}
-    CHQ -->|Sim| CH["/mosk-pm\n*spec-checklist"]
+    AN --> CHQ{"Checklist
+    de qualidade?"}
+    CHQ -->|Sim| CH["/mosk-pm
+    *spec-checklist"]
     CHQ -->|Não| T
-    CH --> T["/mosk-pm\n*spec-tasks\nGerar Tasks Ordenadas"]
+    CH --> T["/mosk-pm
+    *spec-tasks
+    Gerar Tasks Ordenadas"]
 
-    T --> PO["/mosk-po\nStories com AC"]
-    PO --> SM["/mosk-sm\nDev-Readiness"]
-    SM --> DI["/mosk-dev\n*spec-implement"]
-    DI --> QA["/mosk-qa\nQuality Gate"]
+    T --> PO["/mosk-po
+    Stories com AC"]
+    PO --> SM["/mosk-sm
+    Dev-Readiness"]
+    SM --> DI["/mosk-dev
+    *spec-implement"]
+    DI --> QA["/mosk-qa
+    Quality Gate"]
     QA --> FD(["✅ Feature Entregue"])
 
-    WT -->|"GMUD / Bugfix\nHotfix"| PR["/mosk-dev\n*chore-proposal\nDocumentar Mudança"]
-    PR --> AP["/mosk-dev\n*chore-apply\nImplementar"]
-    AP --> AR["/mosk-dev\n*chore-archive\nEncerrar & Arquivar"]
+    WT -->|"GMUD / Bugfix
+    Hotfix"| PR["/mosk-dev
+    *chore-proposal
+    Documentar Mudança"]
+    PR --> AP["/mosk-dev
+    *chore-apply
+    Implementar"]
+    AP --> AR["/mosk-dev
+    *chore-archive
+    Encerrar & Arquivar"]
     AR --> CD(["✅ Mudança Entregue"])
 
     classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff

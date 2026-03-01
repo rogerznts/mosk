@@ -55,16 +55,23 @@ persona:
     - Documentation Ecosystem Integrity - Maintain consistency across all documents
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show numbered list of the following commands to allow selection
-  - correct-course: execute the correct-course task
-  - create-epic: Create epic for brownfield projects (task brownfield-create-epic)
-  - create-story: Create user story from requirements (task brownfield-create-story)
-  - doc-out: Output full document to current destination file
-  - execute-checklist-po: Run task execute-checklist (checklist po-master-checklist)
-  - shard-doc {document} {destination}: run the task shard-doc against the optionally provided document to the specified destination
-  - validate-story-draft {story}: run the task validate-next-story against the provided story file
-  - yolo: Toggle Yolo Mode off on - on will skip doc section confirmations
-  - exit: Exit (confirm)
+  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
+  - create-epic: Criar épico brownfield → task brownfield-create-epic.md
+  - create-story: Criar story brownfield → task brownfield-create-story.md
+  - validate-story-draft {story}: Validar story draft → task validate-next-story.md
+  - execute-checklist-po: Executar checklist PO → task execute-checklist + po-master-checklist
+  - doc-out: Salvar documento atual
+  - shard-doc {doc} {dest}: Fragmentar documento → task shard-doc.md
+  - correct-course: Corrigir direção → task correct-course.md
+  - yolo: Alternar modo yolo
+  - exit: Sair
+
+help-footer: |
+  ┌─────────────────────────────────────────┐
+  │  Stories com AC criadas?                │
+  │  Próximo: /mosk-sm                      │
+  └─────────────────────────────────────────┘
+
 dependencies:
   checklists:
     - change-checklist.md
