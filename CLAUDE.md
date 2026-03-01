@@ -59,7 +59,8 @@ mosk/                              # The installable template (ships to target p
 │       ├── mosk-po/SKILL.md
 │       ├── mosk-qa/SKILL.md
 │       ├── mosk-sm/SKILL.md
-│       └── mosk-ux-expert/SKILL.md
+│       ├── mosk-ux-expert/SKILL.md
+│       └── mosk-help/SKILL.md
 └── docs/                          # Created by workflows in consuming projects
     ├── specs/                     # Feature specs: docs/specs/{###}-{name}/
     └── changes/                   # Quick changes: docs/changes/{id}/
@@ -157,6 +158,6 @@ The relative path `../../mosk/agents/` resolves correctly from any folder inside
 
 After `npx degit`, the consuming project gains:
 - `.claude/mosk/` — agents, tasks, templates, scripts, core-config.yaml
-- `.claude/skills/` — 10 skill delegation files (`mosk-analyst`, `mosk-pm`, etc.)
+- `.claude/skills/` — 11 skill delegation files (`mosk-analyst`, `mosk-pm`, `mosk-help`, etc.)
 
 The `docs/` directory (`specs/`, `changes/`) is created by the workflows themselves as users run the commands.

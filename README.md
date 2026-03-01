@@ -60,7 +60,8 @@ seu-projeto/
 │       ├── mosk-po/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
-│       └── mosk-ux-expert/
+│       ├── mosk-ux-expert/
+│       └── mosk-help/
 └── docs/                      # Criado pelos workflows
     ├── specs/                 # Especificações de features (SpecKit)
     │   └── 001-nome-feature/
@@ -276,6 +277,7 @@ flowchart TD
 
 | Comando | Quando usar |
 |---|---|
+| `/mosk-help` | Exibir guia rápido do fluxo MOSK e quando usar cada agente |
 | `/mosk-orchestrator` | Não sabe qual agente usar; precisa coordenar workflow |
 | `/mosk-master` | Tarefa pontual sem persona específica; expertise geral |
 | `/mosk-analyst` | Discovery inicial, brief, pesquisa |
