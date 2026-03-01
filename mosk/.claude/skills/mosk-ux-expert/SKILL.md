@@ -1,6 +1,6 @@
 ---
 name: mosk-ux-expert
-description: Activate the UX Expert agent persona for UI/UX design, wireframes, prototypes, front-end specifications, and user experience optimization.
+description: "UX: user flows, wireframes e front-end specs."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/ux-expert.md`.

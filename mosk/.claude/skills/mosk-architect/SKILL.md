@@ -1,6 +1,6 @@
 ---
 name: mosk-architect
-description: Activate the Architect agent persona for system design, architecture documents, technology selection, and infrastructure planning.
+description: "Arquitetura: design de sistemas, stack, APIs e infraestrutura."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/architect.md`.

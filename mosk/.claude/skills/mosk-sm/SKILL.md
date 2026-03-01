@@ -1,6 +1,6 @@
 ---
 name: mosk-sm
-description: Activate the Scrum Master agent persona for story creation, epic management, retrospectives, and agile process guidance.
+description: "Dev-Readiness: revisão de stories e clareza técnica para implementação."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/sm.md`.

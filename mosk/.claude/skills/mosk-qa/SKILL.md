@@ -1,6 +1,6 @@
 ---
 name: mosk-qa
-description: Activate the Test Architect & Quality Advisor agent persona for comprehensive test architecture review and quality gate decisions.
+description: "Qualidade: quality gates, arquitetura de testes, NFR e revisões."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/qa.md`.

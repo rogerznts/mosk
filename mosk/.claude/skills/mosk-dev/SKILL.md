@@ -1,6 +1,6 @@
 ---
 name: mosk-dev
-description: Activate the Full Stack Developer agent persona for code implementation, debugging, refactoring, and development best practices.
+description: "Implementação: spec-implement, develop-story, debugging, refatoração e Chore Mode."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/dev.md`.

@@ -1,6 +1,6 @@
 ---
 name: mosk-analyst
-description: Activate the Business Analyst agent persona for market research, brainstorming, competitive analysis, and project briefs.
+description: "Discovery: brief, pesquisa de mercado, análise competitiva e brainstorming."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/analyst.md`.

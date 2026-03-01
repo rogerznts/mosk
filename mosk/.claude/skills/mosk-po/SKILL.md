@@ -1,6 +1,6 @@
 ---
 name: mosk-po
-description: Activate the Product Owner agent persona for backlog management, story refinement, acceptance criteria, and sprint planning.
+description: "Backlog & SpecKit: épicos, stories com AC e pipeline completo de spec (spec-specify → spec-tasks)."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/po.md`.
