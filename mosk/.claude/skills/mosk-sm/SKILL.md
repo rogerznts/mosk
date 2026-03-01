@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-sm
+name: mosk-sm
 description: Activate the Scrum Master agent persona for story creation, epic management, retrospectives, and agile process guidance.
 ---
 

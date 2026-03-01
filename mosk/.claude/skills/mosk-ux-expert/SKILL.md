@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-ux-expert
+name: mosk-ux-expert
 description: Activate the UX Expert agent persona for UI/UX design, wireframes, prototypes, front-end specifications, and user experience optimization.
 ---
 

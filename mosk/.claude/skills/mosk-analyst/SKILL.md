@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-analyst
+name: mosk-analyst
 description: Activate the Business Analyst agent persona for market research, brainstorming, competitive analysis, and project briefs.
 ---
 

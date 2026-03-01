@@ -1,6 +1,6 @@
 ---
-name: mosk-ag-orchestrator
-description: Activate the BMad Master Orchestrator agent persona for workflow coordination, multi-agent tasks, and role switching guidance.
+name: mosk-orchestrator
+description: Activate the Maestro (MOSK Orchestrator) agent persona for workflow coordination, multi-agent tasks, and role switching guidance.
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/bmad-orchestrator.md`.

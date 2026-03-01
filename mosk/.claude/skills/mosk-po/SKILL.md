@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-po
+name: mosk-po
 description: Activate the Product Owner agent persona for backlog management, story refinement, acceptance criteria, and sprint planning.
 ---
 

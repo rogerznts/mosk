@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-qa
+name: mosk-qa
 description: Activate the Test Architect & Quality Advisor agent persona for comprehensive test architecture review and quality gate decisions.
 ---
 

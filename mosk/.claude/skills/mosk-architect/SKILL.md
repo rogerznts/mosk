@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-architect
+name: mosk-architect
 description: Activate the Architect agent persona for system design, architecture documents, technology selection, and infrastructure planning.
 ---
 

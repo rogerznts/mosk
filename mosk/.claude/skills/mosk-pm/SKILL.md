@@ -1,6 +1,6 @@
 ---
-name: mosk-ag-pm
-description: Activate the Product Manager agent persona for creating PRDs, product strategy, feature prioritization, and roadmap planning.
+name: mosk-pm
+description: Activate the Product Manager agent persona for PRDs, product strategy, feature prioritization, roadmap planning, and feature specifications (SpecKit).
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/pm.md`.

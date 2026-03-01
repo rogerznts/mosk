@@ -1,5 +1,5 @@
 ---
-name: mosk-ag-dev
+name: mosk-dev
 description: Activate the Full Stack Developer agent persona for code implementation, debugging, refactoring, and development best practices.
 ---
 

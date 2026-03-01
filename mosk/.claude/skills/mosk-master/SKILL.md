@@ -1,6 +1,6 @@
 ---
-name: mosk-ag-master
-description: Activate the BMad Master Task Executor agent persona for comprehensive expertise across all domains.
+name: mosk-master
+description: Activate the Mestre (MOSK Master) agent persona for comprehensive expertise across all domains.
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/bmad-master.md`.
