@@ -4,9 +4,17 @@
 
 ---
 
+## Origem
+
+Este toolkit nasceu da minha experiência pessoal orquestrando agentes do BMAD Core adaptados e integrados ao SpecKit. Na prática, percebi ganhos expressivos ao separar claramente dois conjuntos de responsabilidades: agentes especializados para raciocínio, discovery e documentação estratégica — e o SpecKit para especificação estruturada e implementação de features.
+
+O Chore Mode foi inspirado no fluxo do Open Spec — não no seu conteúdo, mas na ideia de usar planejamento estruturado diretamente nas ferramentas de IA, como o Claude Code, para registrar, executar e arquivar mudanças operacionais (GMUDs, bugfixes, hotfixes) de forma rastreável e sem burocracia.
+
+---
+
 ## O que é o MOSK
 
-O MOSK combina dois frameworks em um único toolkit coeso:
+O MOSK combina três camadas em um único toolkit coeso:
 
 - **BMAD Core** — 10 agentes especializados para discovery, arquitetura, produto e qualidade
 - **SpecKit** — Pipeline de especificação-para-implementação gerenciado pelo PM, executado pelo Dev
@@ -87,71 +95,112 @@ seu-projeto/
 
 ---
 
-## Fluxo Completo (Greenfield)
+## Fluxos de Trabalho
 
-### Fase 1 — Discovery e Arquitetura
+### Greenfield — Novo Projeto
 
-```
-/mosk-analyst    → Project Brief, pesquisa de mercado
-/mosk-architect  → Documento de arquitetura, stack, decisões técnicas
-/mosk-pm         → PRD, epics
-```
+Para projetos que partem do zero: discovery completo, definição de arquitetura e geração do PRD antes de qualquer feature.
 
-### Fase 2 — Constituição (uma vez por projeto)
+```mermaid
+flowchart TD
+    Start(["🚀 Novo Projeto"]) --> A1["/mosk-analyst\nProject Brief & Pesquisa"]
+    A1 --> A2["/mosk-architect\nArquitetura & Stack"]
+    A2 --> A3["/mosk-pm\nPRD & Épicos"]
+    A3 --> C["/mosk-pm\n*spec-constitution\n— executa UMA VEZ —"]
 
-```
-/mosk-pm  → *spec-constitution
-             └─ Lê PRD + arquitetura
-             └─ Deriva princípios do projeto
-             └─ Gera .claude/mosk/constitution.md
-             └─ Executa UMA VEZ antes de começar specs de features
-```
+    C --> S["/mosk-pm\n*spec-specify\nCriar Spec da Feature"]
+    S --> CQ{"Ambiguidades\nna spec?"}
+    CQ -->|Sim| CL["/mosk-pm\n*spec-clarify\nResolver Ambiguidades"]
+    CQ -->|Não| P
+    CL --> P["/mosk-pm\n*spec-plan\nPlanejar Implementação"]
+    P --> AQ{"Validar\nconsistência?"}
+    AQ -->|Sim| AN["/mosk-pm\n*spec-analyze\nAnálise Cross-Artifact"]
+    AQ -->|Não| CHQ
+    AN --> CHQ{"Checklist\nde qualidade?"}
+    CHQ -->|Sim| CH["/mosk-pm\n*spec-checklist\nChecklist por Domínio"]
+    CHQ -->|Não| T
+    CH --> T["/mosk-pm\n*spec-tasks\nGerar Tasks Ordenadas"]
 
-### Fase 3 — Feature Spec (SpecKit — dono: PM)
+    T --> PO["/mosk-po\nStories com AC"]
+    PO --> SM["/mosk-sm\nDev-Readiness"]
+    SM --> DQ{"Abordagem\nde implementação?"}
+    DQ -->|"Feature completa\n(SpecKit)"| DI["/mosk-dev\n*spec-implement"]
+    DQ -->|"Story por story\n(BMAD)"| DS["/mosk-dev\n*develop-story"]
+    DI --> QA["/mosk-qa\nQuality Gate"]
+    DS --> QA
+    QA --> Done(["✅ Feature Completa"])
+    QA -->|Issues encontradas| SM
 
-```
-/mosk-pm  → *spec-specify [descrição]   → docs/specs/{id}/spec.md
-/mosk-pm  → *spec-clarify               → (opcional) resolve ambiguidades
-/mosk-pm  → *spec-plan                  → data-model, contracts, research
-/mosk-pm  → *spec-analyze               → (opcional) validação cross-artifact
-/mosk-pm  → *spec-checklist [tipo]      → (opcional) checklist de qualidade
-/mosk-pm  → *spec-tasks                 → tasks.md ordenado por dependências
-```
+    classDef discovery fill:#10b981,stroke:#059669,color:#fff
+    classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef impl fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
 
-### Fase 4 — Story Preparation (PO → SM)
-
-```
-/mosk-po  → Cria stories com AC e valor de negócio
-/mosk-sm  → Refina stories para dev-readiness (notas técnicas, checklists)
-```
-
-### Fase 5 — Implementação
-
-```
-OPÇÃO A — Story por story (fluxo BMAD):
-/mosk-dev  → *develop-story
-
-OPÇÃO B — Feature completa via tasks.md (fluxo SpecKit):
-/mosk-dev  → *spec-implement
-```
-
-### Fase 6 — Quality Gate
-
-```
-/mosk-qa  → Review de arquitetura, testes, quality gates, NFR
+    class A1,A2,A3 discovery
+    class C,S,P,T speckit
+    class CL,AN,CH optional
+    class PO,SM stories
+    class DI,DS,QA impl
+    class Start,Done endpoint
 ```
 
 ---
 
-## Mudanças Rápidas (Chore Mode — dono: Dev)
+### Brownfield — Projeto Existente
 
-Para GMUDs, bugfixes e ajustes que não justificam o pipeline completo do SpecKit:
+Para projetos em andamento, o fluxo bifurca conforme o tipo de trabalho: nova feature (SpecKit) ou mudança rápida (Chore Mode).
 
+```mermaid
+flowchart TD
+    Start(["📦 Projeto Existente"]) --> WT{"Tipo de\ntrabalho?"}
+
+    WT -->|"Nova Feature"| CQ{"constitution.md\njá existe?"}
+    CQ -->|Não| C["/mosk-pm\n*spec-constitution\n— executa UMA VEZ —"]
+    CQ -->|Sim| S
+    C --> S["/mosk-pm\n*spec-specify\nCriar Spec da Feature"]
+
+    S --> AQ{"Ambiguidades\nna spec?"}
+    AQ -->|Sim| CL["/mosk-pm\n*spec-clarify"]
+    AQ -->|Não| P
+    CL --> P["/mosk-pm\n*spec-plan\nPlanejar Implementação"]
+    P --> VQ{"Validar\nconsistência?"}
+    VQ -->|Sim| AN["/mosk-pm\n*spec-analyze"]
+    VQ -->|Não| CHQ
+    AN --> CHQ{"Checklist\nde qualidade?"}
+    CHQ -->|Sim| CH["/mosk-pm\n*spec-checklist"]
+    CHQ -->|Não| T
+    CH --> T["/mosk-pm\n*spec-tasks\nGerar Tasks Ordenadas"]
+
+    T --> PO["/mosk-po\nStories com AC"]
+    PO --> SM["/mosk-sm\nDev-Readiness"]
+    SM --> DI["/mosk-dev\n*spec-implement"]
+    DI --> QA["/mosk-qa\nQuality Gate"]
+    QA --> FD(["✅ Feature Entregue"])
+
+    WT -->|"GMUD / Bugfix\nHotfix"| PR["/mosk-dev\n*chore-proposal\nDocumentar Mudança"]
+    PR --> AP["/mosk-dev\n*chore-apply\nImplementar"]
+    AP --> AR["/mosk-dev\n*chore-archive\nEncerrar & Arquivar"]
+    AR --> CD(["✅ Mudança Entregue"])
+
+    classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
+    classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
+    classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
+    classDef impl fill:#ef4444,stroke:#dc2626,color:#fff
+    classDef chore fill:#6b7280,stroke:#4b5563,color:#fff
+    classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
+
+    class C,S,P,T speckit
+    class CL,AN,CH optional
+    class PO,SM stories
+    class DI,QA impl
+    class PR,AP,AR chore
+    class Start,FD,CD,WT endpoint
 ```
-/mosk-dev  → *chore-proposal {id}   → docs/changes/{id}/proposal.md + tasks.md
-/mosk-dev  → *chore-apply {id}      → implementa a mudança aprovada
-/mosk-dev  → *chore-archive {id}    → encerra e arquiva
-```
+
+> **Legenda de cores:**
+> 🟢 Discovery (analyst, architect, pm)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação & QA  ⚫ Chore Mode
 
 ---
 
@@ -176,20 +225,20 @@ Para GMUDs, bugfixes e ajustes que não justificam o pipeline completo do SpecKi
 
 | Comando | Dono | O que faz |
 |---|---|---|
-| `*spec-constitution` | PM (uma vez) | Deriva princípios do projeto a partir de PRD + arquitetura |
-| `*spec-specify` | PM | Cria spec.md a partir de descrição em linguagem natural |
-| `*spec-clarify` | PM | Resolve ambiguidades com até 5 perguntas direcionadas |
-| `*spec-plan` | PM | Gera artefatos de design (data-model, contracts, research) |
-| `*spec-analyze` | PM | Valida consistência cross-artifact (não-destrutivo) |
-| `*spec-checklist` | PM | Gera checklist de qualidade por domínio (ux, api, security...) |
-| `*spec-tasks` | PM | Gera tasks.md ordenado e acionável |
-| `*spec-implement` | Dev | Executa todas as tarefas do tasks.md |
+| `*spec-constitution` | PM — uma vez | Deriva princípios do projeto a partir de PRD + arquitetura |
+| `*spec-specify` | PM | Cria `spec.md` a partir de descrição em linguagem natural |
+| `*spec-clarify` | PM — opcional | Resolve ambiguidades com até 5 perguntas direcionadas |
+| `*spec-plan` | PM | Gera artefatos de design (`data-model`, `contracts`, `research`) |
+| `*spec-analyze` | PM — opcional | Valida consistência cross-artifact (não-destrutivo) |
+| `*spec-checklist` | PM — opcional | Gera checklist de qualidade por domínio (ux, api, security…) |
+| `*spec-tasks` | PM | Gera `tasks.md` ordenado e acionável |
+| `*spec-implement` | Dev | Executa todas as tarefas do `tasks.md` |
 
 ### Chore Mode
 
 | Comando | O que faz |
 |---|---|
-| `*chore-proposal {id}` | Cria proposal.md + tasks.md em `docs/changes/{id}/` |
+| `*chore-proposal {id}` | Cria `proposal.md` + `tasks.md` em `docs/changes/{id}/` |
 | `*chore-apply {id}` | Implementa a mudança aprovada |
 | `*chore-archive {id}` | Encerra e arquiva a mudança |
 
