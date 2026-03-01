@@ -29,7 +29,7 @@ mosk/                              # The installable template (ships to target p
 │   │   │   ├── sm.md              # Roberto — dev-readiness, agile
 │   │   │   ├── dev.md             # Jaime — implementation, Chore Mode
 │   │   │   ├── qa.md              # Joaquim — testing, quality gates, NFR
-│   │   │   ├── ux-expert.md       # Salete — UI/UX, wireframes, front-end
+│   │   │   ├── ux-expert.md       # Salete — user flows, wireframes, front-end specs
 │   │   │   ├── bmad-master.md     # Mestre — universal task executor
 │   │   │   └── bmad-orchestrator.md # Maestro — workflow coordinator
 │   │   ├── tasks/                 # Executable workflow files

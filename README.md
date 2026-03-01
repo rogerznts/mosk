@@ -89,7 +89,7 @@ seu-projeto/
 | `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
 | `/mosk-dev` | Jaime | Implementação, debugging, refatoração, Chore Mode |
 | `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
-| `/mosk-ux-expert` | Salete | UI/UX, wireframes, front-end specs, prompts para geração de UI |
+| `/mosk-ux-expert` | Salete | User flows, wireframes, front-end specs, prompts para geração de UI |
 | `/mosk-master` | Mestre | Executor universal — expertise em todos os domínios |
 | `/mosk-orchestrator` | Maestro | Coordenação de agentes, orientação de workflow |
 
@@ -105,7 +105,9 @@ Para projetos que partem do zero: discovery completo, definição de arquitetura
 flowchart TD
     Start(["🚀 Novo Projeto"]) --> A1["/mosk-analyst
     Project Brief & Pesquisa"]
-    A1 --> A2["/mosk-architect
+    A1 --> UX["/mosk-ux-expert
+    Flows & Wireframes"]
+    UX --> A2["/mosk-architect
     Arquitetura & Stack"]
     A2 --> A3["/mosk-pm
     PRD"]
@@ -160,6 +162,7 @@ flowchart TD
     QA -->|Issues encontradas| SM
 
     classDef discovery fill:#10b981,stroke:#059669,color:#fff
+    classDef ux fill:#ec4899,stroke:#db2777,color:#fff
     classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
     classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
     classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
@@ -167,6 +170,7 @@ flowchart TD
     classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
 
     class A1,A2,A3 discovery
+    class UX ux
     class C,S,P,T speckit
     class CL,AN,CH optional
     class PO,SM stories
@@ -190,8 +194,13 @@ flowchart TD
     CQ -->|Não| C["/mosk-pm
     *spec-constitution
     — executa UMA VEZ —"]
-    CQ -->|Sim| PO
-    C --> PO["/mosk-po
+    CQ -->|Sim| UXQ
+    C --> UXQ{"Feature tem
+    interface?"}
+    UXQ -->|Sim| UX["/mosk-ux-expert
+    Wireframes"]
+    UXQ -->|Não| PO
+    UX --> PO["/mosk-po
     Épicos & Stories"]
     PO --> S["/mosk-po
     *spec-specify
@@ -239,6 +248,7 @@ flowchart TD
     Encerrar & Arquivar"]
     AR --> CD(["✅ Mudança Entregue"])
 
+    classDef ux fill:#ec4899,stroke:#db2777,color:#fff
     classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
     classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
     classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
@@ -246,6 +256,7 @@ flowchart TD
     classDef chore fill:#6b7280,stroke:#4b5563,color:#fff
     classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
 
+    class UX ux
     class C,S,P,T speckit
     class CL,AN,CH optional
     class PO,SM stories
@@ -255,7 +266,7 @@ flowchart TD
 ```
 
 > **Legenda de cores:**
-> 🟢 Discovery (analyst, architect, pm)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação & QA  ⚫ Chore Mode
+> 🟢 Discovery (analyst, architect, pm)  🩷 UX (ux-expert)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação & QA  ⚫ Chore Mode
 
 ---
 
@@ -274,7 +285,7 @@ flowchart TD
 | `/mosk-sm` | Refinar stories para dev; garantir clareza para implementação |
 | `/mosk-dev` | Implementar stories, spec-implement, Chore Mode |
 | `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
-| `/mosk-ux-expert` | UI/UX, wireframes, specs de front-end |
+| `/mosk-ux-expert` | User flows, wireframes e specs visuais — após discovery, antes da arquitetura |
 
 ### SpecKit
 

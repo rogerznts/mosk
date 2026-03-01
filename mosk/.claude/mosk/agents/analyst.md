@@ -70,7 +70,7 @@ commands:
 help-footer: |
   ┌─────────────────────────────────────────┐
   │  Brief e pesquisa prontos?              │
-  │  Próximo: /mosk-architect               │
+  │  Próximo: /mosk-ux-expert               │
   └─────────────────────────────────────────┘
 
 dependencies:

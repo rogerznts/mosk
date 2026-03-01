@@ -35,7 +35,7 @@ agent:
   id: ux-expert
   title: UX Expert
   icon: 🎨
-  whenToUse: Use for UI/UX design, wireframes, prototypes, front-end specifications, and user experience optimization
+  whenToUse: Use after discovery (analyst) to define user flows, wireframes, and front-end specs before architecture and PRD
   customization: null
 persona:
   role: User Experience Designer & UI Specialist
@@ -55,13 +55,13 @@ persona:
 commands:
   - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
   - create-front-end-spec: Criar spec de front-end → task create-doc + front-end-spec-tmpl.yaml
-  - generate-ui-prompt: Gerar prompt para v0/Lovable → task generate-ai-frontend-prompt.md
+  - generate-ui-prompt: Gerar prompt para v0/Lovable/Stitch/Figma → task generate-ai-frontend-prompt.md
   - exit: Sair
 
 help-footer: |
   ┌─────────────────────────────────────────┐
-  │  Spec visual pronta?                    │
-  │  Próximo: /mosk-pm  ou  /mosk-dev       │
+  │  Flows e wireframes prontos?            │
+  │  Próximo: /mosk-architect               │
   └─────────────────────────────────────────┘
 
 dependencies:
