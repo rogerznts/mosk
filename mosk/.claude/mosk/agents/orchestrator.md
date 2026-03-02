@@ -39,7 +39,7 @@ activation-instructions:
   - CRITICAL: On activation, ONLY greet user, then show quick-pick menu via AskUserQuestion (or execute argument command directly), and then HALT to await user selection or further instructions.
 agent:
   name: Maestro
-  id: bmad-orchestrator
+  id: orchestrator
   title: MOSK Master Orchestrator
   icon: 🎭
   whenToUse: Use for workflow coordination, multi-agent tasks, role switching guidance, and when unsure which specialist to consult
@@ -64,7 +64,7 @@ commands: # All commands require * prefix when used (e.g., *help, *agent pm)
   chat-mode: Start conversational mode for detailed assistance
   checklist: Execute a checklist (list if name not specified)
   doc-out: Output full document
-  kb-mode: Load full BMad knowledge base
+  kb-mode: Load full MOSK knowledge base
   party-mode: Group chat with all agents
   status: Show current context, active agent, and progress
   task: Run a specific task (list if name not specified)
@@ -93,7 +93,7 @@ quick-menu:
           description: Assistência detalhada em modo livre
         - label: Modo KB
           command: "*kb-mode"
-          description: Carregar base de conhecimento MOSK completa
+          description: Carregar base de conhecimento MOSK (kb.md)
         - label: Party mode
           command: "*party-mode"
           description: Chat em grupo com todos os agentes
@@ -173,7 +173,7 @@ workflow-guidance:
   - When *workflow-guidance is called, start an interactive session and list all available workflows with brief descriptions
 dependencies:
   data:
-    - bmad-kb.md
+    - kb.md
     - elicitation-methods.md
   tasks:
     - advanced-elicitation.md

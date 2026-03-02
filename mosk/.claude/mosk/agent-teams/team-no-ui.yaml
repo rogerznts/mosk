@@ -4,7 +4,7 @@ bundle:
   icon: 🔧
   description: Team with no UX or UI Planning.
 agents:
-  - bmad-orchestrator
+  - orchestrator
   - analyst
   - pm
   - architect

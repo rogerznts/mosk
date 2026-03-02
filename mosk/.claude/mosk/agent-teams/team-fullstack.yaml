@@ -4,7 +4,7 @@ bundle:
   icon: 🚀
   description: Team capable of full stack, front end only, or service development.
 agents:
-  - bmad-orchestrator
+  - orchestrator
   - analyst
   - pm
   - ux-expert

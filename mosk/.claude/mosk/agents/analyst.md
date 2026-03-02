@@ -106,7 +106,7 @@ help-footer: |
 
 dependencies:
   data:
-    - bmad-kb.md
+    - kb.md
     - brainstorming-techniques.md
   tasks:
     - advanced-elicitation.md
