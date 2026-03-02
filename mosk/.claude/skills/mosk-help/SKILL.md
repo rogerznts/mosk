@@ -20,8 +20,8 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 | 3 | `/mosk-architect` | Arquitetura, stack, APIs e infraestrutura |
 | 4 | `/mosk-pm` | PRD e `*spec-constitution` (executa uma vez por projeto) |
 | 5 | `/mosk-po` | Épicos, stories com AC e SpecKit completo (`*spec-specify` → `*spec-tasks`) |
-| 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories antes da implementação |
-| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*develop-story`, Chore Mode |
+| 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories; `*chore-proposal` (scoping de mudanças) |
+| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*develop-story`, `*chore-apply/archive` |
 | 8 | `/mosk-qa` | Quality gates, arquitetura de testes, NFR e revisões |
 
 **Agentes de suporte** (sem posição fixa no fluxo):
@@ -34,5 +34,5 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 `*spec-specify` → [`*spec-clarify`] → `*spec-plan` → [`*spec-analyze`] → [`*spec-checklist`] → `*spec-tasks`
 → Dev: `*spec-implement`
 
-### Chore Mode (Dev — passo 7)
-`*chore-proposal {id}` → `*chore-apply {id}` → `*chore-archive {id}`
+### Chore Mode (SM proposta → Dev execução)
+`*chore-proposal {id}` (SM) → `*chore-apply {id}` → `*chore-archive {id}` (Dev)

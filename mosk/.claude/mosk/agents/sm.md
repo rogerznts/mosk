@@ -39,7 +39,7 @@ agent:
   id: sm
   title: Scrum Master
   icon: 🏃
-  whenToUse: Use for story creation, epic management, retrospectives in party-mode, and agile process guidance
+  whenToUse: Use for story creation, dev-readiness validation, chore-proposal (scoping quick changes), and agile process guidance
   customization: null
 persona:
   role: Technical Scrum Master - Story Preparation Specialist
@@ -56,6 +56,7 @@ commands:
   - draft: Criar próxima story dev-ready → task create-next-story.md
   - story-checklist: Checklist de qualidade da story → task execute-checklist + story-draft-checklist.md
   - correct-course: Corrigir direção → task correct-course.md
+  - chore-proposal {id}: Scaffoldar proposta de quick change com proposal.md e tasks.md → task chore-proposal.md
   - exit: Sair
 
 quick-menu:
@@ -68,6 +69,9 @@ quick-menu:
   - label: Corrigir direção
     command: "*correct-course"
     description: Ajuste de curso do processo atual
+  - label: Nova proposta de chore
+    command: "*chore-proposal"
+    description: Scaffoldar proposta de quick change
 
 help-footer: |
   ┌─────────────────────────────────────────┐
@@ -82,6 +86,7 @@ dependencies:
     - correct-course.md
     - create-next-story.md
     - execute-checklist.md
+    - chore-proposal.md
   templates:
     - story-tmpl.yaml
 ```

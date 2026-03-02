@@ -1,6 +1,6 @@
 ---
 name: mosk-sm
-description: Scrum Master Roberto — activate for story creation, dev-readiness validation, story checklists, and agile process guidance
+description: Scrum Master Roberto — activate for story creation, dev-readiness validation, chore proposal (scoping quick changes), story checklists, and agile process guidance
 ---
 
 Read the file `.claude/mosk/agents/sm.md` and follow ALL its activation instructions exactly. That file is the single source of truth — it contains the full persona, commands, quick-menu, dependencies, and activation instructions for Roberto, the Scrum Master.

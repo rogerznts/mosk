@@ -18,7 +18,7 @@ O MOSK combina três camadas em um único toolkit coeso:
 
 - **BMAD Core** — 10 agentes especializados para discovery, arquitetura, produto e qualidade
 - **SpecKit** — Pipeline de especificação-para-implementação gerenciado pelo PM, executado pelo Dev
-- **Chore Mode** — Fluxo leve para mudanças rápidas, bugfixes e GMUDs (Dev-owned)
+- **Chore Mode** — Fluxo leve para mudanças rápidas, bugfixes e GMUDs (SM propõe, Dev executa)
 
 Tudo funciona através de skills do Claude Code (slash commands) sem dependência de CLI externa.
 
@@ -87,8 +87,8 @@ seu-projeto/
 | `/mosk-architect` | Vinicius | Arquitetura de sistemas, stack, APIs, infraestrutura |
 | `/mosk-pm` | João | PRDs, estratégia de produto, spec-constitution |
 | `/mosk-po` | Sara | Backlog, épicos, stories com AC, SpecKit (spec-specify → spec-tasks) |
-| `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
-| `/mosk-dev` | Jaime | Implementação, debugging, refatoração, Chore Mode |
+| `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade, Chore Mode (proposal) |
+| `/mosk-dev` | Jaime | Implementação, debugging, refatoração, Chore Mode (apply/archive) |
 | `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
 | `/mosk-ux-expert` | Salete | User flows, wireframes, front-end specs, prompts para geração de UI |
 | `/mosk-master` | Mestre | Executor universal — expertise em todos os domínios |
@@ -238,7 +238,7 @@ flowchart TD
     QA --> FD(["✅ Feature Entregue"])
 
     WT -->|"GMUD / Bugfix
-    Hotfix"| PR["/mosk-dev
+    Hotfix"| PR["/mosk-sm
     *chore-proposal
     Documentar Mudança"]
     PR --> AP["/mosk-dev
@@ -284,8 +284,8 @@ flowchart TD
 | `/mosk-architect` | Arquitetura técnica, stack, decisões estruturais |
 | `/mosk-pm` | PRD, estratégia, spec-constitution (uma vez) |
 | `/mosk-po` | Backlog, épicos, stories com AC, SpecKit completo (specify → tasks) |
-| `/mosk-sm` | Refinar stories para dev; garantir clareza para implementação |
-| `/mosk-dev` | Implementar stories, spec-implement, Chore Mode |
+| `/mosk-sm` | Refinar stories para dev; `*chore-proposal` (documentar e escopar mudanças) |
+| `/mosk-dev` | Implementar stories, `*spec-implement`, `*chore-apply/archive` |
 | `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
 | `/mosk-ux-expert` | User flows, wireframes e specs visuais — após discovery, antes da arquitetura |
 
@@ -304,11 +304,11 @@ flowchart TD
 
 ### Chore Mode
 
-| Comando | O que faz |
-|---|---|
-| `*chore-proposal {id}` | Cria `proposal.md` + `tasks.md` em `docs/changes/{id}/` |
-| `*chore-apply {id}` | Implementa a mudança aprovada |
-| `*chore-archive {id}` | Encerra e arquiva a mudança |
+| Comando | Dono | O que faz |
+|---|---|---|
+| `*chore-proposal {id}` | SM | Cria `proposal.md` + `tasks.md` em `docs/changes/{id}/` |
+| `*chore-apply {id}` | Dev | Implementa a mudança aprovada |
+| `*chore-archive {id}` | Dev | Encerra e arquiva a mudança |
 
 ---
 

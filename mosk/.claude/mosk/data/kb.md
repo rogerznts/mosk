@@ -51,7 +51,7 @@ spec-implement     → executar todas as tasks (Dev)
 #### Chore Mode (Manutenção e Bugfixes)
 
 ```text
-chore-proposal {id}  → criar docs/changes/{id}/proposal.md + tasks.md (Dev)
+chore-proposal {id}  → criar docs/changes/{id}/proposal.md + tasks.md (SM)
 chore-apply {id}     → implementar a mudança aprovada (Dev)
 chore-archive {id}   → fechar e arquivar (Dev)
 ```
@@ -99,10 +99,10 @@ npx degit rogerznts/mosk/mosk .
 - `/mosk-po` — Sara, backlog e SpecKit
 - `/mosk-analyst` — Maria, discovery e pesquisa
 - `/mosk-architect` — Vinicius, arquitetura
-- `/mosk-dev` — Jaime, implementação e Chore
+- `/mosk-dev` — Jaime, implementação e Chore (apply/archive)
 - `/mosk-qa` — Joaquim, qualidade e testes
 - `/mosk-ux-expert` — Salete, UX e front-end specs
-- `/mosk-sm` — Roberto, dev-readiness
+- `/mosk-sm` — Roberto, dev-readiness e chore-proposal
 
 ### Guia de Seleção de Ambiente
 
@@ -153,8 +153,8 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 | `ux-expert` | Salete 🎨 | UX Designer | UI/UX, wireframes, front-end specs | Experiência do usuário |
 | `architect` | Vinicius 🏗️ | Solution Architect | Arquitetura de sistema | Sistemas complexos |
 | `po` | Sara 📊 | Product Owner | Backlog, SpecKit pipeline, stories com AC | Especificação e refinamento |
-| `sm` | Roberto 🏃 | Scrum Master | Dev-readiness, clareza técnica | Validação de stories |
-| `dev` | Jaime 💻 | Developer | spec-implement, Chore Mode, debugging | Implementação |
+| `sm` | Roberto 🏃 | Scrum Master | Dev-readiness, chore-proposal, clareza técnica | Validação de stories e scoping de chores |
+| `dev` | Jaime 💻 | Developer | spec-implement, chore-apply/archive, debugging | Implementação |
 | `qa` | Joaquim 🔬 | QA Specialist | Qualidade, testes, NFR | Validação e qualidade |
 
 ### Agentes Meta
@@ -170,8 +170,8 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 |---|---|---|---|
 | João (pm) | `/mosk-pm` | `spec-constitution` apenas (run once) | — |
 | Sara (po) | `/mosk-po` | Pipeline completo (specify→tasks) + stories com AC | — |
-| Roberto (sm) | `/mosk-sm` | Garante dev-readiness das stories | — |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` apenas | Todos os comandos chore |
+| Roberto (sm) | `/mosk-sm` | Garante dev-readiness das stories | `chore-proposal` |
+| Jaime (dev) | `/mosk-dev` | `spec-implement` apenas | `chore-apply` + `chore-archive` |
 
 ## Configurações de Times
 
@@ -272,7 +272,7 @@ O MOSK utiliza um sistema de templates sofisticado:
 #### Via Chore Mode
 
 ```text
-1. Dev (Jaime) → chore-proposal {id}: Criar proposta + tasks
+1. SM (Roberto) → chore-proposal {id}: Criar proposta + tasks
 2. Você → Revisa e aprova proposta
 3. Dev (Jaime) → chore-apply {id}: Implementar mudança
 4. Dev (Jaime) → chore-archive {id}: Arquivar e fechar

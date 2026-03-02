@@ -105,11 +105,11 @@ Specifications live in consuming projects at `docs/specs/{###}-{short-name}/` wi
 
 ### Chore Mode (tasks in `.claude/mosk/tasks/chore-*.md`)
 
-Lightweight workflow for maintenance, bugfixes, and GMUDs. **Owned by Dev (Jaime)**:
+Lightweight workflow for maintenance, bugfixes, and GMUDs:
 ```
-*chore-proposal {id}  → create docs/changes/{id}/proposal.md + tasks.md
-*chore-apply {id}     → implement the approved change
-*chore-archive {id}   → close and archive
+*chore-proposal {id}  → create docs/changes/{id}/proposal.md + tasks.md  (SM)
+*chore-apply {id}     → implement the approved change                     (Dev)
+*chore-archive {id}   → close and archive                                 (Dev)
 ```
 
 ## Skill File Format
@@ -154,8 +154,8 @@ The relative path `../../mosk/agents/` resolves correctly from any folder inside
 |---|---|---|---|
 | João (pm) | `/mosk-pm` | `spec-constitution` only (run once) | — |
 | Sara (po) | `/mosk-po` | Owns full spec pipeline (specify→tasks) + stories with AC | — |
-| Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories | — |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` only | Owns all chore commands |
+| Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories | `chore-proposal` |
+| Jaime (dev) | `/mosk-dev` | `spec-implement` only | `chore-apply` + `chore-archive` |
 
 ## What Gets Installed in Target Projects
 
