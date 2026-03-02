@@ -20,11 +20,25 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. Inspect existing quick changes in `./docs/changes/` (if present) and related code/docs to ground the proposal in current behavior.
 2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, and `design.md` (when needed) under `./docs/changes/<id>/`.
-3. Use Plan Mode to refine scope, constraints, and execution order before implementation.
-4. Draft `proposal.md` with context, objective, expected impact, and explicit acceptance criteria.
-5. Draft `tasks.md` as an ordered list of small, verifiable work items that include validation (tests/tooling) and dependencies.
-6. Add `design.md` only when the change spans multiple systems or needs trade-off documentation.
-7. Before handoff, ensure docs and tasks are consistent and that no step depends on external CLIs.
+3. Ask the user to create a git branch for this change, or analyze the change description to select the appropriate prefix:
+   - `hotfix/` → urgent production fix, critical blocker, security vulnerability
+   - `bugfix/` → non-urgent bug correction
+   - `feature/` → new functionality or improvement
+   - `experimental/` → exploration, proof-of-concept, undated sprint work
+   - `build/` → build artifacts, coverage tooling
+   - `merge/` → conflict resolution between branches
+   - Run: `git checkout -b {prefix}/{change-id}`
+   - Record the branch name as a metadata field in `proposal.md`: `**Branch:** \`{prefix}/{change-id}\``
+4. Use Plan Mode to refine scope, constraints, and execution order before implementation.
+5. Draft `proposal.md` with the following header metadata followed by context, objective, expected impact, and explicit acceptance criteria:
+   ```
+   **Change ID:** {change-id}
+   **Branch:** `{prefix}/{change-id}`
+   **Status:** draft
+   ```
+6. Draft `tasks.md` as an ordered list of small, verifiable work items that include validation (tests/tooling) and dependencies.
+7. Add `design.md` only when the change spans multiple systems or needs trade-off documentation.
+8. Before handoff, ensure docs and tasks are consistent and that no step depends on external CLIs.
 
 ## Reference
 

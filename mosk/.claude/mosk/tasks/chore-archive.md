@@ -27,6 +27,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Ensure all tasks are checked (`- [x]`) and deployment/validation notes are present.
    - Optionally move the directory to `docs/changes/archive/<id>/` for historical tracking.
 4. Record closure notes in the change artifacts (for example, completion date, environment, and validation evidence).
+4b. Offer to create a pull request before archiving:
+   - Read the `**Branch:**` field from `docs/changes/<id>/proposal.md`.
+   - If the field is present:
+     - Ask the user whether they want to create a PR before archiving.
+     - If yes: run `gh pr create --title "chore({change-id}): <title>" --base <default-branch>` with a body summarising the change, and wait for the PR to be created before continuing.
+     - If no: proceed to archiving.
+   - If the field is absent (legacy chore): skip this step and inform the user that no branch was associated with this chore.
 5. Do not perform automatic spec merges in this task.
 
 ## Reference
