@@ -87,12 +87,9 @@ commands:
 
 quick-menu:
   groups:
-    - label: Story & Spec
-      description: Implementação de stories e specs
+    - label: SpecKit
+      description: Implementação via pipeline de especificação
       commands:
-        - label: Implementar story
-          command: "*develop-story"
-          description: Executar tasks da story passo a passo
         - label: Executar spec completa
           command: "*spec-implement"
           description: Processar todas as tasks do tasks.md
