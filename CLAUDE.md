@@ -30,8 +30,8 @@ mosk/                              # The installable template (ships to target p
 │   │   │   ├── dev.md             # Jaime — implementation, Chore Mode
 │   │   │   ├── qa.md              # Joaquim — testing, quality gates, NFR
 │   │   │   ├── ux-expert.md       # Salete — user flows, wireframes, front-end specs
-│   │   │   ├── bmad-master.md     # Mestre — universal task executor
-│   │   │   └── bmad-orchestrator.md # Maestro — workflow coordinator
+│   │   │   ├── master.md          # Mestre — universal task executor
+│   │   │   └── orchestrator.md    # Maestro — workflow coordinator
 │   │   ├── tasks/                 # Executable workflow files
 │   │   │   ├── spec-constitution.md
 │   │   │   ├── spec-specify.md
@@ -46,6 +46,9 @@ mosk/                              # The installable template (ships to target p
 │   │   │   ├── chore-archive.md
 │   │   │   └── develop-story.md   # (and other BMAD tasks)
 │   │   ├── templates/             # YAML-driven document scaffolds
+│   │   ├── utils/                 # Shared utilities
+│   │   │   ├── doc-template.md    # Template markup language spec
+│   │   │   └── workflow-management.md # Workflow management guidelines
 │   │   ├── scripts/               # Support scripts
 │   │   ├── constitution.md        # Project principles (created by spec-constitution)
 │   │   └── core-config.yaml       # Central configuration
