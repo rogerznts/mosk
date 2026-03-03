@@ -16,8 +16,8 @@ Implement fixes based on QA results (gate and assessments) for a specific story.
 ```yaml
 required:
   - story_id: '{epic}.{story}' # e.g., "2.2"
-  - qa_root: from `.bmad-core/core-config.yaml` key `qa.qaLocation` (e.g., `docs/project/qa`)
-  - story_root: from `.bmad-core/core-config.yaml` key `devStoryLocation` (e.g., `docs/project/stories`)
+  - qa_root: from `.claude/mosk/core-config.yaml` key `qa.qaLocation` (e.g., `docs/qa`)
+  - story_root: from `.claude/mosk/core-config.yaml` key `devStoryLocation` (e.g., `docs/stories`)
 
 optional:
   - story_title: '{title}' # derive from story H1 if missing
@@ -36,16 +36,14 @@ optional:
 
 ## Prerequisites
 
-- Repository builds and tests run locally (Deno 2)
-- Lint and test commands available:
-  - `deno lint`
-  - `deno test -A`
+- Repository builds and tests run locally using the project's stack
+- Lint and test commands available (use the project-specific runner, e.g., `npm test`, `pytest`, `go test ./...`, `cargo test`, etc.)
 
 ## Process (Do not skip steps)
 
 ### 0) Load Core Config & Locate Story
 
-- Read `.bmad-core/core-config.yaml` and resolve `qa_root` and `story_root`
+- Read `.claude/mosk/core-config.yaml` and resolve `qa_root` and `story_root`
 - Locate story file in `{story_root}/{epic}.{story}.*.md`
   - HALT if missing and ask for correct story id/path
 
@@ -74,19 +72,19 @@ Apply in order, highest priority first:
 Guidance:
 
 - Prefer tests closing coverage gaps before/with code changes
-- Keep changes minimal and targeted; follow project architecture and TS/Deno rules
+- Keep changes minimal and targeted; follow project architecture and coding standards
 
 ### 3) Apply Changes
 
 - Implement code fixes per plan
 - Add missing tests to close coverage gaps (unit first; integration where required by AC)
-- Keep imports centralized via `deps.ts` (see `docs/project/typescript-rules.md`)
-- Follow DI boundaries in `src/core/di.ts` and existing patterns
+- Follow existing import/dependency patterns defined in the project
+- Follow existing DI/architecture boundaries and patterns defined in the project
 
 ### 4) Validate
 
-- Run `deno lint` and fix issues
-- Run `deno test -A` until all tests pass
+- Run the project's lint command (e.g., `npm run lint`, `ruff check .`, `golangci-lint run`) and fix issues
+- Run the project's test command (e.g., `npm test`, `pytest`, `go test ./...`) until all tests pass
 - Iterate until clean
 
 ### 5) Update Story (Allowed Sections ONLY)
@@ -113,15 +111,15 @@ Status Rule:
 
 ## Blocking Conditions
 
-- Missing `.bmad-core/core-config.yaml`
+- Missing `.claude/mosk/core-config.yaml`
 - Story file not found for `story_id`
 - No QA artifacts found (neither gate nor assessments)
   - HALT and request QA to generate at least a gate file (or proceed only with clear developer-provided fix list)
 
 ## Completion Checklist
 
-- deno lint: 0 problems
-- deno test -A: all tests pass
+- Lint: 0 problems (use project-specific lint command)
+- All tests pass (use project-specific test command)
 - All high severity `top_issues` addressed
 - NFR FAIL → resolved; CONCERNS minimized or documented
 - Coverage gaps closed or explicitly documented with rationale
@@ -130,15 +128,15 @@ Status Rule:
 
 ## Example: Story 2.2
 
-Given gate `docs/project/qa/gates/2.2-*.yml` shows
+Given gate `docs/qa/gates/2.2-*.yml` shows
 
 - `coverage_gaps`: Back action behavior untested (AC2)
-- `coverage_gaps`: Centralized dependencies enforcement untested (AC4)
+- `coverage_gaps`: Service layer dependency injection untested (AC4)
 
 Fix plan:
 
 - Add a test ensuring the Toolkit Menu "Back" action returns to Main Menu
-- Add a static test verifying imports for service/view go through `deps.ts`
+- Add a test verifying the service layer correctly uses injected dependencies
 - Re-run lint/tests and update Dev Agent Record + File List accordingly
 
 ## Key Principles

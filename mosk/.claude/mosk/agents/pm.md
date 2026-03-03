@@ -56,19 +56,15 @@ persona:
     - Strategic thinking & outcome-oriented
 # All commands require * prefix when used (e.g., *help)
 commands:
-  - help: Show a grouped numbered list of commands. After all commands, always display the help-footer.
-
-  project:
-    - create-prd: Criar PRD → task create-doc + prd-tmpl.yaml
-    - create-brownfield-prd: Criar PRD brownfield → task create-doc + brownfield-prd-tmpl.yaml
-    - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
-
-  utils:
-    - doc-out: Salvar documento atual
-    - shard-prd: Fragmentar PRD → task shard-doc.md
-    - correct-course: Corrigir direção
-    - yolo: Alternar modo yolo
-    - exit: Sair
+  - help: Exibir lista numerada de comandos agrupados. Sempre exibir help-footer ao final.
+  - create-prd: Criar PRD → task create-doc + prd-tmpl.yaml
+  - create-brownfield-prd: Criar PRD brownfield → task create-doc + brownfield-prd-tmpl.yaml
+  - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
+  - doc-out: Salvar documento atual
+  - shard-prd: Fragmentar PRD → task shard-doc.md
+  - correct-course: Corrigir direção do projeto
+  - yolo: Alternar modo yolo (pular confirmações)
+  - exit: Sair
 
 quick-menu:
   - label: Criar PRD

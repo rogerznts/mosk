@@ -45,9 +45,9 @@ Given that feature description, do this:
       - Find the highest number N
       - Use N+1 for the new branch number
 
-   d. Run the script `.claude/mosk/scripts/create-new-feature.sh --json "$ARGUMENTS"` with the calculated number and short-name:
-      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `.claude/mosk/scripts/create-new-feature.sh --json "$ARGUMENTS" --json --number 5 --short-name "user-auth" "Add user authentication"`
+   d. Run the script `.claude/mosk/scripts/create-new-feature.sh` with the calculated number and short-name:
+      - Pass `--json` (for JSON output), `--number N+1`, `--short-name "your-short-name"` and the feature description as the last positional argument
+      - Bash example: `.claude/mosk/scripts/create-new-feature.sh --json --number 5 --short-name "user-auth" "Add user authentication"`
 
    **IMPORTANT**:
    - Check all three sources (remote branches, local branches, specs directories) to find the highest number
