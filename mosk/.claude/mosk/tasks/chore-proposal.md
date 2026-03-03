@@ -20,15 +20,24 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. Inspect existing quick changes in `./docs/changes/` (if present) and related code/docs to ground the proposal in current behavior.
 2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, and `design.md` (when needed) under `./docs/changes/<id>/`.
-3. Ask the user to create a git branch for this change, or analyze the change description to select the appropriate prefix:
+3. Analyze the change description to select the appropriate git prefix:
    - `hotfix/` → urgent production fix, critical blocker, security vulnerability
    - `bugfix/` → non-urgent bug correction
    - `feature/` → new functionality or improvement
    - `experimental/` → exploration, proof-of-concept, undated sprint work
    - `build/` → build artifacts, coverage tooling
    - `merge/` → conflict resolution between branches
-   - Run: `git checkout -b {prefix}/{change-id}`
-   - Record the branch name as a metadata field in `proposal.md`: `**Branch:** \`{prefix}/{change-id}\``
+
+   Suggest the branch name `{prefix}/{change-id}` to the user and ask for confirmation
+   (or a custom name) before creating it. Wait for the user's response.
+
+   Once confirmed, run:
+   ```
+   git checkout -b {confirmed-branch-name}
+   ```
+
+   Record the final branch name as a metadata field in `proposal.md`:
+   `**Branch:** \`{confirmed-branch-name}\``
 4. Use Plan Mode to refine scope, constraints, and execution order before implementation.
 5. Draft `proposal.md` with the following header metadata followed by context, objective, expected impact, and explicit acceptance criteria:
    ```
