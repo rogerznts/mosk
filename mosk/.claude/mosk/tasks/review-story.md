@@ -123,7 +123,7 @@ After review and any refactoring, append your results to the story file in the Q
 
 ### Review Date: [Date]
 
-### Reviewed By: Quinn (Test Architect)
+### Reviewed By: Joaquim (Test Architect)
 
 ### Code Quality Assessment
 
@@ -186,7 +186,7 @@ NFR assessment: qa.qaLocation/assessments/{epic}.{story}-nfr-{YYYYMMDD}.md
 **Template and Directory:**
 
 - Render from `../templates/qa-gate-tmpl.yaml`
-- Create directory defined in `qa.qaLocation/gates` (see `.bmad-core/core-config.yaml`) if missing
+- Create directory defined in `qa.qaLocation/gates` (see `.claude/mosk/core-config.yaml`) if missing
 - Save to: `qa.qaLocation/gates/{epic}.{story}-{slug}.yml`
 
 Gate file structure:
@@ -197,7 +197,7 @@ story: '{epic}.{story}'
 story_title: '{story title}'
 gate: PASS|CONCERNS|FAIL|WAIVED
 status_reason: '1-2 sentence explanation of gate decision'
-reviewer: 'Quinn (Test Architect)'
+reviewer: 'Joaquim (Test Architect)'
 updated: '{ISO-8601 timestamp}'
 
 top_issues: [] # Empty if no issues

@@ -21,7 +21,7 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 | 4 | `/mosk-pm` | PRD e `*spec-constitution` (executa uma vez por projeto) |
 | 5 | `/mosk-po` | Épicos, stories com AC e SpecKit completo (`*spec-specify` → `*spec-tasks`) |
 | 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories; `*chore-proposal` (scoping de mudanças) |
-| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*develop-story`, `*chore-apply/archive` |
+| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*chore-apply/archive` |
 | 8 | `/mosk-qa` | Quality gates, arquitetura de testes, NFR e revisões |
 
 **Agentes de suporte** (sem posição fixa no fluxo):

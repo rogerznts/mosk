@@ -68,6 +68,7 @@ commands: # All commands require * prefix when used (e.g., *help, *agent pm)
   party-mode: Group chat with all agents
   status: Show current context, active agent, and progress
   task: Run a specific task (list if name not specified)
+  workflow-guidance: Get personalized help selecting the right workflow
   yolo: Toggle skip confirmations mode
   exit: Return to BMad or exit session
 
@@ -105,7 +106,7 @@ help-display-template: |
   Core Commands:
   *help ............... Show this guide
   *chat-mode .......... Start conversational mode for detailed assistance
-  *kb-mode ............ Load full BMad knowledge base
+  *kb-mode ............ Load full MOSK knowledge base
   *status ............. Show current context, active agent, and progress
   *exit ............... Return to BMad or exit session
 
@@ -117,9 +118,6 @@ help-display-template: |
   Workflow Commands:
   *workflow [name] .... Start specific workflow (list if no name)
   *workflow-guidance .. Get personalized help selecting the right workflow
-  *plan ............... Create detailed workflow plan before starting
-  *plan-status ........ Show current workflow plan progress
-  *plan-update ........ Update workflow plan status
 
   Other Commands:
   *yolo ............... Toggle skip confirmations mode
