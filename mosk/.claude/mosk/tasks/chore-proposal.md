@@ -20,7 +20,17 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. Inspect existing quick changes in `./docs/changes/` (if present) and related code/docs to ground the proposal in current behavior.
 2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, and `design.md` (when needed) under `./docs/changes/<id>/`.
-3. Analyze the change description to select the appropriate git prefix:
+3. Check the current branch before creating a new one:
+   Run: `git branch --show-current`
+
+   - **If the current branch is NOT `main` or `master`**:
+     - Inform the user that they are already on branch `{current-branch}`.
+     - Ask whether they want to use this branch or create a new one.
+       - If they choose to **use the current branch**: record it as `**Branch:** \`{current-branch}\`` in `proposal.md` and skip to step 4.
+       - If they choose to **create a new branch**: proceed with the prefix selection and creation below.
+   - **If on `main` or `master`**: proceed with prefix selection and branch creation below.
+
+   Analyze the change description to select the appropriate git prefix:
    - `hotfix/` → urgent production fix, critical blocker, security vulnerability
    - `bugfix/` → non-urgent bug correction
    - `feature/` → new functionality or improvement

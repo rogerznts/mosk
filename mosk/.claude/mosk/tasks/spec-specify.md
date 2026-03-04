@@ -30,22 +30,35 @@ Given that feature description, do this:
 
 2. **Check for existing branches before creating new one**:
 
-   a. First, fetch all remote branches to ensure we have the latest information:
+   a. **Check current branch first**:
+      Run: `git branch --show-current`
+
+      - **If the current branch is NOT `main` or `master`**:
+        - Inform the user: "You are already on branch `{current-branch}`. Using this branch for the feature."
+        - Skip steps 2c–2e (do not run the script `create-new-feature.sh`).
+        - Use `{current-branch}` as BRANCH_NAME.
+        - Infer the SPEC_FILE path from the branch name convention:
+          if the branch matches `{number}-{short-name}`, use `docs/specs/{number}-{short-name}/spec.md`;
+          otherwise create `docs/specs/{current-branch}/spec.md`.
+        - Proceed to step 3.
+      - **If on `main` or `master`**: continue with steps 2c–2e below.
+
+   b. First, fetch all remote branches to ensure we have the latest information:
       ```bash
       git fetch --all --prune
       ```
 
-   b. Find the highest feature number across all sources for the short-name:
+   c. Find the highest feature number across all sources for the short-name:
       - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
       - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
       - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
 
-   c. Determine the next available number:
+   d. Determine the next available number:
       - Extract all numbers from all three sources
       - Find the highest number N
       - Use N+1 for the new branch number
 
-   d. Run the script `.claude/mosk/scripts/create-new-feature.sh` with the calculated number and short-name:
+   e. Run the script `.claude/mosk/scripts/create-new-feature.sh` with the calculated number and short-name:
       - Pass `--json` (for JSON output), `--number N+1`, `--short-name "your-short-name"` and the feature description as the last positional argument
       - Bash example: `.claude/mosk/scripts/create-new-feature.sh --json --number 5 --short-name "user-auth" "Add user authentication"`
 
