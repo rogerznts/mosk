@@ -41,9 +41,7 @@ mosk/                              # The installable template (ships to target p
 │   │   │   ├── spec-checklist.md
 │   │   │   ├── spec-tasks.md
 │   │   │   ├── spec-implement.md
-│   │   │   ├── chore-proposal.md
-│   │   │   ├── chore-apply.md
-│   │   │   ├── chore-archive.md
+│   │   │   ├── spec-archive.md
 │   │   │   └── develop-story.md   # (and other BMAD tasks)
 │   │   ├── templates/             # YAML-driven document scaffolds
 │   │   ├── utils/                 # Shared utilities
@@ -66,7 +64,7 @@ mosk/                              # The installable template (ships to target p
 │       └── mosk-help/SKILL.md
 └── docs/                          # Created by workflows in consuming projects
     ├── specs/                     # Feature specs: docs/specs/{###}-{name}/
-    └── changes/                   # Quick changes: docs/changes/{id}/
+    └── archive/                   # Archived specs: docs/specs/archive/{###}-{tipo}-{nome}/
 ```
 
 ## Three Core Components
@@ -99,18 +97,27 @@ Transforms natural language descriptions into executable implementation plans.
 **Owned by Dev (Jaime)** — execution phase only:
 ```
 *spec-implement     → execute all tasks in tasks.md
+*spec-archive {id}  → move completed spec to docs/specs/archive/
 ```
 
-Specifications live in consuming projects at `docs/specs/{###}-{short-name}/` with: `spec.md`, `plan.md`, `tasks.md`, and optional `data-model.md`, `research.md`, `contracts/`.
+Specifications live in consuming projects at `docs/specs/{###}-{tipo}-{nome}/` with: `spec.md`, `plan.md`, `tasks.md`, and optional `data-model.md`, `research.md`, `contracts/`.
+Archived specs live at `docs/specs/archive/{###}-{tipo}-{nome}/`.
 
-### Chore Mode (tasks in `.claude/mosk/tasks/chore-*.md`)
+### Spec Types
 
-Lightweight workflow for maintenance, bugfixes, and GMUDs:
-```
-*chore-proposal {id}  → create docs/changes/{id}/proposal.md + tasks.md  (SM)
-*chore-apply {id}     → implement the approved change                     (Dev)
-*chore-archive {id}   → close and archive                                 (Dev)
-```
+Every change — features, fixes, hotfixes, GMUDs, and refactors — goes through the same SpecKit
+pipeline. The type is encoded in the branch and folder name:
+
+| Type | Use case |
+|------|----------|
+| `feature` | New functionality or capability |
+| `fix` | Non-urgent bug correction |
+| `hotfix` | Urgent production fix / security vulnerability |
+| `gmud` | Managed change, rollout, deployment procedure |
+| `refactor` | Code restructuring without new features |
+| `experimental` | Exploration, PoC, spike |
+
+Branch and folder format: `{###}-{tipo}-{nome}` (e.g., `008-feature-score-checklist`)
 
 ## Skill File Format
 
@@ -143,19 +150,19 @@ The relative path `../../mosk/agents/` resolves correctly from any folder inside
 
 - **Skills**: `mosk-{agent}` — no `ag` prefix (e.g., `mosk-pm`, `mosk-dev`, `mosk-ux-expert`)
 - **Agent Brazilian names**: Maria, Vinicius, João, Sara, Roberto, Jaime, Joaquim, Salete, Mestre, Maestro
-- **Specification folders**: `{###}-{short-name}` (e.g., `001-user-auth`)
-- **Change folders**: `{id}` under `docs/changes/`
+- **Specification folders**: `{###}-{tipo}-{nome}` (e.g., `008-feature-score-checklist`)
+- **Archived specs**: `docs/specs/archive/{###}-{tipo}-{nome}/`
 - **Agent IDs**: match filename without extension (e.g., `analyst.md` → id `analyst`)
-- **Task files**: named by workflow action (e.g., `spec-specify.md`, `chore-proposal.md`)
+- **Task files**: named by workflow action (e.g., `spec-specify.md`, `spec-archive.md`)
 
 ## Agent Responsibilities
 
-| Agent | Skill | SpecKit | Chore |
-|---|---|---|---|
-| João (pm) | `/mosk-pm` | `spec-constitution` only (run once) | — |
-| Sara (po) | `/mosk-po` | Owns full spec pipeline (specify→tasks) + stories with AC | — |
-| Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories | `chore-proposal` |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` only | `chore-apply` + `chore-archive` |
+| Agent | Skill | SpecKit |
+|---|---|---|
+| João (pm) | `/mosk-pm` | `spec-constitution` only (run once) |
+| Sara (po) | `/mosk-po` | Owns full spec pipeline (specify→tasks) + stories with AC |
+| Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories |
+| Jaime (dev) | `/mosk-dev` | `spec-implement` + `spec-archive` |
 
 ## What Gets Installed in Target Projects
 

@@ -8,17 +8,16 @@
 
 Este toolkit nasceu da minha experiência pessoal orquestrando agentes do BMAD Core adaptados e integrados ao SpecKit. Na prática, percebi ganhos expressivos ao separar claramente dois conjuntos de responsabilidades: agentes especializados para raciocínio, discovery e documentação estratégica — e o SpecKit para especificação estruturada e implementação de features.
 
-O Chore Mode foi inspirado no fluxo do Open Spec — não no seu conteúdo, mas na ideia de usar planejamento estruturado diretamente nas ferramentas de IA, como o Claude Code, para registrar, executar e arquivar mudanças operacionais (GMUDs, bugfixes, hotfixes) de forma rastreável e sem burocracia.
+A ideia central é que todo tipo de mudança — features, bugs, GMUDs, hotfixes ou refatorações — passa pelo mesmo pipeline de especificação estruturada, com o tipo refletido no nome da branch e da pasta (`{###}-{tipo}-{nome}`). Specs concluídas são arquivadas em `docs/specs/archive/`, mantendo histórico rastreável sem burocracia.
 
 ---
 
 ## O que é o MOSK
 
-O MOSK combina três camadas em um único toolkit coeso:
+O MOSK combina duas camadas em um único toolkit coeso:
 
 - **BMAD Core** — 10 agentes especializados para discovery, arquitetura, produto e qualidade
-- **SpecKit** — Pipeline de especificação-para-implementação gerenciado pelo PM, executado pelo Dev
-- **Chore Mode** — Fluxo leve para mudanças rápidas, bugfixes e GMUDs (SM propõe, Dev executa)
+- **SpecKit** — Pipeline de especificação-para-implementação para todo tipo de mudança: features, fixes, hotfixes, GMUDs e refatorações
 
 Tudo funciona através de skills do Claude Code (slash commands) sem dependência de CLI externa.
 
@@ -63,18 +62,16 @@ seu-projeto/
 │       ├── mosk-ux-expert/
 │       └── mosk-help/
 └── docs/                      # Criado pelos workflows
-    ├── specs/                 # Especificações de features (SpecKit)
-    │   └── 001-nome-feature/
-    │       ├── spec.md
-    │       ├── plan.md
-    │       ├── tasks.md
-    │       ├── data-model.md  # (opcional)
-    │       ├── research.md    # (opcional)
-    │       └── contracts/     # (opcional)
-    └── changes/               # Mudanças rápidas (Chore Mode)
-        └── [change-id]/
-            ├── proposal.md
-            └── tasks.md
+    └── specs/                 # Todas as specs (features, fixes, GMUDs…)
+        ├── 008-feature-score-checklist/   # {###}-{tipo}-{nome}
+        │   ├── spec.md
+        │   ├── plan.md
+        │   ├── tasks.md
+        │   ├── data-model.md  # (opcional)
+        │   ├── research.md    # (opcional)
+        │   └── contracts/     # (opcional)
+        └── archive/           # Specs concluídas e arquivadas
+            └── 001-feature-user-auth/
 ```
 
 ---
@@ -87,8 +84,8 @@ seu-projeto/
 | `/mosk-architect` | Vinicius | Arquitetura de sistemas, stack, APIs, infraestrutura |
 | `/mosk-pm` | João | PRDs, estratégia de produto, spec-constitution |
 | `/mosk-po` | Sara | Backlog, épicos, stories com AC, SpecKit (spec-specify → spec-tasks) |
-| `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade, Chore Mode (proposal) |
-| `/mosk-dev` | Jaime | Implementação, debugging, refatoração, Chore Mode (apply/archive) |
+| `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
+| `/mosk-dev` | Jaime | Implementação, debugging, refatoração, spec-archive |
 | `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
 | `/mosk-ux-expert` | Salete | User flows, wireframes, front-end specs, prompts para geração de UI |
 | `/mosk-master` | Mestre | Executor universal — expertise em todos os domínios |
@@ -183,15 +180,17 @@ flowchart TD
 
 ### Brownfield — Projeto Existente
 
-Para projetos em andamento, o fluxo bifurca conforme o tipo de trabalho: nova feature (SpecKit) ou mudança rápida (Chore Mode).
+Para projetos em andamento, todo trabalho — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline SpecKit com o tipo adequado.
 
 ```mermaid
 flowchart TD
     Start(["📦 Projeto Existente"]) --> WT{"Tipo de
     trabalho?"}
 
-    WT -->|"Nova Feature"| CQ{"constitution.md
+    WT -->|"feature / refactor"| CQ{"constitution.md
     já existe?"}
+    WT -->|"fix / hotfix / gmud"| S
+
     CQ -->|Não| C["/mosk-pm
     *spec-constitution
     — executa UMA VEZ —"]
@@ -204,8 +203,8 @@ flowchart TD
     UX --> PO["/mosk-po
     Épicos & Stories"]
     PO --> S["/mosk-po
-    *spec-specify
-    Criar Spec da Feature"]
+    *spec-specify {tipo}
+    Criar Spec"]
 
     S --> AQ{"Ambiguidades
     na spec?"}
@@ -213,21 +212,13 @@ flowchart TD
     *spec-clarify"]
     AQ -->|Não| P
     CL --> P["/mosk-po
-    *spec-plan
-    Planejar Implementação"]
-    P --> VQ{"Validar
-    consistência?"}
+    *spec-plan"]
+    P --> VQ{"Validar?"}
     VQ -->|Sim| AN["/mosk-po
     *spec-analyze"]
-    VQ -->|Não| CHQ
-    AN --> CHQ{"Checklist
-    de qualidade?"}
-    CHQ -->|Sim| CH["/mosk-po
-    *spec-checklist"]
-    CHQ -->|Não| T
-    CH --> T["/mosk-po
-    *spec-tasks
-    Gerar Tasks Ordenadas"]
+    VQ -->|Não| T
+    AN --> T["/mosk-po
+    *spec-tasks"]
 
     T --> SM["/mosk-sm
     Dev-Readiness"]
@@ -235,39 +226,27 @@ flowchart TD
     *spec-implement"]
     DI --> QA["/mosk-qa
     Quality Gate"]
-    QA --> FD(["✅ Feature Entregue"])
-
-    WT -->|"GMUD / Bugfix
-    Hotfix"| PR["/mosk-sm
-    *chore-proposal
-    Documentar Mudança"]
-    PR --> AP["/mosk-dev
-    *chore-apply
-    Implementar"]
-    AP --> AR["/mosk-dev
-    *chore-archive
-    Encerrar & Arquivar"]
-    AR --> CD(["✅ Mudança Entregue"])
+    QA --> AR["/mosk-dev
+    *spec-archive"]
+    AR --> FD(["✅ Entregue & Arquivado"])
 
     classDef ux fill:#ec4899,stroke:#db2777,color:#fff
     classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
     classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
     classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
     classDef impl fill:#ef4444,stroke:#dc2626,color:#fff
-    classDef chore fill:#6b7280,stroke:#4b5563,color:#fff
     classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
 
     class UX ux
     class C,S,P,T speckit
-    class CL,AN,CH optional
+    class CL,AN optional
     class PO,SM stories
-    class DI,QA impl
-    class PR,AP,AR chore
-    class Start,FD,CD,WT endpoint
+    class DI,QA,AR impl
+    class Start,FD,WT endpoint
 ```
 
 > **Legenda de cores:**
-> 🟢 Discovery (analyst, architect, pm)  🩷 UX (ux-expert)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação & QA  ⚫ Chore Mode
+> 🩷 UX (ux-expert)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação, QA & Archive
 
 ---
 
@@ -284,8 +263,8 @@ flowchart TD
 | `/mosk-architect` | Arquitetura técnica, stack, decisões estruturais |
 | `/mosk-pm` | PRD, estratégia, spec-constitution (uma vez) |
 | `/mosk-po` | Backlog, épicos, stories com AC, SpecKit completo (specify → tasks) |
-| `/mosk-sm` | Refinar stories para dev; `*chore-proposal` (documentar e escopar mudanças) |
-| `/mosk-dev` | Implementar stories, `*spec-implement`, `*chore-apply/archive` |
+| `/mosk-sm` | Refinar stories para dev; validar dev-readiness e clareza técnica |
+| `/mosk-dev` | Implementar stories, `*spec-implement`, `*spec-archive` |
 | `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
 | `/mosk-ux-expert` | User flows, wireframes e specs visuais — após discovery, antes da arquitetura |
 
@@ -301,14 +280,20 @@ flowchart TD
 | `*spec-checklist` | PO — opcional | Gera checklist de qualidade por domínio (ux, api, security…) |
 | `*spec-tasks` | PO | Gera `tasks.md` ordenado e acionável |
 | `*spec-implement` | Dev | Executa todas as tarefas do `tasks.md` |
+| `*spec-archive {id}` | Dev | Move spec concluída para `docs/specs/archive/` |
 
-### Chore Mode
+### Tipos de Spec
 
-| Comando | Dono | O que faz |
-|---|---|---|
-| `*chore-proposal {id}` | SM | Cria `proposal.md` + `tasks.md` em `docs/changes/{id}/` |
-| `*chore-apply {id}` | Dev | Implementa a mudança aprovada |
-| `*chore-archive {id}` | Dev | Encerra e arquiva a mudança |
+| Tipo | Quando usar |
+|------|-------------|
+| `feature` | Nova funcionalidade ou capacidade |
+| `fix` | Correção de bug não urgente |
+| `hotfix` | Correção urgente de produção / vulnerabilidade |
+| `gmud` | Mudança gerenciada, rollout, procedimento de GMUD |
+| `refactor` | Reestruturação sem nova funcionalidade |
+| `experimental` | Exploração, PoC, spike |
+
+Formato da branch e pasta: `{###}-{tipo}-{nome}` (ex: `008-feature-score-checklist`, `012-fix-payment-timeout`)
 
 ---
 

@@ -20,8 +20,8 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 | 3 | `/mosk-architect` | Arquitetura, stack, APIs e infraestrutura |
 | 4 | `/mosk-pm` | PRD e `*spec-constitution` (executa uma vez por projeto) |
 | 5 | `/mosk-po` | Épicos, stories com AC e SpecKit completo (`*spec-specify` → `*spec-tasks`) |
-| 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories; `*chore-proposal` (scoping de mudanças) |
-| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*chore-apply/archive` |
+| 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories e agile guidance |
+| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*spec-archive` |
 | 8 | `/mosk-qa` | Quality gates, arquitetura de testes, NFR e revisões |
 
 **Agentes de suporte** (sem posição fixa no fluxo):
@@ -32,7 +32,18 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 
 ### SpecKit Pipeline (PO — passo 5)
 `*spec-specify` → [`*spec-clarify`] → `*spec-plan` → [`*spec-analyze`] → [`*spec-checklist`] → `*spec-tasks`
-→ Dev: `*spec-implement`
+→ Dev: `*spec-implement` → `*spec-archive`
 
-### Chore Mode (SM proposta → Dev execução)
-`*chore-proposal {id}` (SM) → `*chore-apply {id}` → `*chore-archive {id}` (Dev)
+### Tipos de spec (`--type`)
+| Tipo | Quando usar |
+|------|-------------|
+| `feature` | Nova funcionalidade ou capacidade |
+| `fix` | Correção de bug não urgente |
+| `hotfix` | Correção urgente de produção / vulnerabilidade |
+| `gmud` | Mudança gerenciada, rollout, procedimento de GMUD |
+| `refactor` | Reestruturação sem nova funcionalidade |
+| `experimental` | Exploração, PoC, spike |
+
+### Pasta de specs
+- Ativas: `docs/specs/{###}-{tipo}-{nome}/`
+- Arquivadas: `docs/specs/archive/{###}-{tipo}-{nome}/`

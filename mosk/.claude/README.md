@@ -12,8 +12,8 @@ Exemplo: `name: mosk-pm` → comando `/mosk-pm`.
 - `mosk-architect`     → Vinicius (Arquiteto de Sistemas)
 - `mosk-pm`            → João (Product Manager)
 - `mosk-po`            → Sara (Product Owner / SpecKit pipeline)
-- `mosk-sm`            → Roberto (Scrum Master / chore-proposal)
-- `mosk-dev`           → Jaime (Dev / spec-implement / chore-apply/archive)
+- `mosk-sm`            → Roberto (Scrum Master / dev-readiness)
+- `mosk-dev`           → Jaime (Dev / spec-implement / spec-archive)
 - `mosk-qa`            → Joaquim (QA / quality gates)
 - `mosk-ux-expert`     → Salete (UX / wireframes / front-end specs)
 - `mosk-master`        → Mestre (executor universal)
@@ -29,6 +29,9 @@ Exemplo: `name: mosk-pm` → comando `/mosk-pm`.
 
 ## Nota
 
-As tasks do SpecKit (`*spec-specify`, `*spec-plan`, etc.) e do Chore Mode
-(`*chore-proposal`, `*chore-apply`, etc.) são executadas **dentro dos agentes**
-via comandos com prefixo `*`, e não como skills independentes.
+As tasks do SpecKit (`*spec-specify`, `*spec-plan`, `*spec-implement`, `*spec-archive`, etc.)
+são executadas **dentro dos agentes** via comandos com prefixo `*`, e não como skills independentes.
+
+Todo tipo de mudança — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline
+SpecKit com o tipo adequado (`feature`, `fix`, `hotfix`, `gmud`, `refactor`, `experimental`)
+refletido no nome da branch e pasta: `{###}-{tipo}-{nome}/`.

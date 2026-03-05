@@ -5,13 +5,14 @@ set -e
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
+FEATURE_TYPE=""
 ARGS=()
 i=1
 while [ $i -le $# ]; do
     arg="${!i}"
     case "$arg" in
-        --json) 
-            JSON_MODE=true 
+        --json)
+            JSON_MODE=true
             ;;
         --short-name)
             if [ $((i + 1)) -gt $# ]; then
@@ -27,6 +28,19 @@ while [ $i -le $# ]; do
             fi
             SHORT_NAME="$next_arg"
             ;;
+        --type)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --type requires a value' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --type requires a value' >&2
+                exit 1
+            fi
+            FEATURE_TYPE="$next_arg"
+            ;;
         --number)
             if [ $((i + 1)) -gt $# ]; then
                 echo 'Error: --number requires a value' >&2
@@ -40,22 +54,24 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
-        --help|-h) 
-            echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>"
+        --help|-h)
+            echo "Usage: $0 [--json] [--type <type>] [--short-name <name>] [--number N] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
+            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
-            echo "  $0 'Add user authentication system' --short-name 'user-auth'"
-            echo "  $0 'Implement OAuth2 integration for API' --number 5"
+            echo "  $0 --type feature --short-name 'user-auth' 'Add user authentication system'"
+            echo "  $0 --type fix --short-name 'payment-timeout' 'Fix payment processing timeout'"
+            echo "  $0 --type gmud --number 5 'Deploy rollback procedure'"
             exit 0
             ;;
-        *) 
-            ARGS+=("$arg") 
+        *)
+            ARGS+=("$arg")
             ;;
     esac
     i=$((i + 1))
@@ -211,7 +227,15 @@ if [ -z "$BRANCH_NUMBER" ]; then
 fi
 
 FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
-BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+
+# Build branch name: {###}-{type}-{name} or {###}-{name} (backward compat)
+if [ -n "$FEATURE_TYPE" ]; then
+    # Clean the type value
+    CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+    BRANCH_NAME="${FEATURE_NUM}-${CLEAN_TYPE}-${BRANCH_SUFFIX}"
+else
+    BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+fi
 
 # GitHub enforces a 244-byte limit on branch names
 # Validate and truncate if necessary

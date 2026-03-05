@@ -46,15 +46,12 @@ spec-analyze       → consistência entre artefatos (PO, opcional)
 spec-checklist     → checklist de qualidade por domínio (PO, opcional)
 spec-tasks         → gerar tasks.md ordenado (PO)
 spec-implement     → executar todas as tasks (Dev)
+spec-archive {id}  → arquivar spec concluída em docs/specs/archive/ (Dev)
 ```
 
-#### Chore Mode (Manutenção e Bugfixes)
-
-```text
-chore-proposal {id}  → criar docs/changes/{id}/proposal.md + tasks.md (SM)
-chore-apply {id}     → implementar a mudança aprovada (Dev)
-chore-archive {id}   → fechar e arquivar (Dev)
-```
+> **Tipos de spec** (prefixo no nome da branch e pasta):
+> `feature` | `fix` | `hotfix` | `gmud` | `refactor` | `experimental`
+> Pasta: `docs/specs/{###}-{tipo}-{nome}/` — Arquivadas: `docs/specs/archive/{###}-{tipo}-{nome}/`
 
 ### O Loop de Desenvolvimento (SpecKit)
 
@@ -99,10 +96,10 @@ npx degit rogerznts/mosk/mosk .
 - `/mosk-po` — Sara, backlog e SpecKit
 - `/mosk-analyst` — Maria, discovery e pesquisa
 - `/mosk-architect` — Vinicius, arquitetura
-- `/mosk-dev` — Jaime, implementação e Chore (apply/archive)
+- `/mosk-dev` — Jaime, implementação e spec-archive
 - `/mosk-qa` — Joaquim, qualidade e testes
 - `/mosk-ux-expert` — Salete, UX e front-end specs
-- `/mosk-sm` — Roberto, dev-readiness e chore-proposal
+- `/mosk-sm` — Roberto, dev-readiness e agile guidance
 
 ### Guia de Seleção de Ambiente
 
@@ -153,8 +150,8 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 | `ux-expert` | Salete 🎨 | UX Designer | UI/UX, wireframes, front-end specs | Experiência do usuário |
 | `architect` | Vinicius 🏗️ | Solution Architect | Arquitetura de sistema | Sistemas complexos |
 | `po` | Sara 📊 | Product Owner | Backlog, SpecKit pipeline, stories com AC | Especificação e refinamento |
-| `sm` | Roberto 🏃 | Scrum Master | Dev-readiness, chore-proposal, clareza técnica | Validação de stories e scoping de chores |
-| `dev` | Jaime 💻 | Developer | spec-implement, chore-apply/archive, debugging | Implementação |
+| `sm` | Roberto 🏃 | Scrum Master | Dev-readiness, clareza técnica das stories | Validação de stories e agile guidance |
+| `dev` | Jaime 💻 | Developer | spec-implement, spec-archive, debugging | Implementação |
 | `qa` | Joaquim 🔬 | QA Specialist | Qualidade, testes, NFR | Validação e qualidade |
 
 ### Agentes Meta
@@ -166,12 +163,12 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 
 ### Responsabilidades por Agente
 
-| Agente | Skill | SpecKit | Chore |
-|---|---|---|---|
-| João (pm) | `/mosk-pm` | `spec-constitution` apenas (run once) | — |
-| Sara (po) | `/mosk-po` | Pipeline completo (specify→tasks) + stories com AC | — |
-| Roberto (sm) | `/mosk-sm` | Garante dev-readiness das stories | `chore-proposal` |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` apenas | `chore-apply` + `chore-archive` |
+| Agente | Skill | SpecKit |
+|---|---|---|
+| João (pm) | `/mosk-pm` | `spec-constitution` apenas (run once) |
+| Sara (po) | `/mosk-po` | Pipeline completo (specify→tasks) + stories com AC |
+| Roberto (sm) | `/mosk-sm` | Garante dev-readiness das stories |
+| Jaime (dev) | `/mosk-dev` | `spec-implement` + `spec-archive` |
 
 ## Configurações de Times
 
@@ -258,37 +255,27 @@ O MOSK utiliza um sistema de templates sofisticado:
 
 **Pré-requisitos**: Documentos de planejamento existem na pasta `docs/`
 
-#### Via SpecKit
+#### Via SpecKit (único fluxo — features, fixes, GMUDs e refatorações)
 
 ```text
-1. PO (Sara) → spec-specify: Criar spec.md da descrição da feature
+1. PO (Sara) → spec-specify: Criar spec.md com tipo adequado (feature/fix/hotfix/gmud/refactor/experimental)
 2. PO (Sara) → spec-tasks: Gerar tasks.md ordenado
 3. Você → Revisa e aprova spec + tasks
 4. Dev (Jaime) → spec-implement: Executar todas as tasks
 5. QA (Joaquim) → Revisão e validação
-6. Repetir para próxima feature
-```
-
-#### Via Chore Mode
-
-```text
-1. SM (Roberto) → chore-proposal {id}: Criar proposta + tasks
-2. Você → Revisa e aprova proposta
-3. Dev (Jaime) → chore-apply {id}: Implementar mudança
-4. Dev (Jaime) → chore-archive {id}: Arquivar e fechar
+6. Dev (Jaime) → spec-archive: Arquivar spec concluída
+7. Repetir para próxima feature
 ```
 
 ### Localização dos Documentos
 
-Especificações ficam em `docs/specs/{###}-{nome}/`:
+Especificações ficam em `docs/specs/{###}-{tipo}-{nome}/`:
 - `spec.md` — especificação da feature
 - `plan.md` — plano técnico
 - `tasks.md` — tasks ordenadas
 - `data-model.md`, `research.md`, `contracts/` — opcionais
 
-Mudanças ficam em `docs/changes/{id}/`:
-- `proposal.md` — proposta de mudança
-- `tasks.md` — tasks da mudança
+Specs arquivadas ficam em `docs/specs/archive/{###}-{tipo}-{nome}/`.
 
 ## Boas Práticas
 
@@ -296,8 +283,8 @@ Mudanças ficam em `docs/changes/{id}/`:
 
 - `docs/prd.md` — Product Requirements Document
 - `docs/architecture.md` — System Architecture Document
-- `docs/specs/{###}-{nome}/spec.md` — Feature specifications
-- `docs/changes/{id}/proposal.md` — Change proposals
+- `docs/specs/{###}-{tipo}-{nome}/spec.md` — Feature/fix/gmud specifications (ativas)
+- `docs/specs/archive/{###}-{tipo}-{nome}/` — Specs arquivadas (concluídas)
 
 **Por que Esses Nomes Importam**:
 

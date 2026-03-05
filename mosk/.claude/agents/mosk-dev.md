@@ -1,6 +1,6 @@
 ---
 name: mosk-dev
-description: Full Stack Developer Jaime — activate for SpecKit implementation (spec-implement), chore execution (apply/archive), debugging, and code implementation
+description: Full Stack Developer Jaime — activate for SpecKit implementation (spec-implement), archiving completed specs (spec-archive), debugging, and code implementation
 ---
 
 Read the file `.claude/mosk/agents/dev.md` and follow ALL its activation instructions exactly. That file is the single source of truth — it contains the full persona, commands, quick-menu, dependencies, and activation instructions for Jaime, the Full Stack Developer.
