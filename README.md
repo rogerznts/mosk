@@ -60,7 +60,8 @@ seu-projeto/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
 │       ├── mosk-ux-expert/
-│       └── mosk-help/
+│       ├── mosk-help/
+│       └── mosk-boot/
 └── docs/                      # Criado pelos workflows
     └── specs/                 # Todas as specs (features, fixes, GMUDs…)
         ├── 008-feature-score-checklist/   # {###}-{tipo}-{nome}
@@ -180,6 +181,8 @@ flowchart TD
 
 Para projetos em andamento, todo trabalho — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline SpecKit com o tipo adequado.
 
+> **Primeiro uso em projeto existente?** Execute `/mosk-boot` antes de qualquer outra skill. Ele analisa o codebase e gera arquivos de contexto em `.claude/commands/` com stack, padrões, arquitetura e workflows — capacitando a IA para trabalhar com o projeto desde o início.
+
 ```mermaid
 flowchart TD
     Start(["📦 Projeto Existente"]) --> WT{"Tipo de
@@ -244,6 +247,12 @@ flowchart TD
 ---
 
 ## Referência Rápida de Skills
+
+### Bootstrap
+
+| Comando | Quando usar |
+|---|---|
+| `/mosk-boot` | Primeira vez em um projeto existente — analisa o código e gera arquivos de contexto em `.claude/commands/` (stack, padrões, arquitetura, workflows) |
 
 ### Agentes
 
