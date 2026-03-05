@@ -1,6 +1,6 @@
 ---
 name: mosk-pm
-description: "Produto: criação de PRD, estratégia e spec-constitution (executa uma vez por projeto)."
+description: "Produto: criação de PRD e estratégia de produto (executa uma vez por projeto)."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/pm.md`.

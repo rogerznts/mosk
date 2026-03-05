@@ -16,6 +16,16 @@ The text the user typed after the triggering command **is** the feature descript
 
 Given that feature description, do this:
 
+0. **Auto-run spec-constitution if missing**:
+
+   Check whether `.claude/mosk/constitution.md` exists in the project (use `ls .claude/mosk/constitution.md` or equivalent read attempt).
+
+   - **If the file does NOT exist**:
+     - Inform the user: "⚠️ `constitution.md` não encontrada. Executando `spec-constitution` automaticamente antes de prosseguir..."
+     - Load and execute the full workflow defined in `../tasks/spec-constitution.md`.
+     - After `spec-constitution` completes, continue to step 1 below.
+   - **If the file exists**: continue to step 1 below without any action.
+
 1. **Determine the spec type** (`feature`, `fix`, `hotfix`, `gmud`, `refactor`, or `experimental`):
    - Analyze the feature description for signals:
      - `feature` → new functionality, new capability, new product area

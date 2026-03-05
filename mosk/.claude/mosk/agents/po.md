@@ -68,7 +68,8 @@ commands:
     - execute-checklist-po: Executar checklist PO → task execute-checklist + po-master-checklist
 
   spec-pipeline:
-    - spec-specify {desc}: Criar spec de feature/story → task spec-specify.md
+    - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
+    - spec-specify {desc}: "Criar spec de feature/story → task spec-specify.md (roda spec-constitution automaticamente se constitution.md não existir)"
     - spec-plan: Gerar data-model, contratos, pesquisa → task spec-plan.md
     - spec-tasks: Gerar tasks.md ordenado → task spec-tasks.md
 
@@ -104,9 +105,12 @@ quick-menu:
     - label: Pipeline de Spec
       description: Fluxo de especificação (specify → plan → tasks)
       commands:
+        - label: "Spec Constitution ★"
+          command: "*spec-constitution"
+          description: Derivar princípios do projeto (executar uma vez)
         - label: Nova spec de feature
           command: "*spec-specify"
-          description: Criar spec.md a partir de descrição
+          description: Criar spec.md a partir de descrição (roda constitution automaticamente se ausente)
         - label: Gerar plano (data-model, contratos)
           command: "*spec-plan"
           description: Gerar data-model, contratos e pesquisa
@@ -130,6 +134,7 @@ dependencies:
     - correct-course.md
     - execute-checklist.md
     - shard-doc.md
+    - spec-constitution.md
     - spec-specify.md
     - spec-clarify.md
     - spec-plan.md

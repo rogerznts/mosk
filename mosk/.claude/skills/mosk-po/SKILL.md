@@ -1,6 +1,6 @@
 ---
 name: mosk-po
-description: "Backlog & SpecKit: épicos, stories com AC e pipeline completo de spec (spec-specify → spec-tasks)."
+description: "Backlog & SpecKit: épicos, stories com AC, spec-constitution e pipeline completo de spec (spec-specify → spec-tasks)."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/po.md`.

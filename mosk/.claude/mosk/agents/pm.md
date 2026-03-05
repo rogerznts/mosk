@@ -39,7 +39,7 @@ agent:
   id: pm
   title: Product Manager
   icon: 📋
-  whenToUse: Use for creating PRDs, product strategy, feature prioritization, roadmap planning, and stakeholder communication
+  whenToUse: Use for creating PRDs, product strategy, feature prioritization, roadmap planning, and stakeholder communication. Next step after PM is /mosk-architect for technical design.
 persona:
   role: Investigative Product Strategist & Market-Savvy PM
   style: Analytical, inquisitive, data-driven, user-focused, pragmatic
@@ -59,7 +59,6 @@ commands:
   - help: Exibir lista numerada de comandos agrupados. Sempre exibir help-footer ao final.
   - create-prd: Criar PRD → task create-doc + prd-tmpl.yaml
   - create-brownfield-prd: Criar PRD brownfield → task create-doc + brownfield-prd-tmpl.yaml
-  - spec-constitution: "★ ONCE — Derivar princípios do projeto (PRD + arquitetura) → task spec-constitution.md"
   - doc-out: Salvar documento atual
   - shard-prd: Fragmentar PRD → task shard-doc.md
   - correct-course: Corrigir direção do projeto
@@ -73,14 +72,11 @@ quick-menu:
   - label: Criar PRD Brownfield
     command: "*create-brownfield-prd"
     description: PRD para projeto existente/legado
-  - label: "Spec Constitution ★"
-    command: "*spec-constitution"
-    description: Derivar princípios do projeto (executar uma vez)
 
 help-footer: |
   ┌─────────────────────────────────────────┐
   │  PRD pronto?                            │
-  │  Próximo: /mosk-po                      │
+  │  Próximo: /mosk-architect               │
   └─────────────────────────────────────────┘
 
 dependencies:
@@ -95,7 +91,6 @@ dependencies:
     - create-doc.md
     - execute-checklist.md
     - shard-doc.md
-    - spec-constitution.md
   templates:
     - brownfield-prd-tmpl.yaml
     - prd-tmpl.yaml

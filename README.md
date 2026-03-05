@@ -47,7 +47,7 @@ seu-projeto/
 │   │   ├── tasks/             # Workflows executáveis
 │   │   ├── templates/         # Templates de documentos
 │   │   ├── scripts/           # Scripts de suporte
-│   │   ├── constitution.md    # Princípios do projeto (criado pelo PM)
+│   │   ├── constitution.md    # Princípios do projeto (criado automaticamente pelo PO no primeiro *spec-specify)
 │   │   └── core-config.yaml   # Configuração central
 │   └── skills/                # Delegações de skill (slash commands)
 │       ├── mosk-analyst/
@@ -82,8 +82,8 @@ seu-projeto/
 |---|---|---|
 | `/mosk-analyst` | Maria | Pesquisa de mercado, brainstorming, project brief, análise competitiva |
 | `/mosk-architect` | Vinicius | Arquitetura de sistemas, stack, APIs, infraestrutura |
-| `/mosk-pm` | João | PRDs, estratégia de produto, spec-constitution |
-| `/mosk-po` | Sara | Backlog, épicos, stories com AC, SpecKit (spec-specify → spec-tasks) |
+| `/mosk-pm` | João | PRDs e estratégia de produto |
+| `/mosk-po` | Sara | Backlog, épicos, stories com AC, spec-constitution e SpecKit (spec-specify → spec-tasks) |
 | `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
 | `/mosk-dev` | Jaime | Implementação, debugging, refatoração, spec-archive |
 | `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
@@ -105,19 +105,17 @@ flowchart TD
     Project Brief & Pesquisa"]
     A1 --> UX["/mosk-ux-expert
     Flows & Wireframes"]
-    UX --> A2["/mosk-architect
-    Arquitetura & Stack"]
-    A2 --> A3["/mosk-pm
+    UX --> A3["/mosk-pm
     PRD"]
-    A3 --> C["/mosk-pm
-    *spec-constitution
-    — executa UMA VEZ —"]
+    A3 --> A2["/mosk-architect
+    Arquitetura & Stack"]
 
-    C --> PO["/mosk-po
+    A2 --> PO["/mosk-po
     Épicos & Stories"]
     PO --> S["/mosk-po
     *spec-specify
-    Criar Spec da Feature"]
+    Criar Spec da Feature
+    (constitution gerada automaticamente)"]
     S --> CQ{"Ambiguidades
     na spec?"}
     CQ -->|Sim| CL["/mosk-po
@@ -169,7 +167,7 @@ flowchart TD
 
     class A1,A2,A3 discovery
     class UX ux
-    class C,S,P,T speckit
+    class S,P,T speckit
     class CL,AN,CH optional
     class PO,SM stories
     class DI,DS,QA impl
@@ -187,16 +185,10 @@ flowchart TD
     Start(["📦 Projeto Existente"]) --> WT{"Tipo de
     trabalho?"}
 
-    WT -->|"feature / refactor"| CQ{"constitution.md
-    já existe?"}
+    WT -->|"feature / refactor"| UXQ{"Feature tem
+    interface?"}
     WT -->|"fix / hotfix / gmud"| S
 
-    CQ -->|Não| C["/mosk-pm
-    *spec-constitution
-    — executa UMA VEZ —"]
-    CQ -->|Sim| UXQ
-    C --> UXQ{"Feature tem
-    interface?"}
     UXQ -->|Sim| UX["/mosk-ux-expert
     Wireframes"]
     UXQ -->|Não| PO
@@ -204,7 +196,8 @@ flowchart TD
     Épicos & Stories"]
     PO --> S["/mosk-po
     *spec-specify {tipo}
-    Criar Spec"]
+    Criar Spec
+    (constitution auto-gerada se ausente)"]
 
     S --> AQ{"Ambiguidades
     na spec?"}
@@ -238,7 +231,7 @@ flowchart TD
     classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
 
     class UX ux
-    class C,S,P,T speckit
+    class S,P,T speckit
     class CL,AN optional
     class PO,SM stories
     class DI,QA,AR impl
@@ -261,8 +254,8 @@ flowchart TD
 | `/mosk-master` | Tarefa pontual sem persona específica; expertise geral |
 | `/mosk-analyst` | Discovery inicial, brief, pesquisa |
 | `/mosk-architect` | Arquitetura técnica, stack, decisões estruturais |
-| `/mosk-pm` | PRD, estratégia, spec-constitution (uma vez) |
-| `/mosk-po` | Backlog, épicos, stories com AC, SpecKit completo (specify → tasks) |
+| `/mosk-pm` | PRD e estratégia de produto |
+| `/mosk-po` | Backlog, épicos, stories com AC, spec-constitution e SpecKit completo (specify → tasks) |
 | `/mosk-sm` | Refinar stories para dev; validar dev-readiness e clareza técnica |
 | `/mosk-dev` | Implementar stories, `*spec-implement`, `*spec-archive` |
 | `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
@@ -272,7 +265,7 @@ flowchart TD
 
 | Comando | Dono | O que faz |
 |---|---|---|
-| `*spec-constitution` | PM — uma vez | Deriva princípios do projeto a partir de PRD + arquitetura |
+| `*spec-constitution` | PO — uma vez (auto-run pelo `*spec-specify`) | Deriva princípios do projeto a partir de PRD + arquitetura |
 | `*spec-specify` | PO | Cria `spec.md` a partir de descrição em linguagem natural |
 | `*spec-clarify` | PO — opcional | Resolve ambiguidades com até 5 perguntas direcionadas |
 | `*spec-plan` | PO | Gera artefatos de design (`data-model`, `contracts`, `research`) |

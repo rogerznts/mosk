@@ -79,13 +79,9 @@ Ten specialized AI agent personas with Brazilian names. Each agent is a fully se
 
 Transforms natural language descriptions into executable implementation plans.
 
-**Owned by PM (João)** — strategic foundation (run ONCE per project):
-```
-*spec-constitution  → derive project principles from PRD + architecture
-```
-
 **Owned by PO (Sara)** — full spec pipeline per feature:
 ```
+*spec-constitution  → derive project principles from PRD + architecture (run ONCE — auto-triggered by spec-specify if missing)
 *spec-specify       → create spec.md from description
 *spec-clarify       → resolve ambiguities (optional)
 *spec-plan          → generate data-model, contracts, research
@@ -159,8 +155,8 @@ The relative path `../../mosk/agents/` resolves correctly from any folder inside
 
 | Agent | Skill | SpecKit |
 |---|---|---|
-| João (pm) | `/mosk-pm` | `spec-constitution` only (run once) |
-| Sara (po) | `/mosk-po` | Owns full spec pipeline (specify→tasks) + stories with AC |
+| João (pm) | `/mosk-pm` | PRD only |
+| Sara (po) | `/mosk-po` | `spec-constitution` (run once) + full spec pipeline (specify→tasks) + stories with AC |
 | Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories |
 | Jaime (dev) | `/mosk-dev` | `spec-implement` + `spec-archive` |
 

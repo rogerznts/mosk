@@ -10,15 +10,15 @@ Output the following MOSK workflow guide to the user. Do not activate any agent 
 ## Fluxo MOSK
 
 ```
-/mosk-analyst → /mosk-ux-expert → /mosk-architect → /mosk-pm → /mosk-po → /mosk-sm → /mosk-dev → /mosk-qa
+/mosk-analyst → /mosk-ux-expert → /mosk-pm → /mosk-architect → /mosk-po → /mosk-sm → /mosk-dev → /mosk-qa
 ```
 
 | # | Skill | O que faz |
 |---|---|---|
 | 1 | `/mosk-analyst` | Discovery: brief, pesquisa de mercado e análise competitiva |
 | 2 | `/mosk-ux-expert` | User flows, wireframes e front-end specs |
-| 3 | `/mosk-architect` | Arquitetura, stack, APIs e infraestrutura |
-| 4 | `/mosk-pm` | PRD e `*spec-constitution` (executa uma vez por projeto) |
+| 3 | `/mosk-pm` | PRD (executa uma vez por projeto) |
+| 4 | `/mosk-architect` | Arquitetura, stack, APIs e infraestrutura |
 | 5 | `/mosk-po` | Épicos, stories com AC e SpecKit completo (`*spec-specify` → `*spec-tasks`) |
 | 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories e agile guidance |
 | 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*spec-archive` |

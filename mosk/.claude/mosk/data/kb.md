@@ -38,7 +38,7 @@ MOSK transforma você no "Diretor de Produto" — dirigindo um time de agentes d
 #### SpecKit (Features e Novos Projetos)
 
 ```text
-spec-constitution  → princípios do projeto (run once, PM)
+spec-constitution  → princípios do projeto (run once, PO — auto-executado por spec-specify se ausente)
 spec-specify       → criar spec.md da descrição (PO)
 spec-clarify       → resolver ambiguidades (PO, opcional)
 spec-plan          → data-model, contratos, research (PO)
@@ -146,7 +146,7 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 | Agente | Nome | Papel | Função Principal | Quando Usar |
 |---|---|---|---|---|
 | `analyst` | Maria 🔍 | Business Analyst | Pesquisa, brainstorming, briefs | Descoberta, análise competitiva |
-| `pm` | João 📋 | Product Manager | PRD, estratégia, spec-constitution | Planejamento estratégico |
+| `pm` | João 📋 | Product Manager | PRD e estratégia de produto | Planejamento estratégico |
 | `ux-expert` | Salete 🎨 | UX Designer | UI/UX, wireframes, front-end specs | Experiência do usuário |
 | `architect` | Vinicius 🏗️ | Solution Architect | Arquitetura de sistema | Sistemas complexos |
 | `po` | Sara 📊 | Product Owner | Backlog, SpecKit pipeline, stories com AC | Especificação e refinamento |
@@ -165,8 +165,8 @@ O arquivo `.claude/mosk/core-config.yaml` é a configuração central do MOSK. E
 
 | Agente | Skill | SpecKit |
 |---|---|---|
-| João (pm) | `/mosk-pm` | `spec-constitution` apenas (run once) |
-| Sara (po) | `/mosk-po` | Pipeline completo (specify→tasks) + stories com AC |
+| João (pm) | `/mosk-pm` | PRD apenas |
+| Sara (po) | `/mosk-po` | `spec-constitution` (run once) + pipeline completo (specify→tasks) + stories com AC |
 | Roberto (sm) | `/mosk-sm` | Garante dev-readiness das stories |
 | Jaime (dev) | `/mosk-dev` | `spec-implement` + `spec-archive` |
 
@@ -241,7 +241,7 @@ O MOSK utiliza um sistema de templates sofisticado:
 
 1. **Análise Opcional**: `/mosk-analyst` → Maria — pesquisa de mercado, análise competitiva
 2. **Project Brief**: Maria cria documento de briefing
-3. **PRD**: `/mosk-pm` → João — `*spec-constitution` (uma vez por projeto) + `*create-doc prd`
+3. **PRD**: `/mosk-pm` → João — `*create-doc prd`
 4. **Arquitetura**: `/mosk-architect` → Vinicius — design técnico
 5. **Validação**: `/mosk-po` → Sara — checklist mestre de consistência
 
