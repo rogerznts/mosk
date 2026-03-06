@@ -37,6 +37,46 @@ Após instalar, reinicie o Claude Code. As skills aparecem automaticamente como 
 
 ---
 
+## Ambiente Recomendado
+
+O MOSK foi projetado para funcionar com o **Claude Code**, mas a experiência é potencializada com duas ferramentas complementares:
+
+### Claude Code
+
+O motor que executa o MOSK. Todas as skills (`/mosk-*`) são slash commands do Claude Code — sem ele, nada funciona.
+
+Instalação: https://claude.ai/code
+
+### workz — Gerenciador de Worktrees
+
+https://github.com/rohansx/workz
+
+O `workz` facilita o gerenciamento de git worktrees, permitindo trabalhar em múltiplas features em paralelo sem conflito de branches. No contexto do MOSK, onde cada spec vira uma branch `{###}-{tipo}-{nome}`, o `workz` permite alternar entre specs em andamento de forma ágil — cada uma em seu próprio diretório isolado.
+
+**Quando usar:** sempre que você tiver múltiplas specs ou features em andamento simultaneamente.
+
+### ai-jail — Sandbox de Filesystem para IA
+
+https://github.com/akitaonrails/ai-jail
+
+O `ai-jail` restringe o acesso do Claude Code ao filesystem, confinando-o apenas ao diretório do projeto atual. Evita que o agente navegue ou modifique arquivos fora do escopo pretendido — essencial em ambientes de produção ou ao trabalhar com múltiplos projetos no mesmo sistema.
+
+**Quando usar:** sempre que quiser garantir que o Claude Code só acesse os arquivos do projeto corrente.
+
+### Combinando as três ferramentas
+
+```
+workz → cria worktree para a spec (branch isolada)
+  └── ai-jail → confina o Claude Code ao diretório da worktree
+        └── Claude Code + MOSK → executa o pipeline SpecKit com segurança e isolamento
+```
+
+1. Use `workz` para criar uma worktree para a spec em andamento
+2. Abra o Claude Code dentro da worktree via `ai-jail`
+3. Execute o pipeline MOSK normalmente — confinado e isolado por projeto
+
+---
+
 ## Estrutura Instalada
 
 ```
