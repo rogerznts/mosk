@@ -1,6 +1,6 @@
 # boot
 
-Analyze the consuming project and generate context files in `.claude/commands/` to equip the AI with knowledge of the project's stack, patterns, architecture, and workflows.
+Analyze the consuming project and generate context skills in `.claude/skills/ctx-*/` to equip the AI with knowledge of the project's stack, patterns, architecture, and workflows.
 
 This is a one-shot task — no persona, no interactive menu. Execute all phases in sequence and report results.
 
@@ -41,17 +41,23 @@ Map the project structure and extract architectural signals from the source code
 
 ---
 
-### Phase 2 — Generate Files in `.claude/commands/`
+### Phase 2 — Generate Files in `.claude/skills/`
 
-Create the output directory if it does not exist: `mkdir -p .claude/commands`
+Create one directory per skill:
+`mkdir -p .claude/skills/ctx-system-design .claude/skills/ctx-backend .claude/skills/ctx-frontend .claude/skills/ctx-code-patterns .claude/skills/ctx-workflows`
 
 Write the following files. Use real code examples from the project. If a pattern was not identified, state "nao identificado" — never invent patterns. Keep each file under 400 lines. Write for the AI, not for humans: be prescriptive and direct.
 
 ---
 
-#### `.claude/commands/system-design.md`
+#### `.claude/skills/ctx-system-design/SKILL.md`
 
 ```
+---
+name: ctx-system-design
+description: "Contexto de arquitetura e design de sistema do projeto"
+---
+
 # System Design
 
 ## Overview
@@ -79,9 +85,14 @@ Write the following files. Use real code examples from the project. If a pattern
 
 ---
 
-#### `.claude/commands/backend.md`
+#### `.claude/skills/ctx-backend/SKILL.md`
 
 ```
+---
+name: ctx-backend
+description: "Contexto de stack, padrões e convenções do backend do projeto"
+---
+
 # Backend
 
 ## Stack
@@ -122,11 +133,16 @@ Write the following files. Use real code examples from the project. If a pattern
 
 ---
 
-#### `.claude/commands/frontend.md`
+#### `.claude/skills/ctx-frontend/SKILL.md`
 
 **Omit this file entirely if no frontend code exists in the project.**
 
 ```
+---
+name: ctx-frontend
+description: "Contexto de stack, padrões e convenções do frontend do projeto"
+---
+
 # Frontend
 
 ## Stack
@@ -158,9 +174,14 @@ Write the following files. Use real code examples from the project. If a pattern
 
 ---
 
-#### `.claude/commands/code-patterns.md`
+#### `.claude/skills/ctx-code-patterns/SKILL.md`
 
 ```
+---
+name: ctx-code-patterns
+description: "Contexto de convenções de código, nomenclatura e padrões do projeto"
+---
+
 # Code Patterns
 
 ## Naming Conventions
@@ -198,9 +219,14 @@ Write the following files. Use real code examples from the project. If a pattern
 
 ---
 
-#### `.claude/commands/workflows.md`
+#### `.claude/skills/ctx-workflows/SKILL.md`
 
 ```
+---
+name: ctx-workflows
+description: "Contexto de workflows de desenvolvimento, comandos e convenções do projeto"
+---
+
 # Workflows
 
 ## Running Locally
@@ -237,13 +263,13 @@ After writing all files, output a summary:
 
 2. **Uncertainties** — list any patterns marked "nao identificado" or areas where evidence was thin. Suggest which source files would resolve each uncertainty.
 
-3. **Suggested additional files** — based on what you found, suggest specific command files that could add value for this project. Examples:
-   - `.claude/commands/auth.md` if auth logic is complex
-   - `.claude/commands/integrations.md` if there are many third-party integrations
-   - `.claude/commands/data-model.md` if the domain model is large
-   - `.claude/commands/infra.md` if there is non-trivial infrastructure config
+3. **Suggested additional skills** — based on what you found, suggest specific context skills that could add value for this project. Examples:
+   - `.claude/skills/ctx-auth/SKILL.md` if auth logic is complex
+   - `.claude/skills/ctx-integrations/SKILL.md` if there are many third-party integrations
+   - `.claude/skills/ctx-data-model/SKILL.md` if the domain model is large
+   - `.claude/skills/ctx-infra/SKILL.md` if there is non-trivial infrastructure config
 
-4. **Ask the user**: "Algum modulo ou dominio merece um arquivo de comando proprio? Se sim, me diga qual e eu gero agora."
+4. **Ask the user**: "Algum modulo ou dominio merece uma skill de contexto propria? Se sim, me diga qual e eu gero agora (ex: `/ctx-pagamentos`, `/ctx-notificacoes`)."
 
 ## Constraints
 

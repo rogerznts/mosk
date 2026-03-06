@@ -181,7 +181,7 @@ flowchart TD
 
 Para projetos em andamento, todo trabalho — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline SpecKit com o tipo adequado.
 
-> **Primeiro uso em projeto existente?** Execute `/mosk-boot` antes de qualquer outra skill. Ele analisa o codebase e gera arquivos de contexto em `.claude/commands/` com stack, padrões, arquitetura e workflows — capacitando a IA para trabalhar com o projeto desde o início.
+> **Primeiro uso em projeto existente?** Execute `/mosk-boot` antes de qualquer outra skill. Ele analisa o codebase e gera skills de contexto em `.claude/skills/ctx-*/` com stack, padrões, arquitetura e workflows — capacitando a IA para trabalhar com o projeto desde o início.
 
 ```mermaid
 flowchart TD
@@ -252,7 +252,7 @@ flowchart TD
 
 | Comando | Quando usar |
 |---|---|
-| `/mosk-boot` | Primeira vez em um projeto existente — analisa o código e gera arquivos de contexto em `.claude/commands/` (stack, padrões, arquitetura, workflows) |
+| `/mosk-boot` | Primeira vez em um projeto existente — analisa o código e gera skills de contexto em `.claude/skills/ctx-*/` (stack, padrões, arquitetura, workflows) |
 
 ### Agentes
 
