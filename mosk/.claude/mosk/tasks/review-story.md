@@ -1,4 +1,4 @@
-<!-- Powered by BMAD™ Core -->
+<!-- Inspired by BMAD and SpecKit -->
 
 # review-story
 
@@ -248,7 +248,7 @@ If risk_summary exists, apply its thresholds first (≥9 → FAIL, ≥6 → CONC
    - Else if any score ≥ 6 → Gate = CONCERNS
 
 2. **Test coverage gaps (if trace available):**
-   - If any P0 test from test-design is missing → Gate = CONCERNS
+   - If any P0 test from design-tests is missing → Gate = CONCERNS
    - If security/data-loss P0 test missing → Gate = FAIL
 
 3. **Issue severity:**

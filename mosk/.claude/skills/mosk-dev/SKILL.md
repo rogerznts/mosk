@@ -1,6 +1,6 @@
 ---
 name: mosk-dev
-description: "Implementação: spec-implement, develop-story, debugging, refatoração e Chore Mode."
+description: "Implementação: implement, archive, debugging, refatoração e apply-qa-fixes."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/dev.md`.

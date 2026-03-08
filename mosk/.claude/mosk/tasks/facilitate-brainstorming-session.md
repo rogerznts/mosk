@@ -1,7 +1,7 @@
-## <!-- Powered by BMAD™ Core -->
+## <!-- Inspired by BMAD and SpecKit -->
 
 docOutputLocation: docs/brainstorming-session-results.md
-template: '.bmad-core/templates/brainstorming-output-tmpl.yaml'
+template: '.claude/mosk/templates/brainstorming-output-tmpl.yaml'
 
 ---
 

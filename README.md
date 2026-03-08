@@ -1,348 +1,252 @@
-# MOSK Toolkit
+# MOSK
 
-**Mad Open Spec Kit** — Toolkit de Spec-Driven Development (SDD) instalável em qualquer projeto via `npx degit`.
+MOSK is a Spec-Driven Development toolkit for Claude Code.
 
----
+It is inspired by two ideas:
 
-## Origem
+- **BMAD**: specialist agents with explicit roles
+- **SpecKit**: a structured path from problem framing to executable work
 
-Este toolkit nasceu da minha experiência pessoal orquestrando agentes do BMAD Core adaptados e integrados ao SpecKit. Na prática, percebi ganhos expressivos ao separar claramente dois conjuntos de responsabilidades: agentes especializados para raciocínio, discovery e documentação estratégica — e o SpecKit para especificação estruturada e implementação de features.
+MOSK is not a branded repackaging of either one. It is a lighter synthesis built for:
 
-A ideia central é que todo tipo de mudança — features, bugs, GMUDs, hotfixes ou refatorações — passa pelo mesmo pipeline de especificação estruturada, com o tipo refletido no nome da branch e da pasta (`{###}-{tipo}-{nome}`). Specs concluídas são arquivadas em `docs/specs/archive/`, mantendo histórico rastreável sem burocracia.
+- direct natural-language activation
+- lower token overhead
+- a short default path
+- fewer mandatory menus and rituals
+- installability inside real projects through `.claude/`
 
----
+## Core Idea
 
-## O que é o MOSK
+Every meaningful change should become explicit work:
 
-O MOSK combina duas camadas em um único toolkit coeso:
+1. clarify the change
+2. shape the specification
+3. create the implementation plan
+4. generate ordered tasks
+5. implement
+6. review quality
+7. archive the result
 
-- **BMAD Core** — 10 agentes especializados para discovery, arquitetura, produto e qualidade
-- **SpecKit** — Pipeline de especificação-para-implementação para todo tipo de mudança: features, fixes, hotfixes, GMUDs e refatorações
+## Philosophy
 
-Tudo funciona através de skills do Claude Code (slash commands) sem dependência de CLI externa.
+MOSK keeps the parts that were useful in BMAD and SpecKit:
 
----
+- role clarity
+- structured artifacts
+- explicit handoffs
+- incremental delivery
 
-## Instalação
+MOSK intentionally removes or downplays the parts that add friction:
+
+- heavy activation prompts
+- mandatory multi-step menus
+- bloated orchestration layers
+- optional workflow packs in the default install
+- legacy bundle branding inside the shipped toolkit
+
+## Flows
+
+### From Zero
+
+Use this when the work starts as a vague idea and still needs discovery, product framing, architecture, and story shaping.
+
+```mermaid
+flowchart TD
+    A[Idea / Problem] --> B[/mosk-analyst<br/>Discovery / Research / Brainstorming/]
+    B --> C[/mosk-pm<br/>Brief / PRD/]
+    C -. if UX-heavy .-> D[/mosk-ux-expert<br/>Flows / UX Spec/]
+    C -. if architecture-heavy .-> E[/mosk-architect<br/>Architecture / APIs / Integration/]
+    C --> F[/mosk-po<br/>Epics / Stories / Spec Package/]
+    D --> F
+    E --> F
+    F --> G[/mosk-sm<br/>Story Readiness/]
+    G --> H[/mosk-dev implement/]
+    H --> I[/mosk-qa qa-gate/]
+    I --> J[/mosk-dev archive/]
+```
+
+This is the longer product path. Use only the agents that materially help the change.
+
+### Daily Flow
+
+Use this when the request is already clear enough to move straight into the spec package.
+
+```mermaid
+flowchart TD
+    A[Request] --> B[full-spec]
+    B --> C[implement]
+    C --> D[qa-gate]
+    D --> E[archive]
+
+    A --> F[specify]
+    F --> G[plan]
+    G --> H[tasks]
+    H --> C
+```
+
+Daily defaults:
+
+- compact path: `full-spec -> implement -> qa-gate -> archive`
+- granular path: `specify -> plan -> tasks -> implement -> qa-gate -> archive`
+- optional helpers: `clarify`, `analyze`, `checklist`
+
+`full-spec` stops at `tasks`. Implementation remains separate with `mosk-dev`.
+
+## Fast Path
+
+Use the agents directly with natural language:
+
+```text
+/mosk-po full-spec checkout com cupom
+/mosk-dev implementar a spec 012
+/mosk-qa revisar a spec 012
+```
+
+Default happy path:
+
+```text
+/mosk-po full-spec -> /mosk-dev implement -> /mosk-qa -> /mosk-dev archive
+```
+
+## Agents
+
+| Skill | Responsibility |
+|---|---|
+| `/mosk-analyst` | discovery, research, brainstorming |
+| `/mosk-pm` | PRD, product scope, success criteria |
+| `/mosk-ux-expert` | user flows, UX specs, front-end behavior |
+| `/mosk-architect` | architecture, APIs, integrations |
+| `/mosk-po` | specs, planning, task generation |
+| `/mosk-sm` | readiness, sequencing, story hygiene |
+| `/mosk-dev` | implementation, fixes, archive |
+| `/mosk-qa` | quality gates, test strategy, review |
+| `/mosk-orchestrator` | routing when the right next step is unclear |
+| `/mosk-master` | mixed one-off work |
+
+## Spec Types
+
+The same pipeline supports:
+
+- `feature`
+- `fix`
+- `hotfix`
+- `gmud`
+- `refactor`
+- `experimental`
+
+Folder and branch pattern:
+
+```text
+{###}-{type}-{short-name}
+```
+
+Example:
+
+```text
+012-feature-checkout-coupon
+```
+
+## Installation
+
+Install MOSK into the current project:
 
 ```bash
-# Instalar na raiz do projeto atual
 npx degit rogerznts/mosk/mosk .
-
-# Forçar (sobrescrever arquivos existentes)
-npx degit rogerznts/mosk/mosk . --force
 ```
 
-Após instalar, reinicie o Claude Code. As skills aparecem automaticamente como slash commands.
+Restart Claude Code after install so the new skills are loaded.
 
----
+## Installed Structure
 
-## Ambiente Recomendado
-
-O MOSK foi projetado para funcionar com o **Claude Code**, mas a experiência é potencializada com duas ferramentas complementares:
-
-### Claude Code
-
-O motor que executa o MOSK. Todas as skills (`/mosk-*`) são slash commands do Claude Code — sem ele, nada funciona.
-
-Instalação: https://claude.ai/code
-
-### workz — Gerenciador de Worktrees
-
-https://github.com/rohansx/workz
-
-O `workz` facilita o gerenciamento de git worktrees, permitindo trabalhar em múltiplas features em paralelo sem conflito de branches. No contexto do MOSK, onde cada spec vira uma branch `{###}-{tipo}-{nome}`, o `workz` permite alternar entre specs em andamento de forma ágil — cada uma em seu próprio diretório isolado.
-
-**Quando usar:** sempre que você tiver múltiplas specs ou features em andamento simultaneamente.
-
-### ai-jail — Sandbox de Filesystem para IA
-
-https://github.com/akitaonrails/ai-jail
-
-O `ai-jail` restringe o acesso do Claude Code ao filesystem, confinando-o apenas ao diretório do projeto atual. Evita que o agente navegue ou modifique arquivos fora do escopo pretendido — essencial em ambientes de produção ou ao trabalhar com múltiplos projetos no mesmo sistema.
-
-**Quando usar:** sempre que quiser garantir que o Claude Code só acesse os arquivos do projeto corrente.
-
-### Combinando as três ferramentas
-
-```
-workz → cria worktree para a spec (branch isolada)
-  └── ai-jail → confina o Claude Code ao diretório da worktree
-        └── Claude Code + MOSK → executa o pipeline SpecKit com segurança e isolamento
-```
-
-1. Use `workz` para criar uma worktree para a spec em andamento
-2. Abra o Claude Code dentro da worktree via `ai-jail`
-3. Execute o pipeline MOSK normalmente — confinado e isolado por projeto
-
----
-
-## Estrutura Instalada
-
-```
-seu-projeto/
+```text
+your-project/
 ├── .claude/
-│   ├── mosk/                  # Core MOSK (agentes, tasks, templates)
-│   │   ├── agents/            # Definições dos 10 agentes
-│   │   ├── tasks/             # Workflows executáveis
-│   │   ├── templates/         # Templates de documentos
-│   │   ├── scripts/           # Scripts de suporte
-│   │   ├── constitution.md    # Princípios do projeto (criado automaticamente pelo PO no primeiro *spec-specify)
-│   │   └── core-config.yaml   # Configuração central
-│   └── skills/                # Delegações de skill (slash commands)
+│   ├── mosk/
+│   │   ├── agents/
+│   │   ├── tasks/
+│   │   ├── templates/
+│   │   ├── scripts/
+│   │   ├── core-config.yaml
+│   │   └── constitution.md
+│   └── skills/
 │       ├── mosk-analyst/
 │       ├── mosk-architect/
+│       ├── mosk-boot/
 │       ├── mosk-dev/
+│       ├── mosk-help/
 │       ├── mosk-master/
 │       ├── mosk-orchestrator/
 │       ├── mosk-pm/
 │       ├── mosk-po/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
-│       ├── mosk-ux-expert/
-│       ├── mosk-help/
-│       └── mosk-boot/
-└── docs/                      # Criado pelos workflows
-    └── specs/                 # Todas as specs (features, fixes, GMUDs…)
-        ├── 008-feature-score-checklist/   # {###}-{tipo}-{nome}
-        │   ├── spec.md
-        │   ├── plan.md
-        │   ├── tasks.md
-        │   ├── data-model.md  # (opcional)
-        │   ├── research.md    # (opcional)
-        │   └── contracts/     # (opcional)
-        └── archive/           # Specs concluídas e arquivadas
-            └── 001-feature-user-auth/
+│       └── mosk-ux-expert/
+└── docs/
+    └── specs/
 ```
 
----
+## Commands
 
-## Os 10 Agentes
+The preferred command style is natural language via slash commands.
 
-| Skill | Agente | Role |
-|---|---|---|
-| `/mosk-analyst` | Maria | Pesquisa de mercado, brainstorming, project brief, análise competitiva |
-| `/mosk-architect` | Vinicius | Arquitetura de sistemas, stack, APIs, infraestrutura |
-| `/mosk-pm` | João | PRDs e estratégia de produto |
-| `/mosk-po` | Sara | Backlog, épicos, stories com AC, spec-constitution e SpecKit (spec-specify → spec-tasks) |
-| `/mosk-sm` | Roberto | Dev-readiness de stories, notas técnicas, agilidade |
-| `/mosk-dev` | Jaime | Implementação, debugging, refatoração, spec-archive |
-| `/mosk-qa` | Joaquim | Arquitetura de testes, quality gates, NFR, revisões |
-| `/mosk-ux-expert` | Salete | User flows, wireframes, front-end specs, prompts para geração de UI |
-| `/mosk-master` | Mestre | Executor universal — expertise em todos os domínios |
-| `/mosk-orchestrator` | Maestro | Coordenação de agentes, orientação de workflow |
+Examples:
 
----
-
-## Fluxos de Trabalho
-
-### Greenfield — Novo Projeto
-
-Para projetos que partem do zero: discovery completo, definição de arquitetura e geração do PRD antes de qualquer feature.
-
-```mermaid
-flowchart TD
-    Start(["🚀 Novo Projeto"]) --> A1["/mosk-analyst
-    Project Brief & Pesquisa"]
-    A1 --> UX["/mosk-ux-expert
-    Flows & Wireframes"]
-    UX --> A3["/mosk-pm
-    PRD"]
-    A3 --> A2["/mosk-architect
-    Arquitetura & Stack"]
-
-    A2 --> PO["/mosk-po
-    Épicos & Stories"]
-    PO --> S["/mosk-po
-    *spec-specify
-    Criar Spec da Feature
-    (constitution gerada automaticamente)"]
-    S --> CQ{"Ambiguidades
-    na spec?"}
-    CQ -->|Sim| CL["/mosk-po
-    *spec-clarify
-    Resolver Ambiguidades"]
-    CQ -->|Não| P
-    CL --> P["/mosk-po
-    *spec-plan
-    Planejar Implementação"]
-    P --> AQ{"Validar
-    consistência?"}
-    AQ -->|Sim| AN["/mosk-po
-    *spec-analyze
-    Análise Cross-Artifact"]
-    AQ -->|Não| CHQ
-    AN --> CHQ{"Checklist
-    de qualidade?"}
-    CHQ -->|Sim| CH["/mosk-po
-    *spec-checklist
-    Checklist por Domínio"]
-    CHQ -->|Não| T
-    CH --> T["/mosk-po
-    *spec-tasks
-    Gerar Tasks Ordenadas"]
-
-    T --> SM["/mosk-sm
-    Dev-Readiness"]
-    SM --> DQ{"Abordagem
-    de implementação?"}
-    DQ -->|"Feature completa
-    (SpecKit)"| DI["/mosk-dev
-    *spec-implement"]
-    DQ -->|"Story por story
-    (BMAD)"| DS["/mosk-dev
-    *develop-story"]
-    DI --> QA["/mosk-qa
-    Quality Gate"]
-    DS --> QA
-    QA --> Done(["✅ Feature Completa"])
-    QA -->|Issues encontradas| SM
-
-    classDef discovery fill:#10b981,stroke:#059669,color:#fff
-    classDef ux fill:#ec4899,stroke:#db2777,color:#fff
-    classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
-    classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
-    classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
-    classDef impl fill:#ef4444,stroke:#dc2626,color:#fff
-    classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
-
-    class A1,A2,A3 discovery
-    class UX ux
-    class S,P,T speckit
-    class CL,AN,CH optional
-    class PO,SM stories
-    class DI,DS,QA impl
-    class Start,Done endpoint
+```text
+/mosk-po full-spec login social para clientes B2B
+/mosk-po specify login social para clientes B2B
+/mosk-po plan a spec atual
+/mosk-po tasks para a spec atual
+/mosk-dev implement a spec 012
+/mosk-dev archive a spec 012
 ```
 
----
+Command intent:
 
-### Brownfield — Projeto Existente
+- `full-spec`: runs `specify -> plan -> tasks` in one pass
+- `specify`: creates or updates only `spec.md`
+- `plan`: creates or updates only `plan.md`
+- `tasks`: creates or updates only `tasks.md`
+- `implement`: stays with `mosk-dev`
 
-Para projetos em andamento, todo trabalho — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline SpecKit com o tipo adequado.
+Advanced star-prefixed commands can still exist as compatibility shortcuts, but they are no longer the primary UX.
 
-> **Primeiro uso em projeto existente?** Execute `/mosk-boot` antes de qualquer outra skill. Ele analisa o codebase e gera skills de contexto em `.claude/skills/ctx-*/` com stack, padrões, arquitetura e workflows — capacitando a IA para trabalhar com o projeto desde o início.
+## Bootstrapping Existing Projects
 
-```mermaid
-flowchart TD
-    Start(["📦 Projeto Existente"]) --> WT{"Tipo de
-    trabalho?"}
+For an existing repository, run:
 
-    WT -->|"feature / refactor"| UXQ{"Feature tem
-    interface?"}
-    WT -->|"fix / hotfix / gmud"| S
-
-    UXQ -->|Sim| UX["/mosk-ux-expert
-    Wireframes"]
-    UXQ -->|Não| PO
-    UX --> PO["/mosk-po
-    Épicos & Stories"]
-    PO --> S["/mosk-po
-    *spec-specify {tipo}
-    Criar Spec
-    (constitution auto-gerada se ausente)"]
-
-    S --> AQ{"Ambiguidades
-    na spec?"}
-    AQ -->|Sim| CL["/mosk-po
-    *spec-clarify"]
-    AQ -->|Não| P
-    CL --> P["/mosk-po
-    *spec-plan"]
-    P --> VQ{"Validar?"}
-    VQ -->|Sim| AN["/mosk-po
-    *spec-analyze"]
-    VQ -->|Não| T
-    AN --> T["/mosk-po
-    *spec-tasks"]
-
-    T --> SM["/mosk-sm
-    Dev-Readiness"]
-    SM --> DI["/mosk-dev
-    *spec-implement"]
-    DI --> QA["/mosk-qa
-    Quality Gate"]
-    QA --> AR["/mosk-dev
-    *spec-archive"]
-    AR --> FD(["✅ Entregue & Arquivado"])
-
-    classDef ux fill:#ec4899,stroke:#db2777,color:#fff
-    classDef speckit fill:#3b82f6,stroke:#2563eb,color:#fff
-    classDef optional fill:#8b5cf6,stroke:#7c3aed,color:#fff
-    classDef stories fill:#f59e0b,stroke:#d97706,color:#fff
-    classDef impl fill:#ef4444,stroke:#dc2626,color:#fff
-    classDef endpoint fill:#1f2937,stroke:#111827,color:#fff
-
-    class UX ux
-    class S,P,T speckit
-    class CL,AN optional
-    class PO,SM stories
-    class DI,QA,AR impl
-    class Start,FD,WT endpoint
+```text
+/mosk-boot
 ```
 
-> **Legenda de cores:**
-> 🩷 UX (ux-expert)  🔵 SpecKit obrigatório  🟣 SpecKit opcional  🟡 Story preparation  🔴 Implementação, QA & Archive
+The boot workflow generates a compact context pack by default:
 
----
+- `ctx-project`
+- `ctx-frontend` only when frontend code exists
 
-## Referência Rápida de Skills
+## What Changed From The Legacy Bundle
 
-### Bootstrap
+The current MOSK template already removes a large amount of optional legacy structure:
 
-| Comando | Quando usar |
-|---|---|
-| `/mosk-boot` | Primeira vez em um projeto existente — analisa o código e gera skills de contexto em `.claude/skills/ctx-*/` (stack, padrões, arquitetura, workflows) |
+- redundant agent wrappers
+- team bundles in the default install
+- workflow YAML packs
+- KB mode and legacy knowledge-base routing
+- legacy guidance packs outside the core path
 
-### Agentes
+The remaining files may still show traces of the original inspiration in comments or template lineage, but the shipped product is now positioned and maintained as MOSK.
 
-| Comando | Quando usar |
-|---|---|
-| `/mosk-help` | Exibir guia rápido do fluxo MOSK e quando usar cada agente |
-| `/mosk-orchestrator` | Não sabe qual agente usar; precisa coordenar workflow |
-| `/mosk-master` | Tarefa pontual sem persona específica; expertise geral |
-| `/mosk-analyst` | Discovery inicial, brief, pesquisa |
-| `/mosk-architect` | Arquitetura técnica, stack, decisões estruturais |
-| `/mosk-pm` | PRD e estratégia de produto |
-| `/mosk-po` | Backlog, épicos, stories com AC, spec-constitution e SpecKit completo (specify → tasks) |
-| `/mosk-sm` | Refinar stories para dev; validar dev-readiness e clareza técnica |
-| `/mosk-dev` | Implementar stories, `*spec-implement`, `*spec-archive` |
-| `/mosk-qa` | Revisão de qualidade, testes, NFR, quality gates |
-| `/mosk-ux-expert` | User flows, wireframes e specs visuais — após discovery, antes da arquitetura |
+## Inspiration
 
-### SpecKit
+MOSK owes a real conceptual debt to:
 
-| Comando | Dono | O que faz |
-|---|---|---|
-| `*spec-constitution` | PO — uma vez (auto-run pelo `*spec-specify`) | Deriva princípios do projeto a partir de PRD + arquitetura |
-| `*spec-specify` | PO | Cria `spec.md` a partir de descrição em linguagem natural |
-| `*spec-clarify` | PO — opcional | Resolve ambiguidades com até 5 perguntas direcionadas |
-| `*spec-plan` | PO | Gera artefatos de design (`data-model`, `contracts`, `research`) |
-| `*spec-analyze` | PO — opcional | Valida consistência cross-artifact (não-destrutivo) |
-| `*spec-checklist` | PO — opcional | Gera checklist de qualidade por domínio (ux, api, security…) |
-| `*spec-tasks` | PO | Gera `tasks.md` ordenado e acionável |
-| `*spec-implement` | Dev | Executa todas as tarefas do `tasks.md` |
-| `*spec-archive {id}` | Dev | Move spec concluída para `docs/specs/archive/` |
+- BMAD, for role-driven collaboration
+- SpecKit, for turning vague requests into explicit artifacts
 
-### Tipos de Spec
+The goal is to preserve those strengths while making the toolkit smaller, sharper, and cheaper to run.
 
-| Tipo | Quando usar |
-|------|-------------|
-| `feature` | Nova funcionalidade ou capacidade |
-| `fix` | Correção de bug não urgente |
-| `hotfix` | Correção urgente de produção / vulnerabilidade |
-| `gmud` | Mudança gerenciada, rollout, procedimento de GMUD |
-| `refactor` | Reestruturação sem nova funcionalidade |
-| `experimental` | Exploração, PoC, spike |
+## Optional Environment Tools
 
-Formato da branch e pasta: `{###}-{tipo}-{nome}` (ex: `008-feature-score-checklist`, `012-fix-payment-timeout`)
+MOSK itself runs inside Claude Code. If you want extra operational isolation, these still pair well with it:
 
----
-
-## Sobre Este Repositório
-
-Este repositório é o **master template** do MOSK. Não é uma aplicação compilada — é uma coleção de Markdown, YAML e Bash que é instalada em projetos via `npx degit`.
-
-Não há build, testes ou linter. A validação acontece via execução das skills nos projetos que usam o MOSK.
-
-Para contribuir ou manter o toolkit, edite os arquivos em `mosk/` e teste instalando em um projeto de exemplo.
+- `workz` for isolated worktrees
+- `ai-jail` for filesystem confinement

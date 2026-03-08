@@ -1,169 +1,95 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## What This Repository Is
-
-**MOSK** (Mad Open Spec Kit) is a **master template repository** for Spec-Driven Development (SDD). It is not a compiled application — it is a collection of Markdown, YAML, and Bash files that get installed into other projects via `npx degit rogerznts/mosk/mosk .`. The installed toolkit activates as Claude Code skills (slash commands) for structured, specification-driven development workflows.
-
-## Installation
+This repository contains the MOSK template that is installed into other projects via:
 
 ```bash
-# Install MOSK into a target project
 npx degit rogerznts/mosk/mosk .
 ```
 
-There is no build step, test suite, or linter. Validation happens through Claude Code skill execution in the projects that use MOSK.
+## Important Workspace Note
 
-## Repository Structure
+- The product source of truth is `mosk/`.
+- The root `.claude/` directory in this repository is only the local execution environment for working on MOSK itself.
+- When changing the installable toolkit, edit files under `mosk/`.
 
-```
-mosk/                              # The installable template (ships to target projects)
+## Repository Shape
+
+```text
+mosk/
 ├── .claude/
-│   ├── mosk/                      # Core flat resources (no nesting)
-│   │   ├── agents/                # 10 agent definition files
-│   │   │   ├── analyst.md         # Maria — discovery, brief, research
-│   │   │   ├── architect.md       # Vinicius — architecture, stack, APIs
-│   │   │   ├── pm.md              # João — PRD, product, spec-constitution
-│   │   │   ├── po.md              # Sara — backlog, stories, AC, SpecKit pipeline
-│   │   │   ├── sm.md              # Roberto — dev-readiness, agile
-│   │   │   ├── dev.md             # Jaime — implementation, Chore Mode
-│   │   │   ├── qa.md              # Joaquim — testing, quality gates, NFR
-│   │   │   ├── ux-expert.md       # Salete — user flows, wireframes, front-end specs
-│   │   │   ├── master.md          # Mestre — universal task executor
-│   │   │   └── orchestrator.md    # Maestro — workflow coordinator
-│   │   ├── tasks/                 # Executable workflow files
-│   │   │   ├── spec-constitution.md
-│   │   │   ├── spec-specify.md
-│   │   │   ├── spec-clarify.md
-│   │   │   ├── spec-plan.md
-│   │   │   ├── spec-analyze.md
-│   │   │   ├── spec-checklist.md
-│   │   │   ├── spec-tasks.md
-│   │   │   ├── spec-implement.md
-│   │   │   ├── spec-archive.md
-│   │   │   └── develop-story.md   # (and other BMAD tasks)
-│   │   ├── templates/             # YAML-driven document scaffolds
-│   │   ├── utils/                 # Shared utilities
-│   │   │   ├── doc-template.md    # Template markup language spec
-│   │   │   └── workflow-management.md # Workflow management guidelines
-│   │   ├── scripts/               # Support scripts
-│   │   ├── constitution.md        # Project principles (created by spec-constitution)
-│   │   └── core-config.yaml       # Central configuration
-│   └── skills/                    # Skill delegation files (become slash commands)
-│       ├── mosk-analyst/SKILL.md
-│       ├── mosk-architect/SKILL.md
-│       ├── mosk-dev/SKILL.md
-│       ├── mosk-master/SKILL.md
-│       ├── mosk-orchestrator/SKILL.md
-│       ├── mosk-pm/SKILL.md
-│       ├── mosk-po/SKILL.md
-│       ├── mosk-qa/SKILL.md
-│       ├── mosk-sm/SKILL.md
-│       ├── mosk-ux-expert/SKILL.md
-│       └── mosk-help/SKILL.md
-└── docs/                          # Created by workflows in consuming projects
-    ├── specs/                     # Feature specs: docs/specs/{###}-{name}/
-    └── archive/                   # Archived specs: docs/specs/archive/{###}-{tipo}-{nome}/
+│   ├── mosk/
+│   │   ├── agents/
+│   │   ├── tasks/
+│   │   ├── templates/
+│   │   ├── scripts/
+│   │   └── core-config.yaml
+│   └── skills/
 ```
 
-## Three Core Components
+## Product Model
 
-### BMAD Core (agents in `.claude/mosk/agents/`)
+MOSK is now optimized for:
 
-Ten specialized AI agent personas with Brazilian names. Each agent is a fully self-contained YAML + Markdown file. Agents activate from `.claude/skills/mosk-{agent}/SKILL.md` skill delegations.
+- direct natural-language use of slash commands
+- a short SpecKit happy path
+- smaller agent prompts
+- optional, not mandatory, helper steps
 
-**Agent activation pattern**: skill file delegates to `../../mosk/agents/{agent}.md` → agent reads `core-config.yaml` → adopts persona, greets user by Brazilian name, halts and awaits instructions → loads tasks/templates **only on demand**.
+Conceptually, the toolkit is inspired by BMAD and SpecKit, but the shipped product should be treated as MOSK first. When editing prompts, docs, or templates, prefer MOSK language and only mention BMAD as inspiration or lineage when that context is useful.
 
-### SpecKit (tasks in `.claude/mosk/tasks/spec-*.md`)
+The default path is:
 
-Transforms natural language descriptions into executable implementation plans.
-
-**Owned by PO (Sara)** — full spec pipeline per feature:
-```
-*spec-constitution  → derive project principles from PRD + architecture (run ONCE — auto-triggered by spec-specify if missing)
-*spec-specify       → create spec.md from description
-*spec-clarify       → resolve ambiguities (optional)
-*spec-plan          → generate data-model, contracts, research
-*spec-analyze       → cross-artifact consistency check (optional)
-*spec-checklist     → quality checklist by domain (optional)
-*spec-tasks         → generate ordered tasks.md
+```text
+specify -> plan -> tasks -> implement -> qa-gate -> archive
 ```
 
-**Owned by Dev (Jaime)** — execution phase only:
-```
-*spec-implement     → execute all tasks in tasks.md
-*spec-archive {id}  → move completed spec to docs/specs/archive/
-```
+`clarify`, `analyze`, and `checklist` are optional support tasks.
 
-Specifications live in consuming projects at `docs/specs/{###}-{tipo}-{nome}/` with: `spec.md`, `plan.md`, `tasks.md`, and optional `data-model.md`, `research.md`, `contracts/`.
-Archived specs live at `docs/specs/archive/{###}-{tipo}-{nome}/`.
+## Agent Design
 
-### Spec Types
+Agents live in `mosk/.claude/mosk/agents/`.
 
-Every change — features, fixes, hotfixes, GMUDs, and refactors — goes through the same SpecKit
-pipeline. The type is encoded in the branch and folder name:
+Each agent should remain:
 
-| Type | Use case |
-|------|----------|
-| `feature` | New functionality or capability |
-| `fix` | Non-urgent bug correction |
-| `hotfix` | Urgent production fix / security vulnerability |
-| `gmud` | Managed change, rollout, deployment procedure |
-| `refactor` | Code restructuring without new features |
-| `experimental` | Exploration, PoC, spike |
+- concise
+- direct
+- low-menu
+- low-token
+- explicit about when to ask questions
 
-Branch and folder format: `{###}-{tipo}-{nome}` (e.g., `008-feature-score-checklist`)
+The preferred UX is:
 
-## Skill File Format
+- user invokes `/mosk-{agent}` with natural language
+- agent maps the request directly to the right task or output
+- menu is only fallback when activation is empty
 
-Every file in `.claude/skills/{name}/SKILL.md` follows this pattern:
+## Skills
 
-```yaml
----
-name: mosk-{agent}
-description: Activate the {Agent} agent persona for...
----
+Skills live in `mosk/.claude/skills/`.
 
-CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/{agent}.md`.
-That file is the single source of truth — it contains the full persona, commands, dependencies,
-and activation instructions. Follow ALL instructions defined there exactly.
-```
+They should:
 
-The relative path `../../mosk/agents/` resolves correctly from any folder inside `skills/`.
+- point directly to the real agent or task
+- avoid extra wrapper layers
+- avoid quick-pick flows
 
-## Key Configuration
+## Tasks
 
-`core-config.yaml` controls project-level settings including document locations, sharding for large PRDs/architecture docs, and which files agents auto-load for context (`devLoadAlwaysFiles`).
+Tasks live in `mosk/.claude/mosk/tasks/`.
 
-## Agent/Task Architecture
+When editing tasks:
 
-- **Agents** (`.claude/mosk/agents/*.md`): Self-contained persona + commands + dependencies. Each declares which tasks and templates it uses.
-- **Tasks** (`.claude/mosk/tasks/*.md`): Executable workflows. When `elicit: true`, the task requires interactive user input. Task instructions override any conflicting general instructions. Path resolution: agents reference tasks as `../tasks/{name}` relative to the `agents/` folder, landing in `mosk/`.
-- **Templates** (`.claude/mosk/templates/`): YAML-driven document scaffolds with section conditions and elicitation rules.
+- optimize for the happy path first
+- keep outputs implementation-oriented
+- avoid mandatory elicitation unless the missing answer materially changes the result
+- keep optional artifacts optional
 
-## Naming Conventions
+## Validation
 
-- **Skills**: `mosk-{agent}` — no `ag` prefix (e.g., `mosk-pm`, `mosk-dev`, `mosk-ux-expert`)
-- **Agent Brazilian names**: Maria, Vinicius, João, Sara, Roberto, Jaime, Joaquim, Salete, Mestre, Maestro
-- **Specification folders**: `{###}-{tipo}-{nome}` (e.g., `008-feature-score-checklist`)
-- **Archived specs**: `docs/specs/archive/{###}-{tipo}-{nome}/`
-- **Agent IDs**: match filename without extension (e.g., `analyst.md` → id `analyst`)
-- **Task files**: named by workflow action (e.g., `spec-specify.md`, `spec-archive.md`)
+There is no compiled app or automated test suite for the template itself.
 
-## Agent Responsibilities
+Validation here is mainly:
 
-| Agent | Skill | SpecKit |
-|---|---|---|
-| João (pm) | `/mosk-pm` | PRD only |
-| Sara (po) | `/mosk-po` | `spec-constitution` (run once) + full spec pipeline (specify→tasks) + stories with AC |
-| Roberto (sm) | `/mosk-sm` | Ensures dev-readiness of stories |
-| Jaime (dev) | `/mosk-dev` | `spec-implement` + `spec-archive` |
-
-## What Gets Installed in Target Projects
-
-After `npx degit`, the consuming project gains:
-- `.claude/mosk/` — agents, tasks, templates, scripts, core-config.yaml
-- `.claude/skills/` — 11 skill delegation files (`mosk-analyst`, `mosk-pm`, `mosk-help`, etc.)
-
-The `docs/` directory (`specs/`, `changes/`) is created by the workflows themselves as users run the commands.
+- reading the installed file structure
+- checking prompt and workflow consistency
+- ensuring documentation matches the shipped template

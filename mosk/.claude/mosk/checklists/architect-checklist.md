@@ -1,4 +1,4 @@
-<!-- Powered by BMAD™ Core -->
+<!-- Inspired by BMAD and SpecKit -->
 
 # Architect Solution Validation Checklist
 

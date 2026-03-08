@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/docs/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `*spec-plan` command (via `/mosk-po`).
+**Note**: This template is filled in by the `*plan` command (via `/mosk-po`).
 
 ## Summary
 
@@ -39,12 +39,12 @@
 
 ```text
 docs/specs/[###-feature]/
-├── plan.md              # This file (*spec-plan command output)
-├── research.md          # Phase 0 output (*spec-plan command)
-├── data-model.md        # Phase 1 output (*spec-plan command)
-├── quickstart.md        # Phase 1 output (*spec-plan command)
-├── contracts/           # Phase 1 output (*spec-plan command)
-└── tasks.md             # Phase 2 output (*spec-tasks command - NOT created by *spec-plan)
+├── plan.md              # This file (*plan command output)
+├── research.md          # Phase 0 output (*plan command)
+├── data-model.md        # Phase 1 output (*plan command)
+├── quickstart.md        # Phase 1 output (*plan command)
+├── contracts/           # Phase 1 output (*plan command)
+└── tasks.md             # Phase 2 output (*tasks command - NOT created by *plan)
 ```
 
 ### Source Code (repository root)

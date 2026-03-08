@@ -1,10 +1,12 @@
-<!-- Powered by BMAD™ Core -->
+<!-- MOSK Core -->
 
-# BMad Document Template Specification
+# MOSK Document Template Specification
 
 ## Overview
 
-BMad document templates are defined in YAML format to drive interactive document generation and agent interaction. Templates separate structure definition from content generation, making them both human and LLM-agent-friendly.
+MOSK document templates are defined in YAML format to drive interactive document generation and agent interaction. Templates separate structure definition from content generation, making them both human and LLM-agent-friendly.
+
+The model is inspired by the structured artifact approach popularized by BMAD and SpecKit, but adapted here for MOSK's lighter default workflow.
 
 ## Template Structure
 

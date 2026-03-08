@@ -1,37 +1,73 @@
-# MOSK no Claude Code (Skills)
+# MOSK Skills
 
-No Claude Code, os comandos do MOSK são skills em:
-- `.claude/skills/<skill>/SKILL.md`
+MOSK is a compact toolkit inspired by BMAD and SpecKit, but the shipped skills and prompts should present themselves as MOSK, not as a renamed legacy bundle.
 
-Cada skill vira um comando slash com o nome definido no frontmatter (`name`).
-Exemplo: `name: mosk-pm` → comando `/mosk-pm`.
+MOSK installs Claude Code skills under:
 
-## Skills MOSK — Agentes Especialistas
+```text
+.claude/skills/<skill>/SKILL.md
+```
 
-- `mosk-analyst`       → Maria (Analista de Negócios)
-- `mosk-architect`     → Vinicius (Arquiteto de Sistemas)
-- `mosk-pm`            → João (Product Manager)
-- `mosk-po`            → Sara (Product Owner / SpecKit pipeline)
-- `mosk-sm`            → Roberto (Scrum Master / dev-readiness)
-- `mosk-dev`           → Jaime (Dev / spec-implement / spec-archive)
-- `mosk-qa`            → Joaquim (QA / quality gates)
-- `mosk-ux-expert`     → Salete (UX / wireframes / front-end specs)
-- `mosk-master`        → Mestre (executor universal)
-- `mosk-orchestrator`  → Maestro (coordenação de agentes e workflows)
+Each skill becomes a slash command based on its frontmatter `name`.
 
-## Skills MOSK — Ajuda e Times
+Example:
 
-- `mosk-help`          → Exibe fluxo MOSK e guia rápido de agentes
-- `mosk-team-all`      → Ativa todos os agentes do time
-- `mosk-team-fullstack`→ Time fullstack (analyst, pm, ux, architect, po)
-- `mosk-team-ide`      → Time otimizado para uso em IDE
-- `mosk-team-no-ui`    → Time sem agentes de UI/UX
+```text
+name: mosk-po
+```
 
-## Nota
+becomes:
 
-As tasks do SpecKit (`*spec-specify`, `*spec-plan`, `*spec-implement`, `*spec-archive`, etc.)
-são executadas **dentro dos agentes** via comandos com prefixo `*`, e não como skills independentes.
+```text
+/mosk-po
+```
 
-Todo tipo de mudança — features, fixes, hotfixes, GMUDs e refatorações — usa o mesmo pipeline
-SpecKit com o tipo adequado (`feature`, `fix`, `hotfix`, `gmud`, `refactor`, `experimental`)
-refletido no nome da branch e pasta: `{###}-{tipo}-{nome}/`.
+## Preferred Usage
+
+Use agents with natural language, not menu navigation:
+
+```text
+/mosk-po full-spec checkout com cupom
+/mosk-dev implementar a spec 012
+/mosk-qa revisar a spec 012
+```
+
+Advanced `*commands` still work, but they are compatibility shortcuts rather than the primary UX.
+
+## Main Skills
+
+- `mosk-analyst`
+- `mosk-pm`
+- `mosk-ux-expert`
+- `mosk-architect`
+- `mosk-po`
+- `mosk-sm`
+- `mosk-dev`
+- `mosk-qa`
+- `mosk-orchestrator`
+- `mosk-master`
+
+## Helper Skills
+
+- `mosk-help`
+- `mosk-boot`
+
+## Daily Flow
+
+```text
+full-spec -> implement -> qa-gate -> archive
+```
+
+Granular path:
+
+```text
+specify -> plan -> tasks -> implement -> qa-gate -> archive
+```
+
+Optional helpers:
+
+- `clarify`
+- `analyze`
+- `checklist`
+
+`full-spec` stops at `tasks` and keeps implementation with `mosk-dev`.

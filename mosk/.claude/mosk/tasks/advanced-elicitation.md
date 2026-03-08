@@ -1,4 +1,4 @@
-<!-- Powered by BMAD™ Core -->
+<!-- Inspired by BMAD and SpecKit -->
 
 # Advanced Elicitation Task
 

@@ -1,49 +1,42 @@
 ---
 name: mosk-help
-description: Exibe o fluxo de trabalho MOSK e guia rápido de quando usar cada agente.
+description: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
 ---
 
-Output the following MOSK workflow guide to the user. Do not activate any agent persona — just display the content below exactly as written:
+Output a concise MOSK guide. Do not activate any persona.
 
----
+## MOSK Fast Path
 
-## Fluxo MOSK
+Use the agents directly with natural language:
 
-```
-/mosk-analyst → /mosk-ux-expert → /mosk-pm → /mosk-architect → /mosk-po → /mosk-sm → /mosk-dev → /mosk-qa
-```
+- `/mosk-po full-spec checkout com cupom`
+- `/mosk-dev implementar a spec 012`
+- `/mosk-qa revisar a spec 012`
 
-| # | Skill | O que faz |
-|---|---|---|
-| 1 | `/mosk-analyst` | Discovery: brief, pesquisa de mercado e análise competitiva |
-| 2 | `/mosk-ux-expert` | User flows, wireframes e front-end specs |
-| 3 | `/mosk-pm` | PRD (executa uma vez por projeto) |
-| 4 | `/mosk-architect` | Arquitetura, stack, APIs e infraestrutura |
-| 5 | `/mosk-po` | Épicos, stories com AC e SpecKit completo (`*spec-specify` → `*spec-tasks`) |
-| 6 | `/mosk-sm` | Dev-readiness: clareza técnica das stories e agile guidance |
-| 7 | `/mosk-dev` | Implementação: `*spec-implement`, `*spec-archive` |
-| 8 | `/mosk-qa` | Quality gates, arquitetura de testes, NFR e revisões |
+Default happy path:
 
-**Agentes de suporte** (sem posição fixa no fluxo):
-- `/mosk-orchestrator` — coordenação de agentes e orientação de workflow
-- `/mosk-master` — executor universal para tarefas pontuais
+`/mosk-po full-spec -> /mosk-dev implement -> /mosk-qa -> /mosk-dev archive`
 
----
+Optional steps when they add value:
 
-### SpecKit Pipeline (PO — passo 5)
-`*spec-specify` → [`*spec-clarify`] → `*spec-plan` → [`*spec-analyze`] → [`*spec-checklist`] → `*spec-tasks`
-→ Dev: `*spec-implement` → `*spec-archive`
+- `/mosk-analyst` for discovery and research
+- `/mosk-pm` for PRD and product scope
+- `/mosk-architect` for architecture and integrations
+- `/mosk-sm` for story readiness
+- `/mosk-ux-expert` for UX and front-end specs
+- `/mosk-orchestrator` when the right path is unclear
+- `/mosk-master` for mixed or one-off work
 
-### Tipos de spec (`--type`)
-| Tipo | Quando usar |
-|------|-------------|
-| `feature` | Nova funcionalidade ou capacidade |
-| `fix` | Correção de bug não urgente |
-| `hotfix` | Correção urgente de produção / vulnerabilidade |
-| `gmud` | Mudança gerenciada, rollout, procedimento de GMUD |
-| `refactor` | Reestruturação sem nova funcionalidade |
-| `experimental` | Exploração, PoC, spike |
+SpecKit core:
 
-### Pasta de specs
-- Ativas: `docs/specs/{###}-{tipo}-{nome}/`
-- Arquivadas: `docs/specs/archive/{###}-{tipo}-{nome}/`
+`full-spec -> implement -> qa-gate -> archive`
+
+Granular path:
+
+`specify -> plan -> tasks -> implement -> qa-gate -> archive`
+
+Notes:
+
+- `clarify`, `analyze`, and `checklist` are optional.
+- `full-spec` stops at `tasks`; it does not implement.
+- Advanced `*commands` still work, but natural language is the preferred UX.
