@@ -152,6 +152,9 @@ Install MOSK into the current project:
 
 ```bash
 npx degit rogerznts/mosk/mosk .
+
+# Force (overwrite existing files)
+npx degit rogerznts/mosk/mosk . --force
 ```
 
 Restart Claude Code after install so the new skills are loaded.
