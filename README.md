@@ -159,6 +159,17 @@ npx degit rogerznts/mosk/mosk . --force
 
 Restart Claude Code after install so the new skills are loaded.
 
+If you also use Codex, create symlinks from the installed `.claude/skills/` into the default Codex skills directory:
+
+```bash
+bash .claude/mosk/scripts/link-codex-skills.sh
+
+# Force recreation of existing symlinks
+bash .claude/mosk/scripts/link-codex-skills.sh --force
+```
+
+This step is optional and local to each machine. `degit` only copies files; it does not run post-install scripts automatically.
+
 ## Installed Structure
 
 ```text
