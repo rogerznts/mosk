@@ -1,6 +1,6 @@
 ---
 name: tea-open-fast-pr
-description: Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea.
+description: "Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea."
 ---
 
 # Open Fast PR (tea)

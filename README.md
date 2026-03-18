@@ -157,9 +157,18 @@ npx degit rogerznts/mosk/mosk .
 npx degit rogerznts/mosk/mosk . --force
 ```
 
+One-command install for Codex users:
+
+```bash
+npx degit rogerznts/mosk/mosk . && bash .claude/mosk/scripts/link-codex-skills.sh
+
+# Force overwrite and recreate existing symlinks
+npx degit rogerznts/mosk/mosk . --force && bash .claude/mosk/scripts/link-codex-skills.sh --force
+```
+
 Restart Claude Code after install so the new skills are loaded.
 
-If you also use Codex, create symlinks from the installed `.claude/skills/` into the default Codex skills directory:
+If you also use Codex, create symlinks from the installed `.claude/skills/` into the project's `.codex/skills/` directory:
 
 ```bash
 bash .claude/mosk/scripts/link-codex-skills.sh
@@ -168,7 +177,7 @@ bash .claude/mosk/scripts/link-codex-skills.sh
 bash .claude/mosk/scripts/link-codex-skills.sh --force
 ```
 
-This step is optional and local to each machine. `degit` only copies files; it does not run post-install scripts automatically.
+This step is optional. `degit` only copies files; it does not run post-install scripts automatically.
 
 ## Installed Structure
 

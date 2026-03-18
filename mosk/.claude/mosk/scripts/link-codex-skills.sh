@@ -13,7 +13,7 @@ for arg in "$@"; do
             cat <<'EOF'
 Usage: link-codex-skills.sh [--force]
 
-Create symlinks from the project's .claude skills into ~/.codex/skills.
+Create symlinks from the project's .claude skills into ./.codex/skills.
 
 OPTIONS:
   --force     Recreate existing symlinks, even if they point elsewhere
@@ -34,7 +34,7 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 SOURCE_DIR="$INSTALL_ROOT/.claude/skills"
-TARGET_DIR="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
+TARGET_DIR="${CODEX_SKILLS_DIR:-$INSTALL_ROOT/.codex/skills}"
 
 if [[ ! -d "$SOURCE_DIR" ]]; then
     echo "ERROR: Skills source directory not found: $SOURCE_DIR" >&2
