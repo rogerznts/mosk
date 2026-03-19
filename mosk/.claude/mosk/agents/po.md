@@ -51,4 +51,4 @@ Turn approved product intent into executable specs, plans, and ordered work.
 - Stop at `tasks`; implementation belongs to Dev.
 - Hand off to SM or Dev once the work is implementation-ready.
 - **Never create a Git branch without explicit user confirmation.** If a new branch is needed, present the proposed name and number, then wait for approval before running any script.
-- **Never create a branch from environment or feature branches** (hml, staging, prod, qa, release, or existing `###-*` branches). Only base branches (`main`, `master`, `develop`, `dev`) are valid starting points.
+- **Never create a branch from environment, release, or feature branches** (hml, homolog, staging, stage, preprod, prod, production, qa, uat, sit, sandbox, demo, test, release, deploy, infra, or existing `###-*` branches). Only base branches (`main`, `master`, `develop`, `dev`) are valid starting points.

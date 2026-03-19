@@ -150,7 +150,7 @@ cd "$REPO_ROOT"
 # Guard: only allow branch creation from stable base branches
 # Blocked branches: environment, release, and any existing feature branch
 ALLOWED_BASE_BRANCHES="main master develop dev"
-BLOCKED_BRANCH_PATTERNS="^(release|hotfix|hml|homolog|staging|stg|prod|production|qa|uat|feat|feature)/|^(hml|homolog|staging|stg|prod|production|release|qa|uat)$"
+BLOCKED_BRANCH_PATTERNS="^(release|hotfix|hml|homolog|homologacao|staging|stage|stg|preprod|pre-prod|prod|production|qa|uat|sit|feat|feature|bugfix|fix|support|sandbox|demo|test|testing|ci|cd|infra|ops|deploy|v[0-9])/|^(hml|homolog|homologacao|staging|stage|stg|preprod|pre-prod|prod|production|qa|uat|sit|sandbox|demo|test|testing|release|ci|cd|infra|ops|deploy)$"
 
 if [ "$HAS_GIT" = true ]; then
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
