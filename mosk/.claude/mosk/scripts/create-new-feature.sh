@@ -96,33 +96,34 @@ find_repo_root() {
     return 1
 }
 
-# Function to check existing branches (local and remote) and return next available number
-check_existing_branches() {
-    local short_name="$1"
-    
+# Function to find the highest feature number across ALL branches and spec dirs
+# This prevents number collisions when creating branches with different suffixes
+get_next_global_number() {
+    local max_num=0
+
     # Fetch all remotes to get latest branch info (suppress errors if no remotes)
     git fetch --all --prune 2>/dev/null || true
-    
-    # Find all branches matching the pattern using git ls-remote (more reliable)
-    local remote_branches=$(git ls-remote --heads origin 2>/dev/null | grep -E "refs/heads/[0-9]+-${short_name}$" | sed 's/.*\/\([0-9]*\)-.*/\1/' | sort -n)
-    
-    # Also check local branches
-    local local_branches=$(git branch 2>/dev/null | grep -E "^[* ]*[0-9]+-${short_name}$" | sed 's/^[* ]*//' | sed 's/-.*//' | sort -n)
-    
-    # Check specs directory as well
-    local spec_dirs=""
+
+    # Check ALL remote feature branches (any name, just extract the numeric prefix)
+    local remote_nums=$(git ls-remote --heads origin 2>/dev/null | grep -oE 'refs/heads/[0-9]+' | grep -oE '[0-9]+' | sort -n)
+
+    # Check ALL local feature branches
+    local local_nums=$(git branch 2>/dev/null | grep -oE '[0-9]{3}-' | grep -oE '[0-9]+' | sort -n)
+
+    # Check ALL spec directories
+    local spec_nums=""
     if [ -d "$SPECS_DIR" ]; then
-        spec_dirs=$(find "$SPECS_DIR" -maxdepth 1 -type d -name "[0-9]*-${short_name}" 2>/dev/null | xargs -n1 basename 2>/dev/null | sed 's/-.*//' | sort -n)
+        spec_nums=$(find "$SPECS_DIR" -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename 2>/dev/null | grep -oE '^[0-9]+' | sort -n)
     fi
-    
+
     # Combine all sources and get the highest number
-    local max_num=0
-    for num in $remote_branches $local_branches $spec_dirs; do
+    for num in $remote_nums $local_nums $spec_nums; do
+        num=$((10#$num))  # force base-10 to avoid octal issues
         if [ "$num" -gt "$max_num" ]; then
             max_num=$num
         fi
     done
-    
+
     # Return next number
     echo $((max_num + 1))
 }
@@ -145,6 +146,41 @@ else
 fi
 
 cd "$REPO_ROOT"
+
+# Guard: only allow branch creation from stable base branches
+# Blocked branches: environment, release, and any existing feature branch
+ALLOWED_BASE_BRANCHES="main master develop dev"
+BLOCKED_BRANCH_PATTERNS="^(release|hotfix|hml|homolog|staging|stg|prod|production|qa|uat|feat|feature)/|^(hml|homolog|staging|stg|prod|production|release|qa|uat)$"
+
+if [ "$HAS_GIT" = true ]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+    if [ -n "$CURRENT_BRANCH" ]; then
+        is_allowed=false
+        for allowed in $ALLOWED_BASE_BRANCHES; do
+            if [ "$CURRENT_BRANCH" = "$allowed" ]; then
+                is_allowed=true
+                break
+            fi
+        done
+
+        # Also block branches matching environment/release patterns
+        if echo "$CURRENT_BRANCH" | grep -qE "$BLOCKED_BRANCH_PATTERNS"; then
+            is_allowed=false
+        fi
+
+        # Block if on an existing feature branch (numeric prefix like 001-*)
+        if echo "$CURRENT_BRANCH" | grep -qE '^[0-9]{3}-'; then
+            is_allowed=false
+        fi
+
+        if [ "$is_allowed" = false ]; then
+            echo "ERROR: Cannot create a new feature branch from '$CURRENT_BRANCH'." >&2
+            echo "New branches can only be created from: $ALLOWED_BASE_BRANCHES" >&2
+            echo "Switch to a base branch first, e.g.: git checkout main" >&2
+            exit 1
+        fi
+    fi
+fi
 
 SPECS_DIR="$REPO_ROOT/docs/specs"
 mkdir -p "$SPECS_DIR"
@@ -208,8 +244,8 @@ fi
 # Determine branch number
 if [ -z "$BRANCH_NUMBER" ]; then
     if [ "$HAS_GIT" = true ]; then
-        # Check existing branches on remotes
-        BRANCH_NUMBER=$(check_existing_branches "$BRANCH_SUFFIX")
+        # Find the highest number across ALL branches and specs globally
+        BRANCH_NUMBER=$(get_next_global_number)
     else
         # Fall back to local directory check
         HIGHEST=0

@@ -29,9 +29,15 @@ Produce a short, implementation-safe specification that is ready for planning wi
    Use a reasonable default from the request. Ask only if the choice materially changes urgency or rollout.
 
 3. Determine the active branch and spec path.
-   - If the current branch is not `main` or `master`, reuse it and infer `docs/specs/{branch}/spec.md` when needed.
-   - Otherwise, find the next available number for the short name and run `.claude/mosk/scripts/create-new-feature.sh --json` once.
+   - Check the current Git branch first.
+   - **If the current branch is NOT `main`/`master`/`develop`/`dev`**: you are already on a feature branch or environment branch. **Do NOT create a new branch. Do NOT run `create-new-feature.sh`.** Reuse the current branch and infer `docs/specs/{branch}/spec.md`.
+   - **Only if the current branch IS a base branch (`main`, `master`, `develop`, `dev`)**: a new feature branch is needed. **Before creating it, you MUST ask the user for explicit confirmation.** Present:
+     - the proposed branch name (type + short name)
+     - the next available number (check `docs/specs/` directories for the highest existing prefix)
+     - wait for a clear "yes" / confirmation before proceeding
+   - Only after user confirmation, run `.claude/mosk/scripts/create-new-feature.sh --json` once. The script auto-detects the next available number globally to avoid collisions.
    - Parse the JSON output for the final branch and spec path.
+   - **Never create a branch automatically. Branch creation always requires user approval.**
 
 4. Load `.claude/mosk/templates/spec-template.md`.
 
