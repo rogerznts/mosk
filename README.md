@@ -96,17 +96,57 @@ Daily defaults:
 
 Use the agents directly with natural language:
 
-```text
+```
 /mosk-po full-spec checkout com cupom
+```
+
+```
 /mosk-dev implementar a spec 012
+```
+
+```
 /mosk-qa revisar a spec 012
 ```
 
 Default happy path:
 
-```text
-/mosk-po full-spec -> /mosk-dev implement -> /mosk-qa -> /mosk-dev archive
 ```
+/mosk-po full-spec
+```
+```
+/mosk-dev implement
+```
+```
+/mosk-qa qa-gate
+```
+```
+/mosk-dev archive
+```
+
+## Skills vs Agents
+
+MOSK agents can be invoked in two ways inside Claude Code:
+
+### Skill (slash command)
+
+Runs **inside the current conversation**, sharing the full chat context. This is the default and recommended way.
+
+```
+/mosk-dev implement a spec 012
+```
+
+### Agent (subagent)
+
+Runs as a **separate process** with its own context. Does not see the current conversation history. Useful for parallel or isolated work. Claude Code spawns agents internally when needed.
+
+| | Skill | Agent |
+|---|---|---|
+| Shares conversation context | yes | no |
+| Parallel execution | no | yes |
+| Interactive with the user | yes | no |
+| Isolates heavy output | no | yes |
+
+**For daily use, prefer skills (slash commands).**
 
 ## Agents
 
@@ -152,8 +192,11 @@ Install MOSK into the current project:
 
 ```bash
 npx degit rogerznts/mosk/mosk .
+```
 
-# Force (overwrite existing files)
+Force (overwrite existing files):
+
+```bash
 npx degit rogerznts/mosk/mosk . --force
 ```
 
@@ -161,8 +204,11 @@ One-command install for Codex users:
 
 ```bash
 npx degit rogerznts/mosk/mosk . && bash .claude/mosk/scripts/link-codex-skills.sh
+```
 
-# Force overwrite and recreate existing symlinks
+Force overwrite and recreate existing symlinks:
+
+```bash
 npx degit rogerznts/mosk/mosk . --force && bash .claude/mosk/scripts/link-codex-skills.sh --force
 ```
 
@@ -172,8 +218,11 @@ If you also use Codex, create symlinks from the installed `.claude/skills/` into
 
 ```bash
 bash .claude/mosk/scripts/link-codex-skills.sh
+```
 
-# Force recreation of existing symlinks
+Force recreation of existing symlinks:
+
+```bash
 bash .claude/mosk/scripts/link-codex-skills.sh --force
 ```
 
@@ -212,24 +261,51 @@ your-project/
 
 The preferred command style is natural language via slash commands.
 
-Examples:
+### SpecKit (mosk-po)
 
-```text
+```
 /mosk-po full-spec login social para clientes B2B
+```
+
+```
 /mosk-po specify login social para clientes B2B
+```
+
+```
 /mosk-po plan a spec atual
+```
+
+```
 /mosk-po tasks para a spec atual
+```
+
+### Implementation (mosk-dev)
+
+```
 /mosk-dev implement a spec 012
+```
+
+```
 /mosk-dev archive a spec 012
 ```
 
-Command intent:
+### Quality (mosk-qa)
 
-- `full-spec`: runs `specify -> plan -> tasks` in one pass
-- `specify`: creates or updates only `spec.md`
-- `plan`: creates or updates only `plan.md`
-- `tasks`: creates or updates only `tasks.md`
-- `implement`: stays with `mosk-dev`
+```
+/mosk-qa qa-gate a spec 012
+```
+
+### Command Intent
+
+| Command | What it does |
+|---|---|
+| `full-spec` | runs `specify -> plan -> tasks` in one pass |
+| `specify` | creates or updates only `spec.md` |
+| `plan` | creates or updates only `plan.md` |
+| `tasks` | creates or updates only `tasks.md` |
+| `implement` | stays with `mosk-dev` |
+| `qa-gate` | stays with `mosk-qa` |
+| `archive` | stays with `mosk-dev` |
 
 Advanced star-prefixed commands can still exist as compatibility shortcuts, but they are no longer the primary UX.
 
