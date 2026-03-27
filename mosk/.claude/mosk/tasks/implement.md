@@ -45,7 +45,7 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - The file must be:
     - A **numbered checklist** that a human tester can follow step by step.
     - Written in plain language so that an automation agent (Playwright, Cypress, or similar) can also interpret and execute each step.
-    - Structured with columns or fields: a `[ ]` checkbox, `step`, `action` and `expected result`.
+    - **Never use markdown tables.** Use a flat list with `- [ ]` checkboxes, one item per step, with the expected result on a separate indented line.
 
 8. At the end, report:
    - completed tasks

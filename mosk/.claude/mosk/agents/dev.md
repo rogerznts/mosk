@@ -72,16 +72,23 @@ After completing each task, phase, or story:
 3. The file must be:
    - A **numbered checklist** that a human tester can follow step by step.
    - Written in plain language so that an automation agent (Playwright, Cypress, or similar) can also interpret and execute each step.
-   - Structured with columns or fields: a `[ ]` checkbox, `step`, `action` and `expected result`.
+   - **Never use markdown tables.** Use a flat list with checkboxes, one item per step.
+   - Each item includes: step number, action, and expected result on separate lines for readability.
 4. Example format:
 
 ```markdown
 # E2E Test Checklist — {story or task title}
 
-| # | Action | Expected Result | OK |
-|---|--------|----------------|----|
-| 1 | Navigate to /login | Login form is visible | [ ] |
-| 2 | Enter valid credentials and submit | Redirect to /dashboard | [ ] |
+## {section title}
+
+- [ ] **1. {action}**
+  Expected: {expected result}
+
+- [ ] **2. {action}**
+  Expected: {expected result}
+
+- [ ] **3. {action}**
+  Expected: {expected result}
 ```
 
 5. If the file already exists, append new steps rather than overwriting.
