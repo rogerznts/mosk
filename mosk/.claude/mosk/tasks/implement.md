@@ -41,8 +41,11 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
 
 7. **E2E test checklist suggestion:**
    - At the end of each completed phase, story, or chore, ask the user whether an E2E test checklist file should be created.
-   - If the user agrees, create it at `FEATURE_DIR/tests/e2e-checklist.md` following the format defined in the Dev agent.
-   - If the file already exists, append new steps rather than overwriting.
+   - If the user agrees, create it at `FEATURE_DIR/tests/e2e-checklist-(phase|storie|plan|task)-X.md` following the format defined in the Dev agent.
+   - The file must be:
+    - A **numbered checklist** that a human tester can follow step by step.
+    - Written in plain language so that an automation agent (Playwright, Cypress, or similar) can also interpret and execute each step.
+    - Structured with columns or fields: a `[ ]` checkbox, `step`, `action` and `expected result`.
 
 8. At the end, report:
    - completed tasks

@@ -68,11 +68,11 @@ During task execution:
 After completing each task, phase, or story:
 
 1. **Ask the user** whether an E2E test checklist file should be created for what was just implemented.
-2. If the user agrees, create the file at `docs/specs/XXX-spec/tests/e2e-checklist.md` (inside the spec's folder).
+2. If the user agrees, create the file at `docs/specs/XXX-spec/tests/e2e-checklist-(phase|storie|plan|task)-X.md` (inside the spec's folder).
 3. The file must be:
    - A **numbered checklist** that a human tester can follow step by step.
    - Written in plain language so that an automation agent (Playwright, Cypress, or similar) can also interpret and execute each step.
-   - Structured with columns or fields: `step`, `action`, `expected result`, and a `[ ]` checkbox.
+   - Structured with columns or fields: a `[ ]` checkbox, `step`, `action` and `expected result`.
 4. Example format:
 
 ```markdown
