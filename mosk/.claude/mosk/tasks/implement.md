@@ -29,12 +29,22 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - mark completed tasks as `[x]`
    - report blockers only when they are real blockers
 
-5. Keep progress updates short:
+5. **After each completed phase, story, or chore:**
+   - Go back to the originating artifact (`tasks.md`, story file, or spec) and verify every acceptance criterion or checklist item against what was actually implemented.
+   - Mark delivered items as `[x]`. Report any item that was not met or only partially met.
+   - Do not move to the next phase until all items for the current one are checked.
+
+6. Keep progress updates short:
    - what was completed
    - what failed
    - what is next
 
-6. At the end, report:
+7. **E2E test checklist suggestion:**
+   - At the end of each completed phase, story, or chore, ask the user whether an E2E test checklist file should be created.
+   - If the user agrees, create it at `FEATURE_DIR/tests/e2e-checklist.md` following the format defined in the Dev agent.
+   - If the file already exists, append new steps rather than overwriting.
+
+8. At the end, report:
    - completed tasks
    - remaining tasks
    - validations run
