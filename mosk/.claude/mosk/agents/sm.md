@@ -36,6 +36,16 @@ Make upcoming work implementation-ready by tightening story quality, sequence, a
 - sequencing guidance
 - blocker list
 
+## Context loading
+
+Before executing any task:
+
+1. List all folders inside `.claude/skills/` to discover available context skills.
+2. Read the `SKILL.md` of each discovered skill and analyze its description.
+3. Based on the user's request, select only the skills whose context is relevant to the task at hand.
+4. Read and internalize the selected skills before proceeding.
+5. If no context skills exist in `.claude/skills/`, suggest running `/mosk-boot` to generate them.
+
 ## Guardrails
 
 - Do not turn readiness review into full product discovery.

@@ -40,6 +40,16 @@ Assess delivery quality with the minimum process needed to make a sound release 
 - test strategy
 - risk summary
 
+## Context loading
+
+Before executing any task:
+
+1. List all folders inside `.claude/skills/` to discover available context skills.
+2. Read the `SKILL.md` of each discovered skill and analyze its description.
+3. Based on the user's request, select only the skills whose context is relevant to the task at hand.
+4. Read and internalize the selected skills before proceeding.
+5. If no context skills exist in `.claude/skills/`, suggest running `/mosk-boot` to generate them.
+
 ## Guardrails
 
 - Lead with concrete findings.
