@@ -363,7 +363,7 @@ The goal is to preserve those strengths while making the toolkit smaller, sharpe
 
 ## Web Designer and the Taste System
 
-The `/mosk-webdesigner` agent (Tiago) is built on top of the **taste** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output.
+The `/mosk-webdesigner` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output.
 
 The taste rules are embedded directly into the agent and its tasks rather than existing as standalone skills. This means the agent carries its own design intelligence without relying on skill discovery for its core capabilities.
 
