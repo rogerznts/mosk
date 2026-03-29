@@ -56,9 +56,11 @@ flowchart TD
     B --> C[/mosk-pm<br/>Brief / PRD/]
     C -. if UX-heavy .-> D[/mosk-ux-expert<br/>Flows / UX Spec/]
     C -. if architecture-heavy .-> E[/mosk-architect<br/>Architecture / APIs / Integration/]
+    C -. if design-heavy .-> W[/mosk-webdesigner<br/>Premium UI / Redesign/]
     C --> F[/mosk-po<br/>Epics / Stories / Spec Package/]
     D --> F
     E --> F
+    W --> F
     F --> G[/mosk-sm<br/>Story Readiness/]
     G --> H[/mosk-dev implement/]
     H --> I[/mosk-qa qa-gate/]
@@ -160,6 +162,7 @@ Runs as a **separate process** with its own context. Does not see the current co
 | `/mosk-sm` | readiness, sequencing, story hygiene |
 | `/mosk-dev` | implementation, fixes, archive |
 | `/mosk-qa` | quality gates, test strategy, review |
+| `/mosk-webdesigner` | premium interfaces, redesign, visual styles, design systems |
 | `/mosk-orchestrator` | routing when the right next step is unclear |
 | `/mosk-master` | mixed one-off work |
 
@@ -252,7 +255,8 @@ your-project/
 │       ├── mosk-po/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
-│       └── mosk-ux-expert/
+│       ├── mosk-ux-expert/
+│       └── mosk-webdesigner/
 └── docs/
     └── specs/
 ```
@@ -287,6 +291,20 @@ The preferred command style is natural language via slash commands.
 
 ```
 /mosk-dev archive a spec 012
+```
+
+### Web Design (mosk-webdesigner)
+
+```
+/mosk-webdesigner landing page para produto SaaS de analytics
+```
+
+```
+/mosk-webdesigner redesign da home atual
+```
+
+```
+/mosk-webdesigner brutalist dashboard de monitoramento
 ```
 
 ### Quality (mosk-qa)
@@ -342,6 +360,35 @@ MOSK owes a real conceptual debt to:
 - SpecKit, for turning vague requests into explicit artifacts
 
 The goal is to preserve those strengths while making the toolkit smaller, sharper, and cheaper to run.
+
+## Web Designer and the Taste System
+
+The `/mosk-webdesigner` agent (Tiago) is built on top of the **taste** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output.
+
+The taste rules are embedded directly into the agent and its tasks rather than existing as standalone skills. This means the agent carries its own design intelligence without relying on skill discovery for its core capabilities.
+
+### Available styles
+
+| Command | Style |
+|---|---|
+| `/mosk-webdesigner` | shows menu with all options |
+| `/mosk-webdesigner brutalist` | Swiss typography, terminal aesthetics, rigid grids |
+| `/mosk-webdesigner minimalist` | editorial, warm monochrome, flat bento grids |
+| `/mosk-webdesigner soft` | $150k agency feel, haptic depth, cinematic motion |
+| `/mosk-webdesigner redesign` | audit and upgrade an existing interface |
+| `/mosk-webdesigner stitch` | generate a DESIGN.md for Google Stitch |
+| `/mosk-webdesigner output completo` | enforce full code generation, no truncation |
+
+### What taste enforces
+
+- strict anti-AI-pattern rules (no Inter font, no neon glows, no 3-card grids, no generic names)
+- metric-based design dials (variance, motion intensity, visual density)
+- hardware-accelerated CSS animation constraints
+- mandatory interaction states (loading, empty, error, active)
+- responsive collapse guarantees
+- dependency verification before any import
+
+The agent still loads project context skills (`ctx-project`, `ctx-frontend`) normally through the standard MOSK context loading protocol.
 
 ## Optional Environment Tools
 

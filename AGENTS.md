@@ -17,13 +17,14 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-boot**: Bootstrap de contexto compacto: gera ctx-project e, se necessario, ctx-frontend."
 - **mosk-dev**: Implementação: implement, archive, debugging, refatoração e apply-qa-fixes."
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
-- **mosk-master**: Activate the Mestre (MOSK Master) agent persona for comprehensive expertise across all domains.
-- **mosk-orchestrator**: Activate the Maestro (MOSK Orchestrator) agent persona for workflow coordination, multi-agent tasks, and role switching guidance.
-- **mosk-pm**: Produto: criação de PRD e estratégia de produto (executa uma vez por projeto)."
-- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify → plan → tasks)."
+- **mosk-master**: Generalista: pedidos cross-funcionais, ajuda tática e trabalho misto."
+- **mosk-orchestrator**: Orquestrador: coordenação de workflow, roteamento multi-agente e orientação."
+- **mosk-pm**: Produto: criação de PRD e estratégia de produto."
+- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões."
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação."
 - **mosk-ux-expert**: UX: user flows, wireframes e front-end specs."
+- **mosk-webdesigner**: Web Design: interfaces premium, redesign, estilos visuais e design systems."
 - **tea-commit**: Stages and commits pending changes using Conventional Commits format. Reads the diff, alerts for debug code, generates a clear commit message, and commits without skipping hooks.
 - **tea-open-fast-pr**: Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea."
 - **tea-open-pr**: Opens a Pull Request on Gitea using the `tea` CLI. Auto-detects branch type, generates PR text, applies label and assignee automatically.
