@@ -10,8 +10,8 @@ Create a small amount of durable project context without exploding the number of
 
 ### Phase 0 - Check CLAUDE.md
 
-1. Check if `CLAUDE.md` exists in the project root.
-2. If it does **not** exist, stop and suggest the user run `claude init` (or `/init`) first to create the base `CLAUDE.md`.
+1. Check if `CLAUDE.md` exists in the project root, if exists update it with .claude/mosk/claude_boot.md file.
+2. If it does **not** exist, create the base `CLAUDE.md` from .claude/mosk/claude_boot.md file.
 3. Only proceed to Phase 1 after confirming `CLAUDE.md` is present.
 
 ### Phase 1 - Inspect the project
