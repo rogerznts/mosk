@@ -244,55 +244,108 @@ AGENT_EOF
     echo
 }
 
-# --- clean: remove orphan skills and CC agents without a source agent ---
+# --- clean: remove all orphan artifacts across all three layers ---
+# Builds a roster from source agents, then removes anything mosk-* that isn't in the roster.
 clean_orphans() {
     echo "=== clean orphans ==="
     echo
 
-    # Clean orphan skill wrappers (mosk-* only, skip standalone skills like boot/help/tea-*)
+    # Build roster of valid agent base names from source agents
+    local -a roster=()
+    if [[ -d "$MOSK_AGENTS_DIR" ]]; then
+        for f in "$MOSK_AGENTS_DIR"/*.md; do
+            [[ -f "$f" ]] || continue
+            roster+=("$(basename "$f" .md)")
+        done
+    fi
+
+    # Helper: check if a name is in the roster
+    in_roster() {
+        local name="$1"
+        for r in "${roster[@]}"; do
+            [[ "$r" == "$name" ]] && return 0
+        done
+        return 1
+    }
+
+    # Helper: remove a file or directory
+    do_remove() {
+        local path="$1"
+        local label="$2"
+        if [[ "$DRY_RUN" == "true" ]]; then
+            echo "dry-run  would remove $label"
+        else
+            rm -rf "$path"
+            echo "remove  $label"
+        fi
+        removed=$((removed + 1))
+    }
+
+    # 1. Clean orphan skill wrappers (mosk-* only, skip standalone like boot/help/tea-*)
     if [[ -d "$SKILLS_DIR" ]]; then
         for skill_dir in "$SKILLS_DIR"/mosk-*/; do
             [[ -d "$skill_dir" ]] || continue
-            local skill_name
+            local skill_name base_name skill_file
             skill_name="$(basename "$skill_dir")"
-            local base_name="${skill_name#mosk-}"
-            local source_agent="$MOSK_AGENTS_DIR/$base_name.md"
+            base_name="${skill_name#mosk-}"
+            skill_file="$skill_dir/SKILL.md"
 
-            # Only remove if the skill is an agent wrapper (has CRITICAL reference)
-            local skill_file="$skill_dir/SKILL.md"
+            # Only target agent wrappers (contain "agent definition")
             if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
-                if [[ ! -f "$source_agent" ]]; then
-                    if [[ "$DRY_RUN" == "true" ]]; then
-                        echo "dry-run  would remove $skill_name/ (orphan skill)"
-                    else
-                        rm -rf "$skill_dir"
-                        echo "remove  $skill_name/ (orphan skill)"
-                    fi
-                    removed=$((removed + 1))
+                if ! in_roster "$base_name"; then
+                    do_remove "$skill_dir" "$skill_name/ (orphan skill)"
                 fi
             fi
         done
     fi
 
-    # Clean orphan CC agents (mosk-* only)
+    # 2. Clean orphan CC agents (mosk-* only)
     if [[ -d "$CC_AGENTS_DIR" ]]; then
         for agent_file in "$CC_AGENTS_DIR"/mosk-*.md; do
             [[ -f "$agent_file" ]] || continue
-            local skill_name
+            local skill_name base_name
             skill_name="$(basename "$agent_file" .md)"
-            local base_name="${skill_name#mosk-}"
-            local source_agent="$MOSK_AGENTS_DIR/$base_name.md"
+            base_name="${skill_name#mosk-}"
 
-            if [[ ! -f "$source_agent" ]]; then
-                if [[ "$DRY_RUN" == "true" ]]; then
-                    echo "dry-run  would remove $skill_name.md (orphan agent)"
-                else
-                    rm "$agent_file"
-                    echo "remove  $skill_name.md (orphan agent)"
-                fi
-                removed=$((removed + 1))
+            if ! in_roster "$base_name"; then
+                do_remove "$agent_file" "$skill_name.md (orphan CC agent)"
             fi
         done
+    fi
+
+    # 3. Also check dev repo fallback: parent .claude/agents/ and .claude/skills/
+    local _parent_root
+    _parent_root="$(cd "$INSTALL_ROOT/.." 2>/dev/null && pwd)" || true
+    if [[ -n "$_parent_root" && "$_parent_root" != "$INSTALL_ROOT" ]]; then
+        local _parent_agents_dir="$_parent_root/.claude/agents"
+        local _parent_skills_dir="$_parent_root/.claude/skills"
+
+        if [[ -d "$_parent_agents_dir" ]]; then
+            for agent_file in "$_parent_agents_dir"/mosk-*.md; do
+                [[ -f "$agent_file" ]] || continue
+                local skill_name base_name
+                skill_name="$(basename "$agent_file" .md)"
+                base_name="${skill_name#mosk-}"
+                if ! in_roster "$base_name"; then
+                    do_remove "$agent_file" "$skill_name.md (orphan CC agent, parent)"
+                fi
+            done
+        fi
+
+        if [[ -d "$_parent_skills_dir" ]]; then
+            for skill_dir in "$_parent_skills_dir"/mosk-*/; do
+                [[ -d "$skill_dir" ]] || continue
+                local skill_name base_name skill_file
+                skill_name="$(basename "$skill_dir")"
+                base_name="${skill_name#mosk-}"
+                skill_file="$skill_dir/SKILL.md"
+                if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
+                    if ! in_roster "$base_name"; then
+                        do_remove "$skill_dir" "$skill_name/ (orphan skill, parent)"
+                    fi
+                fi
+            done
+        fi
     fi
 
     echo
