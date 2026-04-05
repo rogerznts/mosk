@@ -78,9 +78,14 @@ Optional helpers:
 Synchronizes agents, skills, and Claude Code agent files. Run after adding or removing agents:
 
 ```bash
-bash .claude/mosk/scripts/sync-agents-skills.sh            # both directions
-bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run   # preview only
+bash .claude/mosk/scripts/sync-agents-skills.sh              # both directions
+bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run     # preview only
+bash .claude/mosk/scripts/sync-agents-skills.sh --clean       # also remove orphans
+bash .claude/mosk/scripts/sync-agents-skills.sh --clean --dry-run  # preview orphan removal
 ```
+
+By default the script only **creates or updates** — it never deletes files.
+Use `--clean` to remove orphan skills and CC agents whose source agent no longer exists.
 
 ### link-codex-skills.sh
 

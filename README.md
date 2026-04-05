@@ -251,9 +251,16 @@ bash .claude/mosk/scripts/sync-agents-skills.sh both
 
 # Preview without writing
 bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run
+
+# Remove orphan skills/agents whose source agent was deleted
+bash .claude/mosk/scripts/sync-agents-skills.sh --clean
+
+# Preview orphan removal
+bash .claude/mosk/scripts/sync-agents-skills.sh --clean --dry-run
 ```
 
-The script is idempotent — it only creates or updates files when content differs.
+By default the script only **creates or updates** — it never deletes files.
+Use `--clean` to also remove orphan skills and CC agents whose source agent no longer exists.
 
 ## Installed Structure
 

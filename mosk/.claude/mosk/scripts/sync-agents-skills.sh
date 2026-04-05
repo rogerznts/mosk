@@ -11,17 +11,19 @@ set -e
 #   skills-to-agents  — generate .claude/agents/mosk-NAME.md from .claude/skills/mosk-NAME/SKILL.md
 #   both              — run both directions (default)
 #
-# Usage: sync-agents-skills.sh [agents-to-skills|skills-to-agents|both] [--dry-run]
+# Usage: sync-agents-skills.sh [agents-to-skills|skills-to-agents|both] [--dry-run] [--clean]
 
 DIRECTION="${1:-both}"
 DRY_RUN=false
+CLEAN=false
 
 for arg in "$@"; do
     case "$arg" in
         --dry-run)  DRY_RUN=true ;;
+        --clean)    CLEAN=true ;;
         --help|-h)
             cat <<'EOF'
-Usage: sync-agents-skills.sh [DIRECTION] [--dry-run]
+Usage: sync-agents-skills.sh [DIRECTION] [--dry-run] [--clean]
 
 DIRECTION:
   agents-to-skills   Generate skill wrappers from agent definitions
@@ -30,6 +32,7 @@ DIRECTION:
 
 OPTIONS:
   --dry-run   Show what would be done without writing files
+  --clean     Remove orphan skills and CC agents that have no corresponding source agent
   --help, -h  Show this help message
 
 STRUCTURE:
@@ -65,6 +68,7 @@ fi
 created=0
 updated=0
 kept=0
+removed=0
 
 # --- Helpers ---
 
@@ -240,6 +244,60 @@ AGENT_EOF
     echo
 }
 
+# --- clean: remove orphan skills and CC agents without a source agent ---
+clean_orphans() {
+    echo "=== clean orphans ==="
+    echo
+
+    # Clean orphan skill wrappers (mosk-* only, skip standalone skills like boot/help/tea-*)
+    if [[ -d "$SKILLS_DIR" ]]; then
+        for skill_dir in "$SKILLS_DIR"/mosk-*/; do
+            [[ -d "$skill_dir" ]] || continue
+            local skill_name
+            skill_name="$(basename "$skill_dir")"
+            local base_name="${skill_name#mosk-}"
+            local source_agent="$MOSK_AGENTS_DIR/$base_name.md"
+
+            # Only remove if the skill is an agent wrapper (has CRITICAL reference)
+            local skill_file="$skill_dir/SKILL.md"
+            if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
+                if [[ ! -f "$source_agent" ]]; then
+                    if [[ "$DRY_RUN" == "true" ]]; then
+                        echo "dry-run  would remove $skill_name/ (orphan skill)"
+                    else
+                        rm -rf "$skill_dir"
+                        echo "remove  $skill_name/ (orphan skill)"
+                    fi
+                    removed=$((removed + 1))
+                fi
+            fi
+        done
+    fi
+
+    # Clean orphan CC agents (mosk-* only)
+    if [[ -d "$CC_AGENTS_DIR" ]]; then
+        for agent_file in "$CC_AGENTS_DIR"/mosk-*.md; do
+            [[ -f "$agent_file" ]] || continue
+            local skill_name
+            skill_name="$(basename "$agent_file" .md)"
+            local base_name="${skill_name#mosk-}"
+            local source_agent="$MOSK_AGENTS_DIR/$base_name.md"
+
+            if [[ ! -f "$source_agent" ]]; then
+                if [[ "$DRY_RUN" == "true" ]]; then
+                    echo "dry-run  would remove $skill_name.md (orphan agent)"
+                else
+                    rm "$agent_file"
+                    echo "remove  $skill_name.md (orphan agent)"
+                fi
+                removed=$((removed + 1))
+            fi
+        done
+    fi
+
+    echo
+}
+
 # --- Run requested direction(s) ---
 case "$DIRECTION" in
     agents-to-skills)
@@ -254,7 +312,13 @@ case "$DIRECTION" in
         ;;
 esac
 
+# Run clean if requested
+if [[ "$CLEAN" == "true" ]]; then
+    clean_orphans
+fi
+
 # --- Summary ---
 echo "Created: $created"
 echo "Updated: $updated"
 echo "Kept:    $kept"
+echo "Removed: $removed"
