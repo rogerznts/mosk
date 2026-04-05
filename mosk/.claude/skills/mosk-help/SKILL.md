@@ -24,9 +24,6 @@ Optional steps when they add value:
 - `/mosk-architect` for architecture and integrations
 - `/mosk-sm` for story readiness
 - `/mosk-ux-expert` for UX and front-end specs
-- `/mosk-orchestrator` when the right path is unclear
-- `/mosk-master` for mixed or one-off work
-
 SpecKit core:
 
 `full-spec -> implement -> qa-gate -> archive`

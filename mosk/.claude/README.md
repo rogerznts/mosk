@@ -44,8 +44,7 @@ Advanced `*commands` still work, but they are compatibility shortcuts rather tha
 - `mosk-sm`
 - `mosk-dev`
 - `mosk-qa`
-- `mosk-orchestrator`
-- `mosk-master`
+- `mosk-webdesigner`
 
 ## Helper Skills
 
@@ -71,3 +70,22 @@ Optional helpers:
 - `checklist`
 
 `full-spec` stops at `tasks` and keeps implementation with `mosk-dev`.
+
+## Scripts
+
+### sync-agents-skills.sh
+
+Synchronizes agents, skills, and Claude Code agent files. Run after adding or removing agents:
+
+```bash
+bash .claude/mosk/scripts/sync-agents-skills.sh            # both directions
+bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run   # preview only
+```
+
+### link-codex-skills.sh
+
+Creates symlinks for Codex CLI compatibility:
+
+```bash
+bash .claude/mosk/scripts/link-codex-skills.sh
+```

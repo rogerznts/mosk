@@ -163,8 +163,6 @@ Runs as a **separate process** with its own context. Does not see the current co
 | `/mosk-dev` | implementation, fixes, archive |
 | `/mosk-qa` | quality gates, test strategy, review |
 | `/mosk-webdesigner` | premium interfaces, redesign, visual styles, design systems |
-| `/mosk-orchestrator` | routing when the right next step is unclear |
-| `/mosk-master` | mixed one-off work |
 
 ## Spec Types
 
@@ -231,6 +229,32 @@ bash .claude/mosk/scripts/link-codex-skills.sh --force
 
 This step is optional. `degit` only copies files; it does not run post-install scripts automatically.
 
+### Syncing Agents and Skills
+
+When you add or remove agents in `.claude/mosk/agents/`, run the sync script to regenerate skill wrappers and Claude Code agent files:
+
+```bash
+bash .claude/mosk/scripts/sync-agents-skills.sh
+```
+
+Directions:
+
+```bash
+# Generate skill wrappers from agents
+bash .claude/mosk/scripts/sync-agents-skills.sh agents-to-skills
+
+# Generate Claude Code agents from skills
+bash .claude/mosk/scripts/sync-agents-skills.sh skills-to-agents
+
+# Both directions (default)
+bash .claude/mosk/scripts/sync-agents-skills.sh both
+
+# Preview without writing
+bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run
+```
+
+The script is idempotent — it only creates or updates files when content differs.
+
 ## Installed Structure
 
 ```text
@@ -249,8 +273,6 @@ your-project/
 │       ├── mosk-boot/
 │       ├── mosk-dev/
 │       ├── mosk-help/
-│       ├── mosk-master/
-│       ├── mosk-orchestrator/
 │       ├── mosk-pm/
 │       ├── mosk-po/
 │       ├── mosk-qa/
