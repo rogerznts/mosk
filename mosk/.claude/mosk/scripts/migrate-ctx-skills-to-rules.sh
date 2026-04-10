@@ -20,8 +20,10 @@ Usage: migrate-ctx-skills-to-rules.sh [--keep-old] [--dry-run] [--help]
 Converts legacy .claude/skills/ctx-*/SKILL.md files into .claude/rules/*.md.
 
 For each ctx-<name> skill found, writes .claude/rules/<name>.md containing
-the SKILL.md body stripped of its YAML frontmatter. By default, deletes the
-original ctx-* skill directory after a successful conversion.
+the SKILL.md body stripped of its YAML frontmatter. A legacy "# ctx-<name>"
+H1 heading on the first line is rewritten to a clean title-cased heading
+("# Project", "# Coding Standards", etc.). By default, deletes the original
+ctx-* skill directory after a successful conversion.
 
 OPTIONS:
   --keep-old   Keep the original ctx-* skill directories after conversion.
@@ -86,9 +88,21 @@ deleted=0
 for skill_dir in "${legacy_dirs[@]}"; do
     skill_dir="${skill_dir%/}"
     name="$(basename "$skill_dir")"          # e.g. ctx-project
-    rule_name="${name#ctx-}.md"              # e.g. project.md
+    stem="${name#ctx-}"                      # e.g. project or coding-standards
+    rule_name="${stem}.md"                   # e.g. project.md
     src="$skill_dir/SKILL.md"
     dst="$RULES_DIR/$rule_name"
+
+    # Title case for the H1 heading: coding-standards -> Coding Standards
+    title=$(printf '%s' "$stem" | awk '{
+        n = split($0, parts, "-")
+        out = ""
+        for (i = 1; i <= n; i++) {
+            w = parts[i]
+            out = out (i > 1 ? " " : "") toupper(substr(w, 1, 1)) substr(w, 2)
+        }
+        print out
+    }')
 
     if [[ ! -f "$src" ]]; then
         echo "skip    $name (no SKILL.md inside)"
@@ -113,6 +127,17 @@ for skill_dir in "${legacy_dirs[@]}"; do
 
     # Drop any leading blank lines so the file starts with real content
     content=$(printf '%s\n' "$content" | awk 'NF {found=1} found {print}')
+
+    # Rewrite a legacy "# ctx-<stem>" H1 on the first content line into
+    # a clean title-cased heading ("# Project", "# Coding Standards", ...).
+    # Case-insensitive match against the exact legacy pattern only.
+    content=$(printf '%s\n' "$content" | awk -v stem="$stem" -v title="$title" '
+        NR == 1 && tolower($0) ~ "^# ctx-" tolower(stem) "[[:space:]]*$" {
+            print "# " title
+            next
+        }
+        { print }
+    ')
 
     if $DRY_RUN; then
         echo "would   create $dst  (from $name)"
