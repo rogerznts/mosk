@@ -27,7 +27,16 @@ The following skills are linked in `.codex/skills/`:
 - **tea-open-pr**: Opens a Pull Request on Gitea using the `tea` CLI. Auto-detects branch type, generates PR text, applies label and assignee automatically.
 - **tea-prune-branches**: Fetches with prune and removes local branches whose remote tracking branch has been deleted.
 
-## Context Skills
+## Project Rules
 
-MOSK agents automatically discover and load relevant context skills from `.claude/skills/` before executing tasks.
-Run `/mosk-boot` to generate project context skills if they don't exist yet.
+Project-wide rules are symlinked into `.codex/rules/` (source: `.claude/rules/*.md`).
+Read every file there before executing any request — they define the project's stack,
+conventions, and constraints. MOSK agents running through Claude Code read
+`.claude/rules/*.md` directly; Codex CLI should follow the `.codex/rules/` symlinks.
+
+Run `/mosk-boot` to generate project rules if they don't exist yet. To migrate a
+project from legacy `ctx-*` context skills into the new rule layout, run:
+
+```bash
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
+```
