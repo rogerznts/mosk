@@ -51,6 +51,14 @@ Advanced `*commands` still work, but they are compatibility shortcuts rather tha
 - `mosk-help`
 - `mosk-boot`
 
+## Project Rules
+
+Project context lives in `.claude/rules/*.md` as plain markdown files. MOSK agents read every file there before executing any task. The `mosk-boot` skill generates a compact rule pack (`project.md`, and `frontend.md` when applicable). To migrate legacy `ctx-*` context skills from older projects into the new rule layout, run:
+
+```bash
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
+```
+
 ## Daily Flow
 
 ```text
@@ -89,8 +97,18 @@ Use `--clean` to remove orphan skills and CC agents whose source agent no longer
 
 ### link-codex-skills.sh
 
-Creates symlinks for Codex CLI compatibility:
+Creates symlinks for Codex CLI compatibility (skills **and** rules):
 
 ```bash
 bash .claude/mosk/scripts/link-codex-skills.sh
+```
+
+### migrate-ctx-skills-to-rules.sh
+
+Converts legacy `.claude/skills/ctx-*/SKILL.md` into `.claude/rules/*.md`. Default behavior deletes the old `ctx-*` skill directories after a successful conversion.
+
+```bash
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh              # convert + delete old
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --keep-old   # convert, keep old
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run    # preview only
 ```

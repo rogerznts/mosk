@@ -65,6 +65,21 @@ if [[ ! -d "$CC_AGENTS_DIR" ]]; then
     fi
 fi
 
+# --- Warn about legacy ctx-* context skills ---
+# Since MOSK now stores project context in .claude/rules/*.md, any remaining
+# ctx-* skill directories are stale. Warn the user (non-blocking).
+if [[ -d "$SKILLS_DIR" ]]; then
+    shopt -s nullglob
+    _legacy_ctx=("$SKILLS_DIR"/ctx-*/)
+    shopt -u nullglob
+    if [[ ${#_legacy_ctx[@]} -gt 0 ]]; then
+        echo "NOTE: found ${#_legacy_ctx[@]} legacy ctx-* skill(s) in $SKILLS_DIR"
+        echo "      Project context now lives in .claude/rules/*.md."
+        echo "      Migrate with: bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh"
+        echo
+    fi
+fi
+
 created=0
 updated=0
 kept=0

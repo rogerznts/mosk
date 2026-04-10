@@ -364,10 +364,10 @@ For an existing repository, run:
 /mosk-boot
 ```
 
-The boot workflow generates a compact context pack by default:
+The boot workflow generates a compact rule pack in `.claude/rules/` by default:
 
-- `ctx-project`
-- `ctx-frontend` only when frontend code exists
+- `.claude/rules/project.md`
+- `.claude/rules/frontend.md` only when frontend code exists
 
 ## What Changed From The Legacy Bundle
 
@@ -417,7 +417,7 @@ The taste rules are embedded directly into the agent and its tasks rather than e
 - responsive collapse guarantees
 - dependency verification before any import
 
-The agent still loads project context skills (`ctx-project`, `ctx-frontend`) normally through the standard MOSK context loading protocol.
+The agent still loads project rules from `.claude/rules/*.md` normally through the standard MOSK context loading protocol.
 
 ## Optional Environment Tools
 
