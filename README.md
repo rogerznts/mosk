@@ -262,6 +262,51 @@ bash .claude/mosk/scripts/sync-agents-skills.sh --clean --dry-run
 By default the script only **creates or updates** — it never deletes files.
 Use `--clean` to also remove orphan skills and CC agents whose source agent no longer exists.
 
+### Migrating Legacy `ctx-*` Skills to Rules
+
+Older MOSK installs carried project context inside `.claude/skills/ctx-*/SKILL.md`.
+The current model keeps context as plain markdown in `.claude/rules/*.md` and
+reserves skills for actions only. To convert an existing install, run:
+
+```bash
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
+```
+
+For each `ctx-<name>` skill found, the script writes `.claude/rules/<name>.md`
+with the SKILL.md body stripped of its YAML frontmatter, rewrites a legacy
+`# ctx-<name>` H1 into a clean title-cased heading (e.g. `# Project`,
+`# Coding Standards`), and deletes the original `ctx-*` skill directory.
+Any `.codex/skills/ctx-*` symlink pointing at a removed directory is cleaned up.
+
+Options:
+
+```bash
+# Preview without writing or deleting
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run
+
+# Convert but keep the original ctx-* skill directories
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --keep-old
+
+# Show usage
+bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --help
+```
+
+Behavior notes:
+
+- Existing `.claude/rules/<name>.md` files are never overwritten — the
+  corresponding `ctx-*` skill is skipped.
+- Without `--keep-old`, the legacy skill directories are removed after a
+  successful conversion (default).
+- The script is idempotent: running it again after a full migration is a
+  no-op.
+
+After migrating, refresh the Codex symlinks so `.codex/rules/` picks up the
+new files:
+
+```bash
+bash .claude/mosk/scripts/link-codex-skills.sh
+```
+
 ## Installed Structure
 
 ```text
