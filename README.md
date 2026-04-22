@@ -1,48 +1,59 @@
 # MOSK
 
-MOSK is a Spec-Driven Development toolkit for Claude Code.
+Spec-driven development toolkit for Claude Code. Nine specialist agents, one pipeline, two mirrored layers of documentation — installable into any repository through `.claude/`.
 
-It is inspired by two ideas:
+## Why MOSK
 
-- **BMAD**: specialist agents with explicit roles
-- **SpecKit**: a structured path from problem framing to executable work
+Every meaningful change in a real codebase deserves an explicit trail: a brief that framed it, a spec that scoped it, a plan that solved it, tasks that delivered it, a gate that validated it, and an archive that preserves it. MOSK turns that trail into a lightweight, convention-driven workflow with low token overhead and no mandatory menus.
 
-MOSK is not a branded repackaging of either one. It is a lighter synthesis built for:
+- **Role clarity** — each agent owns one thing well and knows when to defer.
+- **Structured artifacts** — specs, plans, tasks, stories, gates, ADRs all live in predictable places.
+- **Explicit handoffs** — pipeline agents detect when a preamble agent is needed and suggest it; they never invoke another agent autonomously.
+- **Incremental delivery** — every spec carries metadata, progresses through phases, and is archived with promotable artifacts.
 
-- direct natural-language activation
-- lower token overhead
-- a short default path
-- fewer mandatory menus and rituals
-- installability inside real projects through `.claude/`
+## Installation
 
-## Core Idea
+```bash
+npx degit rogerznts/mosk/mosk .
+```
 
-Every meaningful change should become explicit work:
+Force-overwrite an existing install:
 
-1. clarify the change
-2. shape the specification
-3. create the implementation plan
-4. generate ordered tasks
-5. implement
-6. review quality
-7. archive the result
+```bash
+npx degit rogerznts/mosk/mosk . --force
+```
 
-## Philosophy
+First-time setup for a codebase:
 
-MOSK keeps the parts that were useful in BMAD and SpecKit:
+```bash
+/mosk-boot
+```
 
-- role clarity
-- structured artifacts
-- explicit handoffs
-- incremental delivery
+`mosk-boot` reads the project, generates `.claude/rules/` (a compact `project.md` plus `frontend.md` when frontend code is detected), and scaffolds the canonical `docs/` layout. Re-run it whenever the project structure changes significantly.
 
-MOSK intentionally removes or downplays the parts that add friction:
+For Codex users, create symlinks after install:
 
-- heavy activation prompts
-- mandatory multi-step menus
-- bloated orchestration layers
-- optional workflow packs in the default install
-- legacy bundle branding inside the shipped toolkit
+```bash
+bash .claude/mosk/scripts/link-codex-skills.sh
+```
+
+Restart Claude Code after install so the new skills load.
+
+## Agents
+
+| Skill | Responsibility |
+|---|---|
+| `/mosk-analyst` (Maria) | discovery, research, brainstorming |
+| `/mosk-pm` (João) | PRD, product scope, PRD delta |
+| `/mosk-architect` (Vinicius) | architecture, APIs, integrations, ADRs |
+| `/mosk-ux-expert` (Salete) | user flows, wireframes, front-end specs |
+| `/mosk-ui-expert` (Tiago) | premium UI, design system, visual acabamento |
+| `/mosk-po` (Sara) | specs, planning, task generation |
+| `/mosk-sm` (Roberto) | story readiness, sequencing |
+| `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
+| `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
+
+UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 
 ## Flow
 
@@ -53,78 +64,255 @@ flowchart TD
     A[Request] -->|base missing/incomplete?| PRE
     A -->|base in place| F
 
-    subgraph PRE [Preamble — optional]
+    subgraph PRE [Preamble - optional]
         B[/mosk-analyst<br/>Discovery/] -. if vague .-> C[/mosk-pm<br/>PRD or PRD-delta/]
-        C -. if architecture-heavy .-> E[/mosk-architect]
-        C -. if UX-heavy .-> D[/mosk-ux-expert]
-        C -. if design-heavy .-> W[/mosk-ui-expert]
+        C -. if architecture-heavy .-> E[/mosk-architect/]
+        C -. if UX-heavy .-> D[/mosk-ux-expert/]
+        C -. if design-heavy .-> W[/mosk-ui-expert/]
     end
 
     PRE --> F[/mosk-po<br/>full-spec: specify → plan → tasks/]
     F --> G[/mosk-sm<br/>readiness/]
     G --> H[/mosk-dev implement/]
     H --> I[/mosk-qa qa-gate/]
-    I -->|CONCERNS/FAIL| H
+    I -->|CONCERNS or FAIL| H
     I -->|PASS| J[/mosk-dev archive/]
 ```
 
-Daily defaults:
+Defaults:
 
-- skip the preamble when the project base (PRD, architecture, UI) already supports the request; jump straight to `full-spec`.
-- use the preamble when the base is missing/stale. Only call the agents that materially help this change. Preamble artifacts may be written at the **base** (`docs/<domain>/`) when canonical, or **per-spec** (`docs/specs/{id}/<domain>/`) when they are specific to this change.
-- compact path: `full-spec → implement → qa-gate → archive`
-- granular path: `specify → plan → tasks → implement → qa-gate → archive`
-- optional helpers: `clarify`, `analyze`, `checklist`
+- **Skip the preamble** when the project base (PRD, architecture, UI) already supports the request; go straight to `/mosk-po full-spec`.
+- **Use the preamble** when the base is missing or stale. Only call the agents that materially help this change. Outputs may be written at the **base** (`docs/<domain>/`) when canonical, or **per-spec** (`docs/specs/{id}/<domain>/`) when specific to this change.
+- **Compact path:** `full-spec → implement → qa-gate → archive`.
+- **Granular path:** `specify → plan → tasks → implement → qa-gate → archive`.
+- **Optional helpers:** `clarify`, `analyze`, `checklist`.
 
-Pipeline agents (`po`, `sm`, `dev`, `qa`) detect when a preamble agent is needed mid-flight and suggest a handoff — they never invoke another agent automatically. See **Escalation Policy** below.
-
-`full-spec` stops at `tasks`. Implementation remains separate with `mosk-dev`.
+`full-spec` stops at `tasks`. Implementation stays with `/mosk-dev`.
 
 ## Document Organization
 
-MOSK v2 uses two mirrored layers: the **base** (project-wide truth) and **per-spec** (scope of a single feature/fix).
+MOSK uses two mirrored layers: the **base** (project-wide truth) and **per-spec** (scope of a single feature/fix).
 
 ```
 docs/
-├── index.md            # auto-generated entry point (task: index-docs)
-├── discovery/          # mosk-analyst
-├── prd/                # mosk-pm (sharded: index.md + sections)
-├── architecture/       # mosk-architect (+ adr/)
-├── ui/                 # mosk-ux-expert (flows/) + mosk-ui-expert (design-system)
-├── qa/gates/           # mosk-qa
+├── index.md                 # auto-generated entry point (task: index-docs)
+├── discovery/               # mosk-analyst
+├── prd/                     # mosk-pm (sharded: index.md + sections)
+├── architecture/            # mosk-architect (+ adr/)
+├── ui/                      # mosk-ux-expert (flows/, wireframes/) + mosk-ui-expert (design-system/, styles/)
+├── qa/gates/                # mosk-qa
 └── specs/
     ├── {###}-{type}-{name}/
-    │   ├── spec.md, plan.md, tasks.md
-    │   ├── spec-meta.yaml       # number, branch, status, phase
+    │   ├── spec.md
+    │   ├── plan.md
+    │   ├── tasks.md
+    │   ├── spec-meta.yaml       # number, branch, status, current_phase
     │   ├── prd-delta.md         # optional PRD change
-    │   ├── discovery/ architecture/ ui/   # optional feature-scoped
-    │   ├── stories/ tests/ gate.yaml
-    └── archive/                  # completed specs
+    │   ├── discovery/           # optional feature-scoped research
+    │   ├── architecture/        # optional feature ADRs and data models
+    │   ├── ui/                  # optional feature flows/wireframes/components
+    │   ├── stories/
+    │   ├── tests/               # dev-generated e2e checklists
+    │   └── gate.yaml            # qa-gate output
+    └── archive/                 # completed specs
 ```
 
-**Promotion.** Artifacts born inside a spec that should become canonical carry a `promote:` front-matter. At archive time, `mosk-dev archive` applies them:
+**Base vs spec decision rule**
 
-| `promote_mode` | Behavior |
+- Artifact describes the project as it **is today** → `docs/<domain>/`.
+- Artifact is **specific to a pending change** → `docs/specs/{id}/<domain>/`.
+- Artifact born in a spec but destined to become canonical → starts in the spec and is **promoted** at archive time.
+
+### Promotion Convention
+
+Artifacts inside `specs/{id}/` that should become canonical carry a `promote:` front-matter declaring destination and mode:
+
+```yaml
+---
+promote: docs/architecture/adr/adr-0007-coupon-service.md
+promote_mode: copy
+---
+```
+
+| `promote_mode` | Behavior at archive |
 |---|---|
 | `copy` | Copy the file to the target path. Asks before overwrite. |
-| `append` | Append body to the target file. |
-| `manual` | Print the file and suggested destination; user applies by hand (default for `prd-delta.md`). |
+| `append` | Append the body (minus front-matter) to the target. |
+| `manual` | Don't apply automatically. Print the file + suggested destination and ask the user to apply by hand. Default for `prd-delta.md`. |
 
 Without `promote:`, the artifact freezes inside the archived spec.
 
-**`shard-doc`** is an optional transformation: when `mosk-pm` writes a monolith to `docs/prd/raw.md` (or the architect to `docs/architecture/raw.md`), `shard-doc` splits it into `index.md` + section files in the same folder.
+### Transforming raw drafts with `shard-doc`
 
-## Escalation Policy
-
-Pipeline agents emit an **Escalation suggested** block when they detect a signal that requires a preamble agent (architecture ambiguity, missing flow, PRD gap, etc.) and wait for user confirmation. They never invoke another agent autonomously. The user decides: `go`, `escalate`, `skip`, or an alternative.
+When `mosk-pm` writes a monolithic PRD to `docs/prd/raw.md` (or the architect writes `docs/architecture/raw.md`), the optional `shard-doc` task splits it into `index.md` + section files **in the same folder**. Run it when you want a navigable sharded view.
 
 ## Spec Numbering and Concurrency
 
-Spec numbers are globally unique, three-digit, zero-padded (`001`…). When multiple developers create specs in parallel, `create-new-feature.sh` pushes atomically and retries with a new number if the push is rejected (up to 3 attempts). Each spec carries a `spec-meta.yaml` with number, branch, status, and current phase — updated by pipeline tasks as the spec progresses.
+Spec numbers are globally unique, three-digit, zero-padded (`001`, `002`, …). When multiple developers create specs in parallel, `create-new-feature.sh` pushes atomically and retries with a new number if the push is rejected — up to 3 attempts before surfacing a clear error.
+
+Each spec carries `spec-meta.yaml`:
+
+```yaml
+spec_number: "005"
+spec_id: "005-feature-checkout-coupon"
+type: feature
+branch: "005-feature-checkout-coupon"
+created_at: "2026-04-22T14:30:00Z"
+created_by: "Alice <alice@example.com>"
+status: active             # active | archived
+current_phase: specify     # specify | plan | tasks | implement | qa-gate | archived
+last_phase_change: "2026-04-22T14:30:00Z"
+```
+
+Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) update `current_phase` as they run. `index-docs` reads these files to build the Active Specs table in `docs/index.md`.
+
+## Entry Point: `docs/index.md`
+
+`docs/index.md` is the canonical first read for new contributors. It is auto-generated by the `index-docs` task and refreshed at every pipeline step:
+
+- **Overview** — links to the 5 base domains (discovery, prd, architecture, ui, qa).
+- **Active Specs** — table sourced from each `docs/specs/*/spec-meta.yaml`, newest first.
+- **Archived Specs** — list from `docs/specs/archive/*`, most recently archived first.
+- **Domain Contents** — alphabetical file listing per base folder, with titles and short descriptions.
+
+Manual regeneration: `/mosk-dev index-docs`.
+
+Preserve custom text between `<!-- custom -->` and `<!-- /custom -->` markers — regenerations leave them untouched.
+
+## Escalation Policy
+
+Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble agent mid-flight — a missing ADR, an unspecified flow, a PRD conflict — and emit a standardized **Escalation suggested** block:
+
+> **Escalation suggested**
+> - Signal: *what was detected*
+> - Recommended agent: `/mosk-architect`
+> - Suggested prompt: `/mosk-architect decide coupon service contract`
+> - Scope: `feature 005-feature-checkout-coupon` (outputs written to `specs/{id}/architecture/`)
+> - On return: resume `implement` from where it paused.
+
+Agents never invoke each other automatically. The user decides: `go`, `escalate`, `skip`, or an alternative. Preamble agents invoked via escalation write inside the active spec and end by suggesting the user return to the originating agent.
+
+## Skills vs Agents
+
+MOSK agents can be invoked two ways inside Claude Code:
+
+**Skill (slash command)** — runs inside the current conversation and shares its context. This is the default and preferred way.
+
+```
+/mosk-dev implement a spec 012
+```
+
+**Agent (subagent)** — runs in a separate process with its own context. Does not see conversation history. Claude Code spawns these internally when needed.
+
+| | Skill | Agent |
+|---|---|---|
+| Shares conversation context | yes | no |
+| Parallel execution | no | yes |
+| Interactive with the user | yes | no |
+| Isolates heavy output | no | yes |
+
+For daily use, prefer skills.
+
+## Common Commands
+
+Natural language is the preferred UX — slash-activate the agent and describe what you want.
+
+### Planning (mosk-po)
+
+```
+/mosk-po full-spec login social para clientes B2B
+/mosk-po specify checkout com cupom
+/mosk-po plan para a spec atual
+/mosk-po tasks para a spec atual
+```
+
+### Implementation (mosk-dev)
+
+```
+/mosk-dev implement a spec 012
+/mosk-dev archive a spec 012
+/mosk-dev index-docs
+```
+
+### Quality (mosk-qa)
+
+```
+/mosk-qa qa-gate a spec 012
+/mosk-qa review a story 2.1
+```
+
+### UI (mosk-ui-expert)
+
+```
+/mosk-ui-expert landing page para SaaS de analytics
+/mosk-ui-expert redesign da home atual
+/mosk-ui-expert brutalist dashboard de monitoramento
+```
+
+### Command Intent
+
+| Command | What it does |
+|---|---|
+| `full-spec` | runs `specify → plan → tasks` in one pass |
+| `specify` | creates or updates only `spec.md` |
+| `plan` | creates or updates only `plan.md` |
+| `tasks` | creates or updates only `tasks.md` |
+| `implement` | stays with `mosk-dev` |
+| `qa-gate` | stays with `mosk-qa` |
+| `archive` | stays with `mosk-dev` (promotes artifacts, moves spec to archive) |
+| `index-docs` | refreshes `docs/index.md` |
+
+## Spec Types
+
+Specs share a single pipeline; the type lives in the folder/branch name:
+
+```
+{###}-{type}-{short-name}
+```
+
+Supported types:
+
+- `feature`
+- `fix`
+- `hotfix`
+- `gmud`
+- `refactor`
+- `experimental`
+
+Example:
+
+```
+012-feature-checkout-coupon
+```
+
+## UI Expert and the Taste System
+
+The `/mosk-ui-expert` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system — opinionated rules that override default LLM biases toward generic, template-like UI output. The taste rules are embedded directly into the agent and its tasks; no extra skill discovery is required.
+
+| Command | Style |
+|---|---|
+| `/mosk-ui-expert` | shows menu with all options |
+| `/mosk-ui-expert brutalist` | Swiss typography, terminal aesthetics, rigid grids |
+| `/mosk-ui-expert minimalist` | editorial, warm monochrome, flat bento grids |
+| `/mosk-ui-expert soft` | agency feel, haptic depth, cinematic motion |
+| `/mosk-ui-expert redesign` | audit and upgrade an existing interface |
+| `/mosk-ui-expert stitch` | generate a DESIGN.md for Google Stitch |
+| `/mosk-ui-expert output completo` | enforce full code generation, no truncation |
+
+What taste enforces:
+
+- strict anti-AI-pattern rules (no Inter font, no neon glows, no 3-card grids, no generic names)
+- metric-based design dials (variance, motion intensity, visual density)
+- hardware-accelerated CSS animation constraints
+- mandatory interaction states (loading, empty, error, active)
+- responsive collapse guarantees
+- dependency verification before any import
+
+The agent still loads `.claude/rules/*.md` normally through the standard MOSK context loading protocol.
 
 ## Migrating Existing Projects
 
-Projects installed from earlier versions (with `docs/prd.md`, `docs/architecture.md`, `docs/stories/`) can be migrated in place:
+Projects carrying older layouts (`docs/prd.md`, `docs/architecture.md`, `docs/stories/`) are migrated in place with a single idempotent script:
 
 ```bash
 bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run   # preview
@@ -135,224 +323,17 @@ The migration:
 
 - scaffolds the canonical `docs/` layout,
 - moves monoliths to `docs/<domain>/raw.md` (ready for `shard-doc`),
-- maps stories to `docs/specs/{id}/stories/` by epic-number heuristic (unmatched go to `_orphan-stories/`),
-- creates retroactive `spec-meta.yaml` for each existing spec,
-- rewrites `.claude/mosk/core-config.yaml` to the v2 schema (with a `.legacy` backup),
+- maps stories into `docs/specs/{id}/stories/` by epic-number heuristic (unmatched go to `_orphan-stories/` for manual review),
+- creates retroactive `spec-meta.yaml` for each existing spec folder,
+- rewrites `.claude/mosk/core-config.yaml` to the current schema (with a `.legacy` backup),
 - seeds `docs/index.md`.
 
-The script is idempotent: running it again on an up-to-date project is a no-op.
+Flags: `--dry-run` (preview), `--keep-old` (copy instead of move), `--help`.
 
-## Fast Path
-
-Use the agents directly with natural language:
-
-```
-/mosk-po full-spec checkout com cupom
-```
-
-```
-/mosk-dev implementar a spec 012
-```
-
-```
-/mosk-qa revisar a spec 012
-```
-
-Default happy path:
-
-```
-/mosk-po full-spec
-```
-```
-/mosk-dev implement
-```
-```
-/mosk-qa qa-gate
-```
-```
-/mosk-dev archive
-```
-
-## Skills vs Agents
-
-MOSK agents can be invoked in two ways inside Claude Code:
-
-### Skill (slash command)
-
-Runs **inside the current conversation**, sharing the full chat context. This is the default and recommended way.
-
-```
-/mosk-dev implement a spec 012
-```
-
-### Agent (subagent)
-
-Runs as a **separate process** with its own context. Does not see the current conversation history. Useful for parallel or isolated work. Claude Code spawns agents internally when needed.
-
-| | Skill | Agent |
-|---|---|---|
-| Shares conversation context | yes | no |
-| Parallel execution | no | yes |
-| Interactive with the user | yes | no |
-| Isolates heavy output | no | yes |
-
-**For daily use, prefer skills (slash commands).**
-
-## Agents
-
-| Skill | Responsibility |
-|---|---|
-| `/mosk-analyst` | discovery, research, brainstorming |
-| `/mosk-pm` | PRD, product scope, success criteria |
-| `/mosk-ux-expert` | user flows, UX specs, front-end behavior |
-| `/mosk-architect` | architecture, APIs, integrations |
-| `/mosk-po` | specs, planning, task generation |
-| `/mosk-sm` | readiness, sequencing, story hygiene |
-| `/mosk-dev` | implementation, fixes, archive |
-| `/mosk-qa` | quality gates, test strategy, review |
-| `/mosk-ui-expert` | premium interfaces, redesign, visual styles, design systems |
-
-## Spec Types
-
-The same pipeline supports:
-
-- `feature`
-- `fix`
-- `hotfix`
-- `gmud`
-- `refactor`
-- `experimental`
-
-Folder and branch pattern:
-
-```text
-{###}-{type}-{short-name}
-```
-
-Example:
-
-```text
-012-feature-checkout-coupon
-```
-
-## Installation
-
-Install MOSK into the current project:
-
-```bash
-npx degit rogerznts/mosk/mosk .
-```
-
-Force (overwrite existing files):
-
-```bash
-npx degit rogerznts/mosk/mosk . --force
-```
-
-One-command install for Codex users:
-
-```bash
-npx degit rogerznts/mosk/mosk . && bash .claude/mosk/scripts/link-codex-skills.sh
-```
-
-Force overwrite and recreate existing symlinks:
-
-```bash
-npx degit rogerznts/mosk/mosk . --force && bash .claude/mosk/scripts/link-codex-skills.sh --force
-```
-
-Restart Claude Code after install so the new skills are loaded.
-
-If you also use Codex, create symlinks from the installed `.claude/skills/` into the project's `.codex/skills/` directory:
-
-```bash
-bash .claude/mosk/scripts/link-codex-skills.sh
-```
-
-Force recreation of existing symlinks:
-
-```bash
-bash .claude/mosk/scripts/link-codex-skills.sh --force
-```
-
-This step is optional. `degit` only copies files; it does not run post-install scripts automatically.
-
-### Syncing Agents and Skills
-
-When you add or remove agents in `.claude/mosk/agents/`, run the sync script to regenerate skill wrappers and Claude Code agent files:
-
-```bash
-bash .claude/mosk/scripts/sync-agents-skills.sh
-```
-
-Directions:
-
-```bash
-# Generate skill wrappers from agents
-bash .claude/mosk/scripts/sync-agents-skills.sh agents-to-skills
-
-# Generate Claude Code agents from skills
-bash .claude/mosk/scripts/sync-agents-skills.sh skills-to-agents
-
-# Both directions (default)
-bash .claude/mosk/scripts/sync-agents-skills.sh both
-
-# Preview without writing
-bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run
-
-# Remove orphan skills/agents whose source agent was deleted
-bash .claude/mosk/scripts/sync-agents-skills.sh --clean
-
-# Preview orphan removal
-bash .claude/mosk/scripts/sync-agents-skills.sh --clean --dry-run
-```
-
-By default the script only **creates or updates** — it never deletes files.
-Use `--clean` to also remove orphan skills and CC agents whose source agent no longer exists.
-
-### Migrating Legacy `ctx-*` Skills to Rules
-
-Older MOSK installs carried project context inside `.claude/skills/ctx-*/SKILL.md`.
-The current model keeps context as plain markdown in `.claude/rules/*.md` and
-reserves skills for actions only. To convert an existing install, run:
+Projects with legacy `ctx-*` context skills can convert them to plain rules:
 
 ```bash
 bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
-```
-
-For each `ctx-<name>` skill found, the script writes `.claude/rules/<name>.md`
-with the SKILL.md body stripped of its YAML frontmatter, rewrites a legacy
-`# ctx-<name>` H1 into a clean title-cased heading (e.g. `# Project`,
-`# Coding Standards`), and deletes the original `ctx-*` skill directory.
-Any `.codex/skills/ctx-*` symlink pointing at a removed directory is cleaned up.
-
-Options:
-
-```bash
-# Preview without writing or deleting
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run
-
-# Convert but keep the original ctx-* skill directories
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --keep-old
-
-# Show usage
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --help
-```
-
-Behavior notes:
-
-- Existing `.claude/rules/<name>.md` files are never overwritten — the
-  corresponding `ctx-*` skill is skipped.
-- Without `--keep-old`, the legacy skill directories are removed after a
-  successful conversion (default).
-- The script is idempotent: running it again after a full migration is a
-  no-op.
-
-After migrating, refresh the Codex symlinks so `.codex/rules/` picks up the
-new files:
-
-```bash
-bash .claude/mosk/scripts/link-codex-skills.sh
 ```
 
 ## Installed Structure
@@ -364,9 +345,11 @@ your-project/
 │   │   ├── agents/
 │   │   ├── tasks/
 │   │   ├── templates/
+│   │   ├── checklists/
 │   │   ├── scripts/
 │   │   ├── core-config.yaml
 │   │   └── constitution.md
+│   ├── rules/            # generated by /mosk-boot
 │   └── skills/
 │       ├── mosk-analyst/
 │       ├── mosk-architect/
@@ -377,8 +360,8 @@ your-project/
 │       ├── mosk-po/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
-│       ├── mosk-ux-expert/
-│       └── mosk-ui-expert/
+│       ├── mosk-ui-expert/
+│       └── mosk-ux-expert/
 └── docs/
     ├── index.md
     ├── discovery/
@@ -393,138 +376,29 @@ your-project/
         └── archive/
 ```
 
-## Commands
+## Maintenance Scripts
 
-The preferred command style is natural language via slash commands.
+Under `.claude/mosk/scripts/`:
 
-### SpecKit (mosk-po)
+- `create-new-feature.sh` — spawns a new spec folder + branch + `spec-meta.yaml`, with push-atomic retry for concurrent usage. Accepts `--type`, `--short-name`, `--number`, `--no-push`, `--json`.
+- `sync-agents-skills.sh` — regenerates skill wrappers from agent definitions and vice-versa. Use `--clean` to prune orphans, `--dry-run` to preview.
+- `link-codex-skills.sh` — refreshes `.codex/skills/`, `.codex/rules/`, and `AGENTS.md` for Codex users.
+- `migrate-docs-structure.sh` — migrates a legacy `docs/` layout to the current one (idempotent).
+- `migrate-ctx-skills-to-rules.sh` — converts legacy `ctx-*` context skills to `.claude/rules/*.md`.
+- `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
-```
-/mosk-po full-spec login social para clientes B2B
-```
+## Optional Environment Tools
 
-```
-/mosk-po specify login social para clientes B2B
-```
+MOSK runs inside Claude Code. For extra operational isolation, these pair well with it:
 
-```
-/mosk-po plan a spec atual
-```
-
-```
-/mosk-po tasks para a spec atual
-```
-
-### Implementation (mosk-dev)
-
-```
-/mosk-dev implement a spec 012
-```
-
-```
-/mosk-dev archive a spec 012
-```
-
-### UI (mosk-ui-expert)
-
-```
-/mosk-ui-expert landing page para produto SaaS de analytics
-```
-
-```
-/mosk-ui-expert redesign da home atual
-```
-
-```
-/mosk-ui-expert brutalist dashboard de monitoramento
-```
-
-### Quality (mosk-qa)
-
-```
-/mosk-qa qa-gate a spec 012
-```
-
-### Command Intent
-
-| Command | What it does |
-|---|---|
-| `full-spec` | runs `specify -> plan -> tasks` in one pass |
-| `specify` | creates or updates only `spec.md` |
-| `plan` | creates or updates only `plan.md` |
-| `tasks` | creates or updates only `tasks.md` |
-| `implement` | stays with `mosk-dev` |
-| `qa-gate` | stays with `mosk-qa` |
-| `archive` | stays with `mosk-dev` |
-
-Advanced star-prefixed commands can still exist as compatibility shortcuts, but they are no longer the primary UX.
-
-## Bootstrapping Existing Projects
-
-For an existing repository, run:
-
-```text
-/mosk-boot
-```
-
-The boot workflow generates a compact rule pack in `.claude/rules/` by default:
-
-- `.claude/rules/project.md`
-- `.claude/rules/frontend.md` only when frontend code exists
-
-## What Changed From The Legacy Bundle
-
-The current MOSK template already removes a large amount of optional legacy structure:
-
-- redundant agent wrappers
-- team bundles in the default install
-- workflow YAML packs
-- KB mode and legacy knowledge-base routing
-- legacy guidance packs outside the core path
-
-The remaining files may still show traces of the original inspiration in comments or template lineage, but the shipped product is now positioned and maintained as MOSK.
+- `workz` — isolated worktrees
+- `ai-jail` — filesystem confinement
 
 ## Inspiration
 
 MOSK owes a real conceptual debt to:
 
-- BMAD, for role-driven collaboration
-- SpecKit, for turning vague requests into explicit artifacts
+- **BMAD** — role-driven collaboration with specialist agents.
+- **SpecKit** — turning vague requests into explicit, ordered artifacts.
 
-The goal is to preserve those strengths while making the toolkit smaller, sharper, and cheaper to run.
-
-## UI Expert and the Taste System
-
-The `/mosk-ui-expert` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output. It owns the visual/acabamento layer of `docs/ui/` (design system, styles, premium components); the UX Expert (Salete, `/mosk-ux-expert`) owns the structural layer (user flows, wireframes, front-end specs).
-
-The taste rules are embedded directly into the agent and its tasks rather than existing as standalone skills. This means the agent carries its own design intelligence without relying on skill discovery for its core capabilities.
-
-### Available styles
-
-| Command | Style |
-|---|---|
-| `/mosk-ui-expert` | shows menu with all options |
-| `/mosk-ui-expert brutalist` | Swiss typography, terminal aesthetics, rigid grids |
-| `/mosk-ui-expert minimalist` | editorial, warm monochrome, flat bento grids |
-| `/mosk-ui-expert soft` | $150k agency feel, haptic depth, cinematic motion |
-| `/mosk-ui-expert redesign` | audit and upgrade an existing interface |
-| `/mosk-ui-expert stitch` | generate a DESIGN.md for Google Stitch |
-| `/mosk-ui-expert output completo` | enforce full code generation, no truncation |
-
-### What taste enforces
-
-- strict anti-AI-pattern rules (no Inter font, no neon glows, no 3-card grids, no generic names)
-- metric-based design dials (variance, motion intensity, visual density)
-- hardware-accelerated CSS animation constraints
-- mandatory interaction states (loading, empty, error, active)
-- responsive collapse guarantees
-- dependency verification before any import
-
-The agent still loads project rules from `.claude/rules/*.md` normally through the standard MOSK context loading protocol.
-
-## Optional Environment Tools
-
-MOSK itself runs inside Claude Code. If you want extra operational isolation, these still pair well with it:
-
-- `workz` for isolated worktrees
-- `ai-jail` for filesystem confinement
+The product is MOSK-first: a lighter, synthesized toolkit built to disappear into real projects instead of standing apart from them.
