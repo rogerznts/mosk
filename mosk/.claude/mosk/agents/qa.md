@@ -40,6 +40,25 @@ Assess delivery quality with the minimum process needed to make a sound release 
 - test strategy
 - risk summary
 
+## Escalation signals
+
+If your review surfaces a finding that requires a preamble agent to resolve, **PAUSE and emit the "Escalation suggested" block; wait for the user's decision.** Never invoke another agent automatically.
+
+- Risk or blocker rooted in an architectural decision → `/mosk-architect`.
+- Finding indicates UX confusion or missing flow → `/mosk-ux-expert` (flow/behavior) or `/mosk-ui-expert` (visual/state).
+- NFR gap that changes a product premise (e.g., capacity, tenancy, SLA) → `/mosk-pm` (PRD delta).
+
+### Escalation block format
+
+> **Escalation suggested**
+> - Signal: <one line describing what you detected>
+> - Recommended agent: `<skill>`
+> - Suggested prompt: `<agent> <one-line ask>`
+> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
+> - On return: resume `<current task>` from where it paused.
+
+Do not proceed until the user confirms `go`/`escalate`/`skip`/alternative.
+
 ## Context loading
 
 Before executing any task:

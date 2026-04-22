@@ -6,6 +6,8 @@ JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 FEATURE_TYPE=""
+NO_PUSH=false
+MAX_RETRIES=3
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -54,15 +56,23 @@ while [ $i -le $# ]; do
             fi
             BRANCH_NUMBER="$next_arg"
             ;;
+        --no-push)
+            NO_PUSH=true
+            ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--type <type>] [--short-name <name>] [--number N] <feature_description>"
+            echo "Usage: $0 [--json] [--type <type>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
             echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
+            echo "  --no-push           Do not push the new branch to origin (useful for forks or offline work)"
             echo "  --help, -h          Show this help message"
+            echo ""
+            echo "Concurrency: when pushing the new branch fails because another dev"
+            echo "grabbed the same number, the script automatically refetches, renumbers,"
+            echo "renames the branch + folder, and retries (up to 3 times)."
             echo ""
             echo "Examples:"
             echo "  $0 --type feature --short-name 'user-auth' 'Add user authentication system'"
@@ -294,18 +304,144 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
-if [ "$HAS_GIT" = true ]; then
-    git checkout -b "$BRANCH_NAME"
-else
-    >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
-fi
+# Write initial spec-meta.yaml for the new spec.
+write_initial_spec_meta() {
+    local spec_dir="$1"
+    local spec_number="$2"
+    local spec_id="$3"
+    local spec_type="$4"
+    local spec_branch="$5"
+    local now
+    now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local created_by=""
+    if [ "$HAS_GIT" = true ]; then
+        local gu gm
+        gu=$(git config user.name 2>/dev/null || echo "")
+        gm=$(git config user.email 2>/dev/null || echo "")
+        if [ -n "$gu" ] && [ -n "$gm" ]; then
+            created_by="$gu <$gm>"
+        elif [ -n "$gu" ]; then
+            created_by="$gu"
+        fi
+    fi
+    cat > "$spec_dir/spec-meta.yaml" <<EOF
+spec_number: "$spec_number"
+spec_id: "$spec_id"
+type: "${spec_type:-feature}"
+branch: "$spec_branch"
+created_at: "$now"
+created_by: "$created_by"
+status: active
+current_phase: specify
+last_phase_change: "$now"
+EOF
+}
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
-mkdir -p "$FEATURE_DIR"
+# Set up branch + folder. In git mode, also push atomically with retry
+# on collision. Prints the final BRANCH_NAME that won the race.
+create_branch_and_folder() {
+    local attempt=1
+    while true; do
+        if [ "$HAS_GIT" = true ]; then
+            git checkout -b "$BRANCH_NAME" >/dev/null 2>&1 || {
+                # Local branch with that name already exists — pick next number.
+                >&2 echo "[specify] Local branch $BRANCH_NAME already exists, renumbering…"
+                renumber_and_rebuild
+                attempt=$((attempt + 1))
+                [ $attempt -le $MAX_RETRIES ] && continue
+                echo "Error: Could not create branch after $MAX_RETRIES attempts." >&2
+                exit 1
+            }
+        else
+            >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
+        fi
 
-TEMPLATE="$REPO_ROOT/.claude/mosk/templates/spec-template.md"
-SPEC_FILE="$FEATURE_DIR/spec.md"
-if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
+        FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+        mkdir -p "$FEATURE_DIR"
+
+        TEMPLATE="$REPO_ROOT/.claude/mosk/templates/spec-template.md"
+        SPEC_FILE="$FEATURE_DIR/spec.md"
+        if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
+
+        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME"
+
+        # Try atomic push if git is present and user didn't opt out.
+        if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then
+            # Check that origin exists
+            if ! git remote get-url origin >/dev/null 2>&1; then
+                >&2 echo "[specify] No 'origin' remote configured; skipping push."
+                return 0
+            fi
+
+            # Stage and commit the bootstrap so the push has something to send.
+            git add "$FEATURE_DIR" >/dev/null 2>&1 || true
+            if git diff --cached --quiet; then
+                # Nothing staged (unlikely, but possible in edge cases) — create empty commit
+                git commit --allow-empty -m "spec($FEATURE_NUM): bootstrap $BRANCH_NAME" >/dev/null 2>&1 || true
+            else
+                git commit -m "spec($FEATURE_NUM): bootstrap $BRANCH_NAME" >/dev/null 2>&1 || true
+            fi
+
+            if git push -u origin "$BRANCH_NAME" 2>/dev/null; then
+                return 0
+            fi
+
+            # Push failed — likely the remote already has this number.
+            >&2 echo "[specify] Push rejected for $BRANCH_NAME (race with another spec?). Renumbering…"
+
+            # Tear down local state for this attempt
+            local losing_branch="$BRANCH_NAME"
+            local losing_dir="$FEATURE_DIR"
+
+            # Switch off the branch, delete it, remove the folder
+            git checkout - >/dev/null 2>&1 || git checkout main >/dev/null 2>&1 || true
+            git branch -D "$losing_branch" >/dev/null 2>&1 || true
+            rm -rf "$losing_dir"
+
+            renumber_and_rebuild
+            attempt=$((attempt + 1))
+            if [ $attempt -gt $MAX_RETRIES ]; then
+                echo "Error: Could not acquire a unique spec number after $MAX_RETRIES attempts." >&2
+                echo "       Run 'git fetch --all --prune' and try again manually." >&2
+                exit 1
+            fi
+            continue
+        fi
+
+        # No push needed — done.
+        return 0
+    done
+}
+
+# Recompute the next number and rebuild BRANCH_NAME / FEATURE_NUM.
+renumber_and_rebuild() {
+    if [ "$HAS_GIT" = true ]; then
+        git fetch --all --prune 2>/dev/null || true
+        BRANCH_NUMBER=$(get_next_global_number)
+    else
+        # Local fallback: scan existing spec dirs again.
+        local highest=0 dirname num
+        if [ -d "$SPECS_DIR" ]; then
+            for d in "$SPECS_DIR"/*; do
+                [ -d "$d" ] || continue
+                dirname=$(basename "$d")
+                num=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
+                num=$((10#$num))
+                [ "$num" -gt "$highest" ] && highest=$num
+            done
+        fi
+        BRANCH_NUMBER=$((highest + 1))
+    fi
+    FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
+    if [ -n "$FEATURE_TYPE" ]; then
+        CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+        BRANCH_NAME="${FEATURE_NUM}-${CLEAN_TYPE}-${BRANCH_SUFFIX}"
+    else
+        BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+    fi
+}
+
+create_branch_and_folder
 
 # Set the SPECIFY_FEATURE environment variable for the current session
 export SPECIFY_FEATURE="$BRANCH_NAME"

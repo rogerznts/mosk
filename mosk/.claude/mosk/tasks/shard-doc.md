@@ -41,15 +41,21 @@ Then proceed with the manual method below ONLY if markdownExploder is false.]]
 2. **Use the explode command**:
 
    ```bash
-   # For PRD
-   md-tree explode docs/prd.md docs/prd
+   # For PRD — raw monolith inside docs/prd/ is sharded in place
+   md-tree explode docs/prd/raw.md docs/prd
 
-   # For Architecture
-   md-tree explode docs/architecture.md docs/architecture
+   # For Architecture — same pattern
+   md-tree explode docs/architecture/raw.md docs/architecture
 
    # For any document
    md-tree explode [source-document] [destination-folder]
    ```
+
+   Note: MOSK keeps PRD and Architecture under canonical folders
+   (`docs/prd/`, `docs/architecture/`). A raw monolithic draft typically
+   lives as `raw.md` **inside** the target folder; sharding writes
+   `index.md` + section files **in the same folder** and leaves the
+   original `raw.md` untouched (delete it manually if desired).
 
 3. **What it does**:
    - Automatically splits the document by level 2 sections
@@ -67,9 +73,13 @@ If the user has @kayvan/markdown-tree-parser installed, use it and skip the manu
 
 1. Identify Document and Target Location
 
-- Determine which document to shard (user-provided path)
-- Create a new folder under `docs/` with the same name as the document (without extension)
-- Example: `docs/prd.md` → create folder `docs/prd/`
+- Determine which document to shard (user-provided path). Typical input
+  is a raw monolith inside a canonical domain folder, e.g.
+  `docs/prd/raw.md` or `docs/architecture/raw.md`.
+- The destination folder is the **parent folder of the source file**
+  (shards are written alongside the raw input, not in a new folder).
+- Example: source `docs/prd/raw.md` → shards written to `docs/prd/`
+  (generating `docs/prd/index.md` + section files).
 
 2. Parse and Extract Sections
 

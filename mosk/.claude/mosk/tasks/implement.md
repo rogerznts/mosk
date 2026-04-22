@@ -53,6 +53,11 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - validations run
    - blockers or follow-up work
 
+9. **Update spec metadata and refresh index.** Update the current spec's
+   `spec-meta.yaml`: set `current_phase: implement` and bump
+   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
+   `docs/index.md`. Automatic — no extra prompt.
+
 ## Rules
 
 - Do not read the entire project when the active tasks point to a narrow slice.

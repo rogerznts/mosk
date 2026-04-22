@@ -66,6 +66,11 @@ Produce a short, implementation-safe specification that is ready for planning wi
      - `plan` when the spec is ready
      - `clarify` only when critical markers remain
 
+9. **Refresh the docs index.** As the final step, execute
+   `../tasks/index-docs.md` with `docs/` as the target. This adds the
+   new spec to the `Active Specs` table in `docs/index.md`. Automatic
+   refresh — do not ask the user unless there are conflicts.
+
 ## Rules
 
 - Keep the spec readable by both product and engineering.

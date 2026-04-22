@@ -17,7 +17,7 @@ Implement fixes based on QA results (gate and assessments) for a specific story.
 required:
   - story_id: '{epic}.{story}' # e.g., "2.2"
   - qa_root: from `.claude/mosk/core-config.yaml` key `qa.qaLocation` (e.g., `docs/qa`)
-  - story_root: from `.claude/mosk/core-config.yaml` key `devStoryLocation` (e.g., `docs/stories`)
+  - story_root: from `.claude/mosk/core-config.yaml` keys `specs.root` + current spec + `specs.storiesSubdir` (e.g., `docs/specs/005-feature-checkout-coupon/stories`)
 
 optional:
   - story_title: '{title}' # derive from story H1 if missing

@@ -28,18 +28,16 @@ Create detailed, implementation-ready stories for existing projects where tradit
 
 Check for available documentation in this order:
 
-1. **Sharded PRD/Architecture** (docs/prd/, docs/architecture/)
+1. **Canonical PRD/Architecture** (`docs/prd/`, `docs/architecture/`)
    - If found, recommend using draft-story task instead
 
-2. **Project Architecture Document** (docs/project-architecture.md or similar)
-   - Created by map-project task
+2. **Project Architecture Document** (output of `map-project` task)
    - Contains actual system state, technical debt, workarounds
 
-3. **Existing Project PRD** (`docs/prd.md`)
-   - May contain embedded technical details
+3. **Spec-scoped artifacts** (`docs/specs/{id}/prd-delta.md`, `docs/specs/{id}/architecture/`)
+   - Feature-specific product changes or decisions tied to the current spec
 
-4. **Epic Files** (docs/epics/ or similar)
-   - Created by create-epic task
+4. **Epic Files** created by `create-epic` task
 
 5. **User-Provided Documentation**
    - Ask user to specify location and format
@@ -246,11 +244,12 @@ Before finalizing:
 
 ### 7. Story Output Format
 
-Save the story with appropriate naming:
+Save the story inside the current spec folder (never in a global
+`docs/stories/`):
 
-- If from epic: `docs/stories/epic-{n}-story-{m}.md`
-- If standalone: `docs/stories/existing-project-{feature-name}.md`
-- If sequential: Follow existing story numbering
+- If from epic: `{specs.root}/{current_spec_id}/stories/epic-{n}-story-{m}.md`
+- If standalone: `{specs.root}/{current_spec_id}/stories/existing-project-{feature-name}.md`
+- If sequential: follow existing story numbering inside the spec's `stories/` folder.
 
 Include header noting documentation context:
 

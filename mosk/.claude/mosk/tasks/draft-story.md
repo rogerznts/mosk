@@ -12,14 +12,15 @@ To identify the next logical story based on project progress and epic definition
 
 - Load `.claude/mosk/core-config.yaml` from the project root
 - If the file does not exist, HALT and inform the user: "core-config.yaml not found. This file is required for story creation. Please ensure MOSK is properly installed in this project (run `npx degit rogerznts/mosk/mosk .` from the project root) and that core-config.yaml exists at `.claude/mosk/core-config.yaml`."
-- Extract key configurations: `devStoryLocation`, `prd.*`, `architecture.*`, `workflow.*`
+- Extract key configurations: `specs.root`, `specs.storiesSubdir`, `prd.*`, `architecture.*`
+- Determine the current spec: read `docs/specs/*/spec-meta.yaml` and pick the one with `status: active` matching the current branch (or ask the user if multiple match). The stories root for this draft is `{specs.root}/{current_spec_id}/{specs.storiesSubdir}`.
 
 ### 1. Identify Next Story for Preparation
 
 #### 1.1 Locate Epic Files and Review Existing Stories
 
-- Based on `prdSharded` from config, locate epic files (sharded location/pattern or monolithic PRD sections)
-- If `devStoryLocation` has story files, load the highest `{epicNum}.{storyNum}.story.md` file
+- Locate epic files in `{prd.root}/` (sharded by default; look for `epic-*.md` patterns or dedicated sections) or in `{specs.root}/{current_spec_id}/` if the epic is spec-local.
+- If the stories folder `{specs.root}/{current_spec_id}/{specs.storiesSubdir}/` has story files, load the highest `{epicNum}.{storyNum}.story.md` file
 - **If highest story exists:**
   - Verify status is 'Done'. If not, alert user: "ALERT: Found incomplete story! File: {lastEpicNum}.{lastStoryNum}.story.md Status: [current status] You should fix this story first, but would you like to accept risk & override to create the next story in draft?"
   - If proceeding, select next sequential story in the current epic
@@ -41,8 +42,8 @@ To identify the next logical story based on project progress and epic definition
 
 #### 3.1 Determine Architecture Reading Strategy
 
-- **If `architectureVersion: >= v4` and `architectureSharded: true`**: Read `{architectureShardedLocation}/index.md` then follow structured reading order below
-- **Else**: Use monolithic `architectureFile` for similar sections
+- Read `{architecture.indexFile}` (default `docs/architecture/index.md`) and follow the structured reading order below. MOSK v2 is sharded-only.
+- Also check for feature-scoped architecture in `{specs.root}/{current_spec_id}/architecture/` (ADRs and data models specific to this spec).
 
 #### 3.2 Read Architecture Documents Based on Story Type
 
@@ -77,7 +78,7 @@ ALWAYS cite source documents: `[Source: architecture/{filename}.md#{section}]`
 
 ### 5. Populate Story Template with Full Context
 
-- Create new story file: `{devStoryLocation}/{epicNum}.{storyNum}.story.md` using Story Template
+- Create new story file: `{specs.root}/{current_spec_id}/{specs.storiesSubdir}/{epicNum}.{storyNum}.story.md` using Story Template
 - Fill in basic story information: Title, Status (Draft), Story statement, Acceptance Criteria from Epic
 - **`Dev Notes` section (CRITICAL):**
   - CRITICAL: This section MUST contain ONLY information extracted from architecture documents. NEVER invent or assume technical details.
@@ -106,7 +107,7 @@ ALWAYS cite source documents: `[Source: architecture/{filename}.md#{section}]`
 - Update status to "Draft" and save the story file
 - Execute `.claude/mosk/tasks/execute-checklist` `.claude/mosk/checklists/story-readiness-checklist`
 - Provide summary to user including:
-  - Story created: `{devStoryLocation}/{epicNum}.{storyNum}.story.md`
+  - Story created: `{specs.root}/{current_spec_id}/{specs.storiesSubdir}/{epicNum}.{storyNum}.story.md`
   - Status: Draft
   - Key technical components included from architecture docs
   - Any deviations or conflicts noted between epic and architecture

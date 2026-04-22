@@ -56,7 +56,7 @@ flowchart TD
     B --> C[/mosk-pm<br/>Brief / PRD/]
     C -. if UX-heavy .-> D[/mosk-ux-expert<br/>Flows / UX Spec/]
     C -. if architecture-heavy .-> E[/mosk-architect<br/>Architecture / APIs / Integration/]
-    C -. if design-heavy .-> W[/mosk-webdesigner<br/>Premium UI / Redesign/]
+    C -. if design-heavy .-> W[/mosk-ui-expert<br/>Premium UI / Redesign/]
     C --> F[/mosk-po<br/>Epics / Stories / Spec Package/]
     D --> F
     E --> F
@@ -162,7 +162,7 @@ Runs as a **separate process** with its own context. Does not see the current co
 | `/mosk-sm` | readiness, sequencing, story hygiene |
 | `/mosk-dev` | implementation, fixes, archive |
 | `/mosk-qa` | quality gates, test strategy, review |
-| `/mosk-webdesigner` | premium interfaces, redesign, visual styles, design systems |
+| `/mosk-ui-expert` | premium interfaces, redesign, visual styles, design systems |
 
 ## Spec Types
 
@@ -330,7 +330,7 @@ your-project/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
 │       ├── mosk-ux-expert/
-│       └── mosk-webdesigner/
+│       └── mosk-ui-expert/
 └── docs/
     └── specs/
 ```
@@ -367,18 +367,18 @@ The preferred command style is natural language via slash commands.
 /mosk-dev archive a spec 012
 ```
 
-### Web Design (mosk-webdesigner)
+### UI (mosk-ui-expert)
 
 ```
-/mosk-webdesigner landing page para produto SaaS de analytics
-```
-
-```
-/mosk-webdesigner redesign da home atual
+/mosk-ui-expert landing page para produto SaaS de analytics
 ```
 
 ```
-/mosk-webdesigner brutalist dashboard de monitoramento
+/mosk-ui-expert redesign da home atual
+```
+
+```
+/mosk-ui-expert brutalist dashboard de monitoramento
 ```
 
 ### Quality (mosk-qa)
@@ -435,9 +435,9 @@ MOSK owes a real conceptual debt to:
 
 The goal is to preserve those strengths while making the toolkit smaller, sharper, and cheaper to run.
 
-## Web Designer and the Taste System
+## UI Expert and the Taste System
 
-The `/mosk-webdesigner` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output.
+The `/mosk-ui-expert` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system, a set of opinionated rules that override default LLM biases toward generic, template-like UI output. It owns the visual/acabamento layer of `docs/ui/` (design system, styles, premium components); the UX Expert (Salete, `/mosk-ux-expert`) owns the structural layer (user flows, wireframes, front-end specs).
 
 The taste rules are embedded directly into the agent and its tasks rather than existing as standalone skills. This means the agent carries its own design intelligence without relying on skill discovery for its core capabilities.
 
@@ -445,13 +445,13 @@ The taste rules are embedded directly into the agent and its tasks rather than e
 
 | Command | Style |
 |---|---|
-| `/mosk-webdesigner` | shows menu with all options |
-| `/mosk-webdesigner brutalist` | Swiss typography, terminal aesthetics, rigid grids |
-| `/mosk-webdesigner minimalist` | editorial, warm monochrome, flat bento grids |
-| `/mosk-webdesigner soft` | $150k agency feel, haptic depth, cinematic motion |
-| `/mosk-webdesigner redesign` | audit and upgrade an existing interface |
-| `/mosk-webdesigner stitch` | generate a DESIGN.md for Google Stitch |
-| `/mosk-webdesigner output completo` | enforce full code generation, no truncation |
+| `/mosk-ui-expert` | shows menu with all options |
+| `/mosk-ui-expert brutalist` | Swiss typography, terminal aesthetics, rigid grids |
+| `/mosk-ui-expert minimalist` | editorial, warm monochrome, flat bento grids |
+| `/mosk-ui-expert soft` | $150k agency feel, haptic depth, cinematic motion |
+| `/mosk-ui-expert redesign` | audit and upgrade an existing interface |
+| `/mosk-ui-expert stitch` | generate a DESIGN.md for Google Stitch |
+| `/mosk-ui-expert output completo` | enforce full code generation, no truncation |
 
 ### What taste enforces
 

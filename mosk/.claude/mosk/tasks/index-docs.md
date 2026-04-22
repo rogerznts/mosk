@@ -4,172 +4,166 @@
 
 ## Purpose
 
-This task maintains the integrity and completeness of the `docs/index.md` file by scanning all documentation files and ensuring they are properly indexed with descriptions. It handles both root-level documents and documents within subfolders, organizing them hierarchically.
+Maintain `docs/index.md` as the canonical entry point for new
+contributors. The file is auto-generated and combines:
+
+1. **Project Overview** — links to the 5 base domains (`discovery/`,
+   `prd/`, `architecture/`, `ui/`, `qa/`).
+2. **Active Specs** table — one row per folder in `docs/specs/*/`
+   whose `spec-meta.yaml` has `status: active`.
+3. **Archived Specs** list — one row per folder in `docs/specs/archive/*/`.
+4. **Domain Contents** — alphabetical file listing per domain folder,
+   with titles and brief descriptions.
+
+This task is invoked automatically at the end of `boot`, `specify`,
+`plan`, `tasks`, `implement`, `qa-gate`, `archive`, and
+`migrate-docs-structure.sh`. It can also be run manually via
+`/mosk-dev index-docs`.
 
 ## Task Instructions
 
-You are now operating as a Documentation Indexer. Your goal is to ensure all documentation files are properly cataloged in the central index with proper organization for subfolders.
+You are now operating as a Documentation Indexer. Your goal is to
+ensure `docs/index.md` accurately reflects the current state of the
+project documentation, with the MOSK v2 layout as the default shape.
 
 ### Required Steps
 
-1. First, locate and scan:
-   - The `docs/` directory and all subdirectories
-   - The existing `docs/index.md` file (create if absent)
-   - All markdown (`.md`) and text (`.txt`) files in the documentation structure
-   - Note the folder structure for hierarchical organization
+1. **Load template**: read `.claude/mosk/templates/docs-index-tmpl.md`
+   as the canonical skeleton. If the template does not exist, fall
+   back to the structure described in the "Output Layout" section
+   below.
 
-2. For the existing `docs/index.md`:
-   - Parse current entries
-   - Note existing file references and descriptions
-   - Identify any broken links or missing files
-   - Keep track of already-indexed content
-   - Preserve existing folder sections
+2. **Scan base domains**: for each of `docs/discovery/`, `docs/prd/`,
+   `docs/architecture/`, `docs/ui/`, `docs/qa/`, check whether the
+   folder exists. Drop Overview links for folders that don't exist
+   (warn the user that `mosk-boot` can scaffold them).
 
-3. For each documentation file found:
-   - Extract the title (from first heading or filename)
-   - Generate a brief description by analyzing the content
-   - Create a relative markdown link to the file
-   - Check if it's already in the index
-   - Note which folder it belongs to (if in a subfolder)
-   - If missing or outdated, prepare an update
+3. **Scan active specs**: iterate over `docs/specs/*/` (excluding
+   `archive/`). For each folder:
+   - Read `spec-meta.yaml` (use helpers `read_spec_meta` in
+     `.claude/mosk/scripts/common.sh` when scripting).
+   - If `status: active` (or the file is missing, treat as active with
+     an `⚠️ meta missing` badge).
+   - Collect: `spec_number`, `spec_id`, `current_phase`, `branch`,
+     `created_at`.
 
-4. For any missing or non-existent files found in index:
-   - Present a list of all entries that reference non-existent files
-   - For each entry:
-     - Show the full entry details (title, path, description)
-     - Ask for explicit confirmation before removal
-     - Provide option to update the path if file was moved
-     - Log the decision (remove/update/keep) for final report
+4. **Scan archived specs**: iterate over `docs/specs/archive/*/`.
+   Collect `spec_id` and `archived_at` from each `spec-meta.yaml`.
 
-5. Update `docs/index.md`:
-   - Maintain existing structure and organization
-   - Create level 2 sections (`##`) for each subfolder
-   - List root-level documents first
-   - Add missing entries with descriptions
-   - Update outdated entries
-   - Remove only entries that were confirmed for removal
-   - Ensure consistent formatting throughout
+5. **Scan file listings per domain**: for each existing base domain
+   folder, list its `.md` files (excluding `index.md`) alphabetically.
+   Extract title from first `#` heading and a 1–2 line description.
 
-### Index Structure Format
+6. **Parse existing `docs/index.md`**: if present, preserve any block
+   delimited by `<!-- custom -->` and `<!-- /custom -->`. Everything
+   outside those markers is regenerated.
 
-The index should be organized as follows:
+7. **Detect stale entries**: for any domain file previously indexed
+   that no longer exists, ask the user whether to remove the stale
+   entry or update the path.
+
+8. **Write `docs/index.md`**: use the Output Layout below. Set the
+   "Last updated" timestamp to current UTC ISO 8601.
+
+### Output Layout
 
 ```markdown
-# Documentation Index
+# Project Documentation Index
 
-## Root Documents
+Last updated: YYYY-MM-DDTHH:MM:SSZ
 
-### [Document Title](./document.md)
+## Overview
 
-Brief description of the document's purpose and contents.
+- **[Discovery](./discovery/)** — research, briefs, brainstorming
+- **[PRD](./prd/index.md)** — product requirements (sharded)
+- **[Architecture](./architecture/index.md)** — system design + ADRs
+- **[UI](./ui/index.md)** — design system, flows, wireframes
+- **[QA](./qa/)** — quality gates
 
-### [Another Document](./another.md)
+## Active Specs
 
-Description here.
+| # | Spec | Phase | Branch | Created |
+|---|---|---|---|---|
+| 005 | [feature-checkout-coupon](./specs/005-feature-checkout-coupon/) | implement | 005-feature-checkout-coupon | 2026-04-22 |
+| 004 | [fix-login-timeout](./specs/004-fix-login-timeout/) | qa-gate | 004-fix-login-timeout | 2026-04-20 |
 
-## Folder Name
+If no active specs, render: _No active specs._
 
-Documents within the `folder-name/` directory:
+## Archived Specs
 
-### [Document in Folder](./folder-name/document.md)
+- [003-feature-profile-settings](./specs/archive/003-feature-profile-settings/) — archived 2026-04-15
+- [002-feature-payment-v2](./specs/archive/002-feature-payment-v2/) — archived 2026-04-10
 
-Description of this document.
+If no archived specs, render: _No archived specs yet._
 
-### [Another in Folder](./folder-name/another.md)
+## Domain Contents
 
-Description here.
+### Discovery
 
-## Another Folder
+- **[Brief](./discovery/brief.md)** — product brief and goals
+- **[Market Research](./discovery/market-research.md)** — landscape analysis
 
-Documents within the `another-folder/` directory:
+### PRD
 
-### [Nested Document](./another-folder/document.md)
+- **[Index](./prd/index.md)** — full PRD overview
+- **[Goals](./prd/goals.md)** — product goals and metrics
 
-Description of nested document.
-```
+### Architecture
 
-### Index Entry Format
+- **[Index](./architecture/index.md)** — architecture overview
+- **[Tech Stack](./architecture/tech-stack.md)** — languages, frameworks, services
+- **[ADRs](./architecture/adr/)** — decision records
 
-Each entry should follow this format:
+### UI
 
-```markdown
-### [Document Title](relative/path/to/file.md)
+- **[Index](./ui/index.md)** — UI overview
+- **[Design System](./ui/design-system.md)** — tokens, components, styles
+- **[Flows](./ui/flows/)** — user flows
 
-Brief description of the document's purpose and contents.
+### QA
+
+- **[Gates](./qa/gates/)** — quality gate records
+
+<!-- custom -->
+<!-- /custom -->
 ```
 
 ### Rules of Operation
 
-1. NEVER modify the content of indexed files
-2. Preserve existing descriptions in index.md when they are adequate
-3. Maintain any existing categorization or grouping in the index
-4. Use relative paths for all links (starting with `./`)
-5. Ensure descriptions are concise but informative
-6. NEVER remove entries without explicit confirmation
-7. Report any broken links or inconsistencies found
-8. Allow path updates for moved files before considering removal
-9. Create folder sections using level 2 headings (`##`)
-10. Sort folders alphabetically, with root documents listed first
-11. Within each section, sort documents alphabetically by title
+1. NEVER modify the content of indexed files.
+2. Preserve user edits between `<!-- custom -->` and `<!-- /custom -->`.
+3. Use relative paths (starting with `./`).
+4. Never remove entries without explicit confirmation when a file is
+   stale (moved/renamed).
+5. Report broken links or `spec-meta.yaml` warnings at the end.
+6. Sort domain files alphabetically by title.
+7. Active Specs table is sorted **by spec_number descending** (newest
+   first).
+8. Archived Specs are sorted **by archived_at descending**.
+9. This task is idempotent: running it twice in a row produces the
+   same file (modulo the "Last updated" timestamp).
+
+### Auto-invocation points
+
+The following tasks call this task at their final step:
+
+- `boot.md` (Phase 2.5 — after scaffolding `docs/`)
+- `specify.md` (after creating a new spec)
+- `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md` (after updating
+  `current_phase` in `spec-meta.yaml`)
+- `archive.md` (after promotions + move to archive)
+- `migrate-docs-structure.sh` (after brownfield migration)
+
+Invocation is silent (no extra prompts) unless broken links or stale
+entries are detected.
 
 ### Process Output
 
-The task will provide:
+At the end, provide:
 
-1. A summary of changes made to index.md
-2. List of newly indexed files (organized by folder)
-3. List of updated entries
-4. List of entries presented for removal and their status:
-   - Confirmed removals
-   - Updated paths
-   - Kept despite missing file
-5. Any new folders discovered
-6. Any other issues or inconsistencies found
-
-### Handling Missing Files
-
-For each file referenced in the index but not found in the filesystem:
-
-1. Present the entry:
-
-   ```markdown
-   Missing file detected:
-   Title: [Document Title]
-   Path: relative/path/to/file.md
-   Description: Existing description
-   Section: [Root Documents | Folder Name]
-
-   Options:
-
-   1. Remove this entry
-   2. Update the file path
-   3. Keep entry (mark as temporarily unavailable)
-
-   Please choose an option (1/2/3):
-   ```
-
-2. Wait for user confirmation before taking any action
-3. Log the decision for the final report
-
-### Special Cases
-
-1. **Sharded Documents**: If a folder contains an `index.md` file, treat it as a sharded document:
-   - Use the folder's `index.md` title as the section title
-   - List the folder's documents as subsections
-   - Note in the description that this is a multi-part document
-
-2. **README files**: Convert `README.md` to more descriptive titles based on content
-
-3. **Nested Subfolders**: For deeply nested folders, maintain the hierarchy but limit to 2 levels in the main index. Deeper structures should have their own index files.
-
-## Required Input
-
-Please provide:
-
-1. Location of the `docs/` directory (default: `./docs`)
-2. Confirmation of write access to `docs/index.md`
-3. Any specific categorization preferences
-4. Any files or directories to exclude from indexing (e.g., `.git`, `node_modules`)
-5. Whether to include hidden files/folders (starting with `.`)
-
-Would you like to proceed with documentation indexing? Please provide the required input above.
+1. Summary of changes made to `docs/index.md`.
+2. Counts: active specs, archived specs, domain files indexed.
+3. Warnings: broken links, missing `spec-meta.yaml`, domains without
+   an `index.md`.
+4. Newly indexed files (grouped by domain).
+5. Stale entries removed (and user choice for each).

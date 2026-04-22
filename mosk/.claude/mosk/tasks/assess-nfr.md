@@ -9,10 +9,10 @@ Quick NFR validation focused on the core four: security, performance, reliabilit
 ```yaml
 required:
   - story_id: '{epic}.{story}' # e.g., "1.3"
-  - story_path: `.claude/mosk/core-config.yaml` for the `devStoryLocation`
+  - story_path: resolved from `.claude/mosk/core-config.yaml` keys `specs.root` + `specs.storiesSubdir` applied to the current spec (from `spec-meta.yaml`)
 
 optional:
-  - architecture_refs: `.claude/mosk/core-config.yaml` for the `architecture.architectureFile`
+  - architecture_refs: `.claude/mosk/core-config.yaml` keys `architecture.root` + `architecture.indexFile`
   - technical_preferences: `.claude/mosk/core-config.yaml` for the `technicalPreferences`
   - acceptance_criteria: From story file
 ```

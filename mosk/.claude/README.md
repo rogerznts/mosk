@@ -44,7 +44,7 @@ Advanced `*commands` still work, but they are compatibility shortcuts rather tha
 - `mosk-sm`
 - `mosk-dev`
 - `mosk-qa`
-- `mosk-webdesigner`
+- `mosk-ui-expert`
 
 ## Helper Skills
 

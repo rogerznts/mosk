@@ -1,22 +1,35 @@
 markdownExploder: true
-qa:
-  qaLocation: docs/qa
+specs:
+  root: docs/specs
+  archive: docs/specs/archive
+  storiesSubdir: stories
+  testsSubdir: tests
+  gateFile: gate.yaml
+  metaFile: spec-meta.yaml
+discovery:
+  root: docs/discovery
 prd:
-  prdFile: docs/prd.md
-  prdVersion: v4
-  prdSharded: true
-  prdShardedLocation: docs/prd
-  epicFilePattern: epic-{n}*.md
+  root: docs/prd
+  indexFile: docs/prd/index.md
 architecture:
-  architectureFile: docs/architecture.md
-  architectureVersion: v4
-  architectureSharded: true
-  architectureShardedLocation: docs/architecture
-customTechnicalDocuments: null
+  root: docs/architecture
+  indexFile: docs/architecture/index.md
+  adrDir: docs/architecture/adr
+ui:
+  root: docs/ui
+  indexFile: docs/ui/index.md
+qa:
+  gatesDir: docs/qa/gates
+index:
+  file: docs/index.md
+  template: .claude/mosk/templates/docs-index-tmpl.md
+promotion:
+  defaults:
+    "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
+    "specs/*/ui/flows/*.md":          { target: docs/ui/flows/,       mode: copy }
+    "specs/*/prd-delta.md":           { target: docs/prd/,             mode: manual }
 devLoadAlwaysFiles:
   - docs/architecture/coding-standards.md
   - docs/architecture/tech-stack.md
   - docs/architecture/source-tree.md
-devDebugLog: .ai/debug-log.md
-devStoryLocation: docs/stories
 slashPrefix: MOSK

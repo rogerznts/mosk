@@ -53,6 +53,11 @@ Optional markers:
    - obvious parallel work
    - recommended MVP cut
 
+8. **Update spec metadata and refresh index.** Update the current spec's
+   `spec-meta.yaml`: set `current_phase: tasks` and bump
+   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
+   `docs/index.md`. Automatic — no extra prompt.
+
 ## Rules
 
 - Prefer executable tasks over exhaustive decomposition.

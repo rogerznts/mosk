@@ -51,6 +51,11 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
    - remaining blockers, if any
    - readiness for `tasks`
 
+8. **Update spec metadata and refresh index.** Update the current spec's
+   `spec-meta.yaml`: set `current_phase: plan` and bump
+   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
+   `docs/index.md`. Automatic — no extra prompt.
+
 ## Rules
 
 - Keep the plan implementation-oriented.

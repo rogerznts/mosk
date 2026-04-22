@@ -44,6 +44,29 @@ Turn approved product intent into executable specs, plans, and ordered work.
 - `tasks.md`
 - optional support artifacts when they add real value
 
+## Escalation signals
+
+If during execution you detect any of the signals below, **PAUSE the
+task, emit the "Escalation suggested" block, and wait for the user's
+decision.** Never invoke another agent automatically.
+
+- Vague request with no brief/PRD support → `/mosk-analyst` (discovery).
+- Request conflicts with the current PRD or needs new product scope → `/mosk-pm` (PRD delta).
+- Architectural decision missing in `docs/architecture/` → `/mosk-architect`.
+- Feature depends on flow/wireframe not yet designed → `/mosk-ux-expert`.
+- Feature needs premium visual/acabamento or design system piece → `/mosk-ui-expert`.
+
+### Escalation block format
+
+> **Escalation suggested**
+> - Signal: <one line describing what you detected>
+> - Recommended agent: `<skill>`
+> - Suggested prompt: `<agent> <one-line ask>`
+> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
+> - On return: resume `<current task>` from where it paused.
+
+Accept user decisions as `go`/`escalate`/`skip`/alternative instructions. Do not proceed with the blocked step without confirmation.
+
 ## Context loading
 
 Before executing any task:

@@ -37,6 +37,27 @@ Implement the agreed work with minimal ceremony, visible progress, and validatio
 - test and validation results
 - archive-ready spec
 
+## Escalation signals
+
+If during implementation you detect any of the signals below, **PAUSE and emit the "Escalation suggested" block; wait for the user's decision.** Never invoke another agent automatically.
+
+- Ambiguity in data model, contract, stack choice, or integration not covered by `plan.md` or `docs/architecture/` → `/mosk-architect`.
+- Missing UI behavior, flow, or interaction spec required to implement → `/mosk-ux-expert` (flow/wireframe) or `/mosk-ui-expert` (visual/design-system).
+- Requirement contradiction or scope question → `/mosk-pm` (PRD delta).
+- Assumption about users/market without supporting evidence that blocks a decision → `/mosk-analyst`.
+- Story too unclear to derive the next task deterministically → `/mosk-sm` to re-draft.
+
+### Escalation block format
+
+> **Escalation suggested**
+> - Signal: <one line describing what you detected>
+> - Recommended agent: `<skill>`
+> - Suggested prompt: `<agent> <one-line ask>`
+> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
+> - On return: resume `<current task>` from where it paused.
+
+Do not proceed until the user confirms `go`/`escalate`/`skip`/alternative.
+
 ## Context loading
 
 Before executing any task:

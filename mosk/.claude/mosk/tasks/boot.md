@@ -52,6 +52,44 @@ Create the `.claude/rules/` directory if it does not exist, then write these fil
 - state and API call patterns
 - frontend testing notes
 
+When generating `project.md`, start from the canonical template at
+`.claude/mosk/templates/project-rule-tmpl.md` and fill in the project
+placeholders (`{{PROJECT_NAME}}`, `{{LANGUAGE_RUNTIME}}`, `{{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}`,
+`{{FOLDER_CONVENTIONS_DISCOVERED_IN_THE_CODEBASE}}`, `{{HOW_TO_RUN_TESTS_UNIT_INTEGRATION_E2E}}`,
+`{{PROJECT_SPECIFIC_AI_RULES}}`) with information discovered in Phase 1.
+**Keep the MOSK-invariant sections** (Document Organization, Promotion
+Convention, Agent Roles, Escalation Policy, Spec Numbering, docs/index.md)
+exactly as they appear in the template — they are the framework
+contract. Do not paraphrase or drop them.
+
+### Phase 2.5 - Scaffold `docs/` structure
+
+Create the canonical `docs/` skeleton if it does not exist. Works for
+both greenfield (empty `docs/`) and brownfield (partial `docs/`). For
+each path below, create only if missing — never overwrite existing files.
+
+- `docs/discovery/` (with `README.md` explaining the folder's purpose)
+- `docs/prd/` (with `index.md` placeholder if empty)
+- `docs/architecture/` (with `index.md` placeholder if empty, plus `adr/` subdir)
+- `docs/ui/` (with `index.md` placeholder if empty, plus `flows/` subdir)
+- `docs/qa/gates/`
+- `docs/specs/`
+
+Each README.md briefly explains:
+
+- which agent writes here (e.g., "`mosk-analyst` writes discovery artifacts here")
+- the distinction between base and per-spec content (base = project-wide; per-spec = `docs/specs/{id}/<domain>/`)
+- what gets promoted from spec to base at archive time (see Promotion Convention in `project.md`)
+
+Brownfield detection: if any of `docs/prd.md`, `docs/architecture.md`,
+`docs/stories/`, `docs/brainstorming-session-results.md`, or
+`docs/front-end-spec.md` exists, **stop and suggest** the user run
+`bash .claude/mosk/scripts/migrate-docs-structure.sh` before continuing.
+Do not run it automatically.
+
+After scaffolding, call the `../tasks/index-docs.md` task to generate
+an initial `docs/index.md` reflecting the new structure.
+
 ### Phase 3 - Suggest additional rules
 
 Based on the project type and what was discovered in Phase 1, evaluate which additional rule files would be useful. Present each suggestion to the user and **wait for approval** before creating it.

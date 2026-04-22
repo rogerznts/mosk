@@ -8,7 +8,7 @@ The Scrum Master should use this checklist to validate that each story contains 
 
 Before proceeding with this checklist, ensure you have access to:
 
-1. The story document being validated (usually in docs/stories/ or provided directly)
+1. The story document being validated (usually in `docs/specs/{id}/stories/` of the active spec, or provided directly)
 2. The parent epic context
 3. Any referenced architecture or design documents
 4. Previous related stories if this builds on prior work

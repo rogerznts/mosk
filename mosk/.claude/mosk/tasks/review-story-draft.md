@@ -12,11 +12,12 @@ To comprehensively validate a story draft before implementation begins, ensuring
 
 - Load `.claude/mosk/core-config.yaml`
 - If the file does not exist, HALT and inform the user: "core-config.yaml not found. This file is required for story validation. Please ensure MOSK is properly installed at `.claude/mosk/core-config.yaml`."
-- Extract key configurations: `devStoryLocation`, `prd.*`, `architecture.*`
+- Extract key configurations: `specs.root`, `specs.storiesSubdir`, `prd.*`, `architecture.*`
+- Determine the current spec from `docs/specs/*/spec-meta.yaml` (`status: active` matching the current branch).
 - Identify and load the following inputs:
-  - **Story file**: The drafted story to validate (provided by user or discovered in `devStoryLocation`)
+  - **Story file**: The drafted story to validate (provided by user or discovered in `{specs.root}/{current_spec_id}/{specs.storiesSubdir}/`)
   - **Parent epic**: The epic containing this story's requirements
-  - **Architecture documents**: Based on configuration (sharded or monolithic)
+  - **Architecture documents**: sharded docs in `{architecture.root}/` (MOSK v2 is sharded-only); also check `{specs.root}/{current_spec_id}/architecture/` for feature-scoped decisions
   - **Story template**: `.claude/mosk/templates/story-tmpl.yaml` for completeness validation
 
 ### 1. Template Completeness Validation

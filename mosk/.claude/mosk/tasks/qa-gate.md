@@ -39,6 +39,11 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - gate file path
    - top issues only
 
+7. **Update spec metadata and refresh index.** Update the current spec's
+   `spec-meta.yaml`: set `current_phase: qa-gate` and bump
+   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
+   `docs/index.md`. Automatic — no extra prompt.
+
 ## Rules
 
 - Start with findings and the final gate.
