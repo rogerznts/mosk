@@ -330,6 +330,8 @@ The migration:
 
 Flags: `--dry-run` (preview), `--keep-old` (copy instead of move), `--help`.
 
+After the script runs, residual files often remain — briefs at `docs/` root, a legacy `docs/epics/` folder, orphan stories without an epic match. Load the companion prompt `.claude/mosk/utils/post-migration-organize.md` in a Claude Code session to walk those resíduos into the canonical layout: it scans `docs/`, classifies each file by domain heuristics, allocates orphan stories/epics into existing or newly-created specs, and regenerates `docs/index.md` at the end. Nothing is moved without your confirmation.
+
 Projects with legacy `ctx-*` context skills can convert them to plain rules:
 
 ```bash
