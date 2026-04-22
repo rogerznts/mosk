@@ -44,6 +44,10 @@ Before executing any task:
 2. If `.claude/rules/` is empty or missing, warn the user and suggest running `/mosk-boot` (new project) or `bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh` (project with legacy ctx-* skills).
 3. List folders in `.claude/skills/` to discover available action skills. Load a skill only when the user's request maps to that skill's action — never for context.
 
+## When invoked from a pipeline escalation
+
+If the user is redirecting you from a pipeline task (`po`, `sm`, `dev`, `qa`) referencing an active spec, write your output as a PRD delta inside the spec folder (`docs/specs/{id}/prd-delta.md`) with front-matter `promote: docs/prd/` and `promote_mode: manual`. At the end, suggest the user return to the originating agent to resume the paused task.
+
 ## Guardrails
 
 - Stay at product level unless the user explicitly asks for technical design.

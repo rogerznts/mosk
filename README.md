@@ -44,55 +44,103 @@ MOSK intentionally removes or downplays the parts that add friction:
 - optional workflow packs in the default install
 - legacy bundle branding inside the shipped toolkit
 
-## Flows
+## Flow
 
-### From Zero
-
-Use this when the work starts as a vague idea and still needs discovery, product framing, architecture, and story shaping.
+A single pipeline. An optional **preamble** runs first whenever the base of the project (or the feature) is not yet grounded.
 
 ```mermaid
 flowchart TD
-    A[Idea / Problem] --> B[/mosk-analyst<br/>Discovery / Research / Brainstorming/]
-    B --> C[/mosk-pm<br/>Brief / PRD/]
-    C -. if UX-heavy .-> D[/mosk-ux-expert<br/>Flows / UX Spec/]
-    C -. if architecture-heavy .-> E[/mosk-architect<br/>Architecture / APIs / Integration/]
-    C -. if design-heavy .-> W[/mosk-ui-expert<br/>Premium UI / Redesign/]
-    C --> F[/mosk-po<br/>Epics / Stories / Spec Package/]
-    D --> F
-    E --> F
-    W --> F
-    F --> G[/mosk-sm<br/>Story Readiness/]
+    A[Request] -->|base missing/incomplete?| PRE
+    A -->|base in place| F
+
+    subgraph PRE [Preamble — optional]
+        B[/mosk-analyst<br/>Discovery/] -. if vague .-> C[/mosk-pm<br/>PRD or PRD-delta/]
+        C -. if architecture-heavy .-> E[/mosk-architect]
+        C -. if UX-heavy .-> D[/mosk-ux-expert]
+        C -. if design-heavy .-> W[/mosk-ui-expert]
+    end
+
+    PRE --> F[/mosk-po<br/>full-spec: specify → plan → tasks/]
+    F --> G[/mosk-sm<br/>readiness/]
     G --> H[/mosk-dev implement/]
     H --> I[/mosk-qa qa-gate/]
-    I --> J[/mosk-dev archive/]
-```
-
-This is the longer product path. Use only the agents that materially help the change.
-
-### Daily Flow
-
-Use this when the request is already clear enough to move straight into the spec package.
-
-```mermaid
-flowchart TD
-    A[Request] --> B[full-spec]
-    B --> C[implement]
-    C --> D[qa-gate]
-    D --> E[archive]
-
-    A --> F[specify]
-    F --> G[plan]
-    G --> H[tasks]
-    H --> C
+    I -->|CONCERNS/FAIL| H
+    I -->|PASS| J[/mosk-dev archive/]
 ```
 
 Daily defaults:
 
-- compact path: `full-spec -> implement -> qa-gate -> archive`
-- granular path: `specify -> plan -> tasks -> implement -> qa-gate -> archive`
+- skip the preamble when the project base (PRD, architecture, UI) already supports the request; jump straight to `full-spec`.
+- use the preamble when the base is missing/stale. Only call the agents that materially help this change. Preamble artifacts may be written at the **base** (`docs/<domain>/`) when canonical, or **per-spec** (`docs/specs/{id}/<domain>/`) when they are specific to this change.
+- compact path: `full-spec → implement → qa-gate → archive`
+- granular path: `specify → plan → tasks → implement → qa-gate → archive`
 - optional helpers: `clarify`, `analyze`, `checklist`
 
+Pipeline agents (`po`, `sm`, `dev`, `qa`) detect when a preamble agent is needed mid-flight and suggest a handoff — they never invoke another agent automatically. See **Escalation Policy** below.
+
 `full-spec` stops at `tasks`. Implementation remains separate with `mosk-dev`.
+
+## Document Organization
+
+MOSK v2 uses two mirrored layers: the **base** (project-wide truth) and **per-spec** (scope of a single feature/fix).
+
+```
+docs/
+├── index.md            # auto-generated entry point (task: index-docs)
+├── discovery/          # mosk-analyst
+├── prd/                # mosk-pm (sharded: index.md + sections)
+├── architecture/       # mosk-architect (+ adr/)
+├── ui/                 # mosk-ux-expert (flows/) + mosk-ui-expert (design-system)
+├── qa/gates/           # mosk-qa
+└── specs/
+    ├── {###}-{type}-{name}/
+    │   ├── spec.md, plan.md, tasks.md
+    │   ├── spec-meta.yaml       # number, branch, status, phase
+    │   ├── prd-delta.md         # optional PRD change
+    │   ├── discovery/ architecture/ ui/   # optional feature-scoped
+    │   ├── stories/ tests/ gate.yaml
+    └── archive/                  # completed specs
+```
+
+**Promotion.** Artifacts born inside a spec that should become canonical carry a `promote:` front-matter. At archive time, `mosk-dev archive` applies them:
+
+| `promote_mode` | Behavior |
+|---|---|
+| `copy` | Copy the file to the target path. Asks before overwrite. |
+| `append` | Append body to the target file. |
+| `manual` | Print the file and suggested destination; user applies by hand (default for `prd-delta.md`). |
+
+Without `promote:`, the artifact freezes inside the archived spec.
+
+**`shard-doc`** is an optional transformation: when `mosk-pm` writes a monolith to `docs/prd/raw.md` (or the architect to `docs/architecture/raw.md`), `shard-doc` splits it into `index.md` + section files in the same folder.
+
+## Escalation Policy
+
+Pipeline agents emit an **Escalation suggested** block when they detect a signal that requires a preamble agent (architecture ambiguity, missing flow, PRD gap, etc.) and wait for user confirmation. They never invoke another agent autonomously. The user decides: `go`, `escalate`, `skip`, or an alternative.
+
+## Spec Numbering and Concurrency
+
+Spec numbers are globally unique, three-digit, zero-padded (`001`…). When multiple developers create specs in parallel, `create-new-feature.sh` pushes atomically and retries with a new number if the push is rejected (up to 3 attempts). Each spec carries a `spec-meta.yaml` with number, branch, status, and current phase — updated by pipeline tasks as the spec progresses.
+
+## Migrating Existing Projects
+
+Projects installed from earlier versions (with `docs/prd.md`, `docs/architecture.md`, `docs/stories/`) can be migrated in place:
+
+```bash
+bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run   # preview
+bash .claude/mosk/scripts/migrate-docs-structure.sh              # apply
+```
+
+The migration:
+
+- scaffolds the canonical `docs/` layout,
+- moves monoliths to `docs/<domain>/raw.md` (ready for `shard-doc`),
+- maps stories to `docs/specs/{id}/stories/` by epic-number heuristic (unmatched go to `_orphan-stories/`),
+- creates retroactive `spec-meta.yaml` for each existing spec,
+- rewrites `.claude/mosk/core-config.yaml` to the v2 schema (with a `.legacy` backup),
+- seeds `docs/index.md`.
+
+The script is idempotent: running it again on an up-to-date project is a no-op.
 
 ## Fast Path
 
@@ -332,7 +380,17 @@ your-project/
 │       ├── mosk-ux-expert/
 │       └── mosk-ui-expert/
 └── docs/
+    ├── index.md
+    ├── discovery/
+    ├── prd/
+    ├── architecture/
+    │   └── adr/
+    ├── ui/
+    │   └── flows/
+    ├── qa/
+    │   └── gates/
     └── specs/
+        └── archive/
 ```
 
 ## Commands

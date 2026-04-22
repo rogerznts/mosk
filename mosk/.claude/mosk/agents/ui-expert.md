@@ -110,6 +110,10 @@ Before executing any task:
 - design system documents (DESIGN.md)
 - UI generation prompts
 
+## When invoked from a pipeline escalation
+
+If the user is redirecting you from a pipeline task (`po`, `sm`, `dev`, `qa`) referencing an active spec, write visual/design outputs inside the spec folder (`docs/specs/{id}/ui/`) — design-system fragments, component specs, styles. Add front-matter `promote: docs/ui/<path>` + `promote_mode: copy` for artifacts meant to become canonical. At the end, suggest the user return to the originating agent to resume the paused task.
+
 ## Guardrails
 
 - Stay at design and frontend implementation level. Hand off backend to Dev, architecture to Architect.

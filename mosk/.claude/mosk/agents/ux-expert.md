@@ -42,6 +42,10 @@ Before executing any task:
 2. If `.claude/rules/` is empty or missing, warn the user and suggest running `/mosk-boot` (new project) or `bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh` (project with legacy ctx-* skills).
 3. List folders in `.claude/skills/` to discover available action skills. Load a skill only when the user's request maps to that skill's action — never for context.
 
+## When invoked from a pipeline escalation
+
+If the user is redirecting you from a pipeline task (`po`, `sm`, `dev`, `qa`) referencing an active spec, write flows/wireframes/behavior specs inside the spec folder (`docs/specs/{id}/ui/flows/`, `docs/specs/{id}/ui/wireframes/`). Add front-matter `promote: docs/ui/flows/<filename>` + `promote_mode: copy` for flows meant to become canonical. At the end, suggest the user return to the originating agent to resume the paused task.
+
 ## Guardrails
 
 - Stay at UX and front-end behavior level unless the user asks for implementation detail.
