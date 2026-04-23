@@ -16,7 +16,7 @@ Create detailed, implementation-ready stories for existing projects where tradit
 - Existing project documentation doesn't follow the current MOSK or SpecKit-style structure
 - Need to gather additional context from user during story creation
 
-**Use draft-story when:**
+**Use enrich-story when:**
 
 - Working with properly sharded PRD and architecture documents
 - Following the standard sharded workflow with complete project documentation
@@ -29,7 +29,7 @@ Create detailed, implementation-ready stories for existing projects where tradit
 Check for available documentation in this order:
 
 1. **Canonical PRD/Architecture** (`docs/prd/`, `docs/architecture/`)
-   - If found, recommend using draft-story task instead
+   - If found, recommend using enrich-story task instead
 
 2. **Project Architecture Document** (output of `map-project` task)
    - Contains actual system state, technical debt, workarounds

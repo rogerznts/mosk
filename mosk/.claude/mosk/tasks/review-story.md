@@ -89,9 +89,11 @@ required:
 
 ### 4. Standards Compliance Check
 
-- Verify adherence to `docs/coding-standards.md`
-- Check compliance with `docs/unified-project-structure.md`
-- Validate testing approach against `docs/testing-strategy.md`
+Resolve the following **logical names** in `docs/architecture/` via `architecture/index.md` links or by glob `docs/architecture/**/*<stem>.md` (numeric prefix optional). If a file does not exist, record "guideline absent" in the gate notes — this is a signal to `/mosk-architect`, not an automatic FAIL.
+
+- `coding-standards` — verify adherence
+- `unified-project-structure` — verify structural compliance
+- `testing-strategy` — validate testing approach
 - Ensure all guidelines mentioned in the story are followed
 
 ### 5. Acceptance Criteria Validation

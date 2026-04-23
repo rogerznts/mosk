@@ -28,13 +28,13 @@
 
 {{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}
 
-Reference documents in `docs/architecture/`:
+Reference documents in `docs/architecture/` (numeric prefix optional in projects sharded by other tools — always resolve via `index.md` links or glob `*<stem>.md`):
 
-- `docs/architecture/index.md` — overview
-- `docs/architecture/tech-stack.md` — stack details
-- `docs/architecture/coding-standards.md` — conventions
-- `docs/architecture/source-tree.md` — folder map
-- `docs/architecture/adr/` — decision records
+- `index.md` — overview and entry point
+- `tech-stack` — stack details
+- `coding-standards` — conventions
+- `source-tree` — folder map
+- `adr/` — decision records
 
 ## Folder Conventions
 

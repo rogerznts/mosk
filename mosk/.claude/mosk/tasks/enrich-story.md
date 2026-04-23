@@ -1,10 +1,12 @@
 <!-- Inspired by BMAD and SpecKit -->
 
-# Draft Story Task
+# Enrich Story Task
 
 ## Purpose
 
-To identify the next logical story based on project progress and epic definitions, and then to prepare a comprehensive, self-contained, and actionable story file using the `Story Template`. This task ensures the story is enriched with all necessary technical context, requirements, and acceptance criteria, making it ready for efficient implementation by a Developer Agent with minimal need for additional research or finding its own context.
+To identify the next logical story based on project progress and epic definitions, and then to enrich it with all necessary technical context, requirements, and acceptance criteria — producing a comprehensive, self-contained, and actionable story file using the `Story Template`, ready for efficient implementation by a Developer Agent with minimal need for additional research.
+
+> **Note on naming:** this task was previously called `draft-story`. The name was changed to `enrich-story` to disambiguate from `create-story` (PO). `create-story` emits the formal story from the PRD/epic; `enrich-story` takes that story and injects architectural/technical context for dev-readiness.
 
 ## SEQUENTIAL Task Execution (Do not proceed until current Task is complete)
 
@@ -47,11 +49,19 @@ To identify the next logical story based on project progress and epic definition
 
 #### 3.2 Read Architecture Documents Based on Story Type
 
-**For ALL Stories:** tech-stack.md, unified-project-structure.md, coding-standards.md, testing-strategy.md
+The items below are **logical names**, not literal paths. To resolve each real file in `docs/architecture/`:
 
-**For Backend/API Stories, additionally:** data-models.md, database-schema.md, backend-architecture.md, rest-api-spec.md, external-apis.md
+1. Prefer the links in `{architecture.indexFile}` when available.
+2. If the index does not list the item, glob `docs/architecture/**/*<stem>.md` (numeric prefix like `1-`, `02-` is optional and should be ignored when matching).
+3. If no file matches, record "No specific guidance found in architecture docs" and proceed.
 
-**For Frontend/UI Stories, additionally:** frontend-architecture.md, components.md, core-workflows.md, data-models.md
+Always cite with the real resolved path: `[Source: architecture/<actual-filename>.md#<section>]`.
+
+**For ALL Stories:** `tech-stack`, `unified-project-structure`, `coding-standards`, `testing-strategy`
+
+**For Backend/API Stories, additionally:** `data-models`, `database-schema`, `backend-architecture`, `rest-api-spec`, `external-apis`
+
+**For Frontend/UI Stories, additionally:** `frontend-architecture`, `components`, `core-workflows`, `data-models`
 
 **For Full-Stack Stories:** Read both Backend and Frontend sections above
 

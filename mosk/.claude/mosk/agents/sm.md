@@ -24,7 +24,7 @@ Make upcoming work implementation-ready by tightening story quality, sequence, a
 
 ## Task mapping
 
-- Create next story: `../tasks/draft-story.md`
+- Prepare next story (enrich with technical context): `../tasks/enrich-story.md`
 - Validate draft story: `../tasks/review-story-draft.md`
 - Correct course: `../tasks/correct-course.md`
 - Execute readiness checklist: `../tasks/execute-checklist.md`

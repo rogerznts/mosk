@@ -51,7 +51,7 @@ Monte uma tabela inicial e apresente ao usuário:
 | # | Caminho | Tipo inferido | Sugestão de destino | Motivo |
 |---|---|---|---|---|
 | 1 | docs/project-brief.md | brief | docs/discovery/brief.md | H1 + conteúdo indicam product brief |
-| 2 | docs/api-spec.md | API contract | docs/architecture/api-spec.md | mencionado no `devLoadAlwaysFiles` padrão |
+| 2 | docs/api-spec.md | API contract | docs/architecture/api-spec.md | contrato de arquitetura canônica |
 | 3 | docs/epics/epic-3-billing.md | epic | specs/003-feature-billing/ (a criar) | numeração 3 casa com pattern |
 | 4 | docs/specs/_orphan-stories/random.md | standalone story | escolher spec | sem prefixo epic reconhecível |
 

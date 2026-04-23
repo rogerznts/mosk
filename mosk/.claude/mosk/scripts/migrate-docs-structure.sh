@@ -422,10 +422,6 @@ promotion:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
     "specs/*/ui/flows/*.md":          { target: docs/ui/flows/,       mode: copy }
     "specs/*/prd-delta.md":           { target: docs/prd/,             mode: manual }
-devLoadAlwaysFiles:
-  - docs/architecture/coding-standards.md
-  - docs/architecture/tech-stack.md
-  - docs/architecture/source-tree.md
 slashPrefix: MOSK
 '
         if $DRY_RUN; then
