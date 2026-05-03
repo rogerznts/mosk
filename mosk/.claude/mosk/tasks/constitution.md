@@ -12,11 +12,13 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-You are updating the project constitution at `.claude/mosk/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
+You are updating the project constitution at `docs/constitution.md`. The placeholder skeleton (with tokens like `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`) lives at `.claude/mosk/templates/constitution-tmpl.md`. Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
 
 Follow this execution flow:
 
-1. Load the existing constitution template at `.claude/mosk/constitution.md`.
+1. Load the source content:
+   - If `docs/constitution.md` already exists, load it (this is the active constitution; preserve concrete values and bump from there).
+   - Otherwise, load the skeleton at `.claude/mosk/templates/constitution-tmpl.md` for the first-time fill.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
    **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
 
@@ -57,7 +59,7 @@ Follow this execution flow:
    - Dates ISO format YYYY-MM-DD.
    - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
 
-7. Write the completed constitution back to `.claude/mosk/constitution.md` (overwrite).
+7. Write the completed constitution to `docs/constitution.md` (overwrite). Never write back to `.claude/mosk/templates/constitution-tmpl.md` — that file is the read-only skeleton.
 
 8. Output a final summary to the user with:
    - New version and bump rationale.
@@ -75,4 +77,4 @@ If the user supplies partial updates (e.g., only one principle revision), still 
 
 If critical info missing (e.g., ratification date truly unknown), insert `TODO(<FIELD_NAME>): explanation` and include in the Sync Impact Report under deferred items.
 
-Do not create a new template; always operate on the existing `.claude/mosk/constitution.md` file.
+Do not create a new template; the canonical skeleton is `.claude/mosk/templates/constitution-tmpl.md` and the active document is `docs/constitution.md`. Always operate on those two files.

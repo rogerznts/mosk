@@ -1,6 +1,6 @@
 ## <!-- Inspired by BMAD and SpecKit -->
 
-docOutputLocation: docs/brainstorming-session-results.md
+docOutputLocation: docs/discovery/brainstorming/brainstorming-session-results.md
 template: '.claude/mosk/templates/brainstorming-output-tmpl.yaml'
 
 ---

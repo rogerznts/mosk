@@ -30,6 +30,11 @@ Migrates a consuming project's `docs/` layout to the MOSK v2 structure:
 Also:
   - Creates docs/index.md via the `index-docs` task convention.
   - Moves docs/brainstorming-session-results.md into docs/discovery/brainstorming/.
+  - Moves docs/project-architecture.md into docs/architecture/.
+  - Moves docs/brief.md, docs/market-research.md, docs/competitor-analysis.md
+    into docs/discovery/.
+  - Moves docs/ui-architecture.md into docs/architecture/.
+  - Moves a legacy .claude/mosk/constitution.md into docs/constitution.md.
   - Rewrites .claude/mosk/core-config.yaml to the v2 schema.
     A backup is saved as .claude/mosk/core-config.yaml.legacy.
   - Creates spec-meta.yaml retroactively for each existing
@@ -59,6 +64,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 DOCS_DIR="$INSTALL_ROOT/docs"
 CONFIG_FILE="$INSTALL_ROOT/.claude/mosk/core-config.yaml"
+LEGACY_CONSTITUTION="$INSTALL_ROOT/.claude/mosk/constitution.md"
+CONSTITUTION_FILE="$DOCS_DIR/constitution.md"
 
 if $DRY_RUN; then
     echo "Mode: DRY RUN (no changes will be made)"
@@ -139,6 +146,12 @@ check_legacy_state() {
     [[ -d "$DOCS_DIR/stories" ]] && reason+=" docs/stories/"
     [[ -f "$DOCS_DIR/brainstorming-session-results.md" ]] && reason+=" docs/brainstorming-session-results.md"
     [[ -f "$DOCS_DIR/front-end-spec.md" ]] && reason+=" docs/front-end-spec.md"
+    [[ -f "$DOCS_DIR/project-architecture.md" ]] && reason+=" docs/project-architecture.md"
+    [[ -f "$DOCS_DIR/brief.md" ]] && reason+=" docs/brief.md"
+    [[ -f "$DOCS_DIR/market-research.md" ]] && reason+=" docs/market-research.md"
+    [[ -f "$DOCS_DIR/competitor-analysis.md" ]] && reason+=" docs/competitor-analysis.md"
+    [[ -f "$DOCS_DIR/ui-architecture.md" ]] && reason+=" docs/ui-architecture.md"
+    [[ -f "$LEGACY_CONSTITUTION" ]] && reason+=" .claude/mosk/constitution.md"
     if [[ -f "$CONFIG_FILE" ]]; then
         if grep -qE "^(prdFile|architectureFile|prdSharded|prdShardedLocation|architectureSharded|architectureShardedLocation|devStoryLocation)[[:space:]]*:" "$CONFIG_FILE"; then
             reason+=" legacy-core-config"
@@ -194,6 +207,35 @@ move_or_copy "$DOCS_DIR/brainstorming-session-results.md" \
 move_or_copy "$DOCS_DIR/front-end-spec.md" \
              "$DOCS_DIR/ui/index.md" \
              "front-end spec -> ui/index.md"
+move_or_copy "$DOCS_DIR/project-architecture.md" \
+             "$DOCS_DIR/architecture/project-architecture.md" \
+             "project-architecture -> architecture/"
+move_or_copy "$DOCS_DIR/brief.md" \
+             "$DOCS_DIR/discovery/brief.md" \
+             "brief -> discovery/"
+move_or_copy "$DOCS_DIR/market-research.md" \
+             "$DOCS_DIR/discovery/market-research.md" \
+             "market-research -> discovery/"
+move_or_copy "$DOCS_DIR/competitor-analysis.md" \
+             "$DOCS_DIR/discovery/competitor-analysis.md" \
+             "competitor-analysis -> discovery/"
+move_or_copy "$DOCS_DIR/ui-architecture.md" \
+             "$DOCS_DIR/architecture/ui-architecture.md" \
+             "ui-architecture -> architecture/"
+echo
+
+# ---------- phase 3.5: migrate legacy constitution ----------
+
+echo "=== phase 3.5: migrate legacy constitution ==="
+if [[ -f "$LEGACY_CONSTITUTION" ]]; then
+    if [[ -f "$CONSTITUTION_FILE" ]]; then
+        echo "skip    $CONSTITUTION_FILE already exists; manual review needed for $LEGACY_CONSTITUTION"
+    else
+        move_or_copy "$LEGACY_CONSTITUTION" "$CONSTITUTION_FILE" "constitution -> docs/"
+    fi
+else
+    echo "no legacy .claude/mosk/constitution.md — skipping"
+fi
 echo
 
 # ---------- phase 4: migrate stories ----------
@@ -413,7 +455,9 @@ ui:
   root: docs/ui
   indexFile: docs/ui/index.md
 qa:
+  qaLocation: docs/qa
   gatesDir: docs/qa/gates
+  assessmentsDir: docs/qa/assessments
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md

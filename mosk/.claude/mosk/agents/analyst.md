@@ -25,9 +25,12 @@ Turn fuzzy ideas into concrete discovery artifacts with the minimum context requ
 
 ## Task mapping
 
-- Project brief, research, competitor analysis: `../tasks/create-doc.md`
+- Project brief: `../tasks/create-brief.md`
+- Market research: `../tasks/create-market-research.md`
+- Competitor analysis: `../tasks/create-competitor-analysis.md`
 - Brainstorming workshop: `../tasks/facilitate-brainstorming-session.md`
 - Deep research prompt: `../tasks/create-deep-research-prompt.md`
+- Generic doc from any other template: `../tasks/create-doc.md`
 
 ## Expected outputs
 

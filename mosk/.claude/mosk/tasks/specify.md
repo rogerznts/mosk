@@ -16,7 +16,7 @@ Produce a short, implementation-safe specification that is ready for planning wi
 
 ## Workflow
 
-1. Check whether `.claude/mosk/constitution.md` exists.
+1. Check whether `docs/constitution.md` exists.
    - If it is missing, run `../tasks/constitution.md` first, then continue.
 
 2. Determine the spec type:
