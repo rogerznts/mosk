@@ -1,0 +1,33 @@
+markdownExploder: true
+specs:
+  root: docs/specs
+  archive: docs/specs/archive
+  storiesSubdir: stories
+  testsSubdir: tests
+  gateFile: gate.yaml
+  metaFile: spec-meta.yaml
+discovery:
+  root: docs/discovery
+prd:
+  root: docs/prd
+  indexFile: docs/prd/index.md
+architecture:
+  root: docs/architecture
+  indexFile: docs/architecture/index.md
+  adrDir: docs/architecture/adr
+ui:
+  root: docs/ui
+  indexFile: docs/ui/index.md
+qa:
+  qaLocation: docs/qa
+  gatesDir: docs/qa/gates
+  assessmentsDir: docs/qa/assessments
+index:
+  file: docs/index.md
+  template: .claude/mosk/templates/docs-index-tmpl.md
+promotion:
+  defaults:
+    "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
+    "specs/*/ui/flows/*.md":          { target: docs/ui/flows/,       mode: copy }
+    "specs/*/prd-delta.md":           { target: docs/prd/,             mode: manual }
+slashPrefix: MOSK
