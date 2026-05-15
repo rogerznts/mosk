@@ -77,13 +77,27 @@ Nunca é invocada por escalation.
 3. Agrupe a saída por autor e por prefixo de spec (`^\d{3}-` no
    subject) conforme as regras do manual.
 
-### 4. Absorver comentário do usuário
+### 4. Gerar o comentário da AI
 
-1. O comentário é anotação autoritativa para este run.
-2. Vai verbatim para o `update-YYYYMMDD.md` (campo `user_comment` no
-   frontmatter e seção dedicada no corpo).
-3. Reflete em `plan.md` apenas quando o manual orientar (regra
-   `{{USER_COMMENT_HANDLING}}`).
+O update file tem uma seção `## Comentário` (variável
+`{{AI_COMMENT_FULL_OR_NONE}}`) **escrita pela própria AI**, não copiada
+do usuário. Regras:
+
+1. Compor o comentário a partir do que foi observado neste run: commits
+   da janela git, specs ativos tocados, mudanças detectadas no
+   planejamento e estado atual de `plan.md`.
+2. Se o usuário passou um comentário na chamada do comando, **usar
+   esse texto como guia**: incorporar verbatim ou parafrasear,
+   destacar o que ele pediu para registrar, e responder pontos
+   levantados.
+3. Se o usuário não passou nada (string vazia): **modo YOLO** — a AI
+   sintetiza livremente o que viu, sem ficar travada esperando
+   direção do usuário.
+4. O comentário deve ser objetivo (3–8 linhas), em primeira pessoa do
+   plural ("Avançamos…", "Bloqueamos em…"), pronto para colar em PR.
+5. Independente do modo, o frontmatter do update guarda o input
+   original do usuário em `user_comment` (one-line; vazio quando YOLO)
+   para auditoria.
 
 ### 5. Decidir se `plan.md` muda
 
@@ -101,7 +115,13 @@ apenas atualize o campo `Last updated` no topo do arquivo.
 Quando rescrever:
 
 - Carregue `.claude/mosk/templates/project-plan-tmpl.md` se o arquivo
-  ainda não existir.
+  ainda não existir. Ordem padrão das seções: `objectives` (Resumo),
+  `milestones` (Planejamento), `deliverables` (Entregáveis),
+  `current-focus` (Foco Atual), `status-snapshot` (Status Snapshot),
+  `risks` (Riscos), `open-questions` (Perguntas Abertas).
+- A seção `objectives` consome `{{SUMMARY_AND_OBJECTIVES}}`: um
+  parágrafo de resumo do estado do projeto seguido pelos objetivos
+  declarados (lista ou prosa, conforme o manual).
 - Preserve o bloco `<!-- custom -->…<!-- /custom -->` na íntegra.
 - Substitua somente seções demarcadas
   `<!-- section:<id> -->…<!-- /section -->` que precisem mudar.
@@ -121,13 +141,16 @@ Quando rescrever:
    - `commits_window`: ex.: `"2026-05-08T00:00:00Z..2026-05-15T12:30:00Z"`.
    - `commits_count`: total da janela.
    - `specs_touched`: lista de `spec_id`s detectados.
-   - `user_comment`: uma linha (multilinha vai pro corpo).
+   - `user_comment`: o texto bruto que o usuário passou no comando, em
+     uma linha (vazio quando YOLO).
    - `plan_changed`: `true|false`.
    - `plan_sections_changed`: lista de section ids quando aplicável.
-   - `delta`: `empty` quando `commits_count == 0` AND comentário vazio;
-     `standard` caso contrário.
+   - `delta`: `empty` quando `commits_count == 0` AND `user_comment`
+     vazio AND `plan_changed: false`; `standard` caso contrário.
 5. Emita **sempre**, mesmo com `delta: empty` — este artefato serve
-   como registro de PR e auditoria de cadência.
+   como registro de PR e auditoria de cadência. A seção
+   `## Comentário` traz o texto escrito pela AI no passo 4, nunca
+   fica em branco.
 
 ### 7. Atualizar `docs/index.md`
 

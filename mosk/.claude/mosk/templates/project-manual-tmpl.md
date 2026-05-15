@@ -38,19 +38,20 @@
 
 {{REQUIRED_PLAN_SECTIONS}}
 
-> Default (used when the placeholder is empty):
+> Default order (used when the placeholder is empty):
 >
-> - Objectives
-> - Current Focus
-> - Milestones
-> - Deliverables
-> - Status Snapshot
-> - Risks
-> - Open Questions
+> 1. **Resumo** (`section:objectives`, var `{{SUMMARY_AND_OBJECTIVES}}`) — parágrafo de resumo + objetivos declarados.
+> 2. **Planejamento** (`section:milestones`) — tabela de marcos.
+> 3. **Entregáveis** (`section:deliverables`).
+> 4. **Foco Atual** (`section:current-focus`).
+> 5. **Status Snapshot** (`section:status-snapshot`).
+> 6. **Riscos** (`section:risks`).
+> 7. **Perguntas Abertas** (`section:open-questions`).
 
 The planner enforces this list: each required section appears in
 `docs/project/plan.md` as a `<!-- section:<id> -->…<!-- /section -->`
-block.
+block. Section IDs são âncoras estáveis — os títulos exibidos podem
+mudar, os IDs ficam.
 
 ## Milestone Format
 
@@ -81,14 +82,24 @@ block.
 > 'Blockers' section, even if empty, for the standup automation to
 > parse."
 
-## User Comment Handling
+## AI Commentary Rules
 
-{{USER_COMMENT_HANDLING}}
+{{AI_COMMENTARY_RULES}}
 
-> Defines when the free-form comment passed to `/mosk-pm planner`
-> modifies `plan.md` vs. lives only in the update file. Example:
-> "Always include verbatim in the update. Mirror into `plan.md` only
-> when the comment names a milestone, status change, or risk."
+> O campo `## Comentário` de cada `update-YYYYMMDD.md` é **escrito pela
+> AI**, não copiado do usuário. Esta seção define o tom e o escopo.
+>
+> - **Quando o usuário passa comentário no comando**: a AI usa como
+>   guia — incorpora verbatim, parafraseia, ou responde pontos
+>   levantados. O texto bruto do usuário fica preservado no
+>   frontmatter (`user_comment`) para auditoria.
+> - **Quando o usuário não passa nada (modo YOLO)**: a AI sintetiza
+>   livremente a partir do que observou (commits, specs ativos,
+>   mudanças em `plan.md`) sem travar esperando direção.
+>
+> Exemplo de regra do projeto: "Comentário entre 3 e 8 linhas, em
+> primeira pessoa do plural, pronto para colar em PR. Não mencione
+> commits que só renomeiam arquivos."
 
 ## Project-Specific Tracking Rules
 
