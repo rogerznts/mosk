@@ -9,6 +9,10 @@
   (Document Organization, Promotion, Agent Roles, Escalation Policy,
   Spec Numbering, docs/index.md) as they are — they are the framework
   contract.
+
+  CANONICAL SOURCE: this file is the single source of truth for the
+  MOSK `docs/` layout. CLAUDE.md and README.md should reference this
+  file rather than duplicate the tree. Update the tree here first.
 -->
 
 ## System Purpose

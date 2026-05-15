@@ -22,7 +22,7 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
 
 2. Load:
    - `FEATURE_SPEC`
-   - `.claude/mosk/constitution.md`
+   - `docs/constitution.md`
    - the copied `IMPL_PLAN` template
 
 3. Fill `plan.md` with the minimum useful sections:

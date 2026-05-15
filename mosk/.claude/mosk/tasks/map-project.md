@@ -298,11 +298,11 @@ npm run seed        # Seed test data
 
 1. **In Web UI (Gemini, ChatGPT, Claude)**:
    - Present the entire document in one response (or multiple if too long)
-   - Tell user to save it as `docs/project-architecture.md`
+   - Tell user to save it as `docs/architecture/project-architecture.md`
    - Mention it can be sharded later in IDE if needed
 
 2. **In IDE Environment**:
-   - Create the document as `docs/project-architecture.md`
+   - Create the document as `docs/architecture/project-architecture.md`
    - Inform user this single document contains all architectural information
    - Can be sharded later using PO agent if desired
 

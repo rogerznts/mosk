@@ -19,7 +19,9 @@ ui:
   root: docs/ui
   indexFile: docs/ui/index.md
 qa:
+  qaLocation: docs/qa
   gatesDir: docs/qa/gates
+  assessmentsDir: docs/qa/assessments
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md

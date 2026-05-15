@@ -93,29 +93,20 @@ Defaults:
 
 MOSK uses two mirrored layers: the **base** (project-wide truth) and **per-spec** (scope of a single feature/fix).
 
+Top-level shape:
+
 ```
 docs/
-├── index.md                 # auto-generated entry point (task: index-docs)
-├── discovery/               # mosk-analyst
-├── prd/                     # mosk-pm (sharded: index.md + sections)
-├── architecture/            # mosk-architect (+ adr/)
-├── ui/                      # mosk-ux-expert (flows/, wireframes/) + mosk-ui-expert (design-system/, styles/)
-├── qa/gates/                # mosk-qa
-└── specs/
-    ├── {###}-{type}-{name}/
-    │   ├── spec.md
-    │   ├── plan.md
-    │   ├── tasks.md
-    │   ├── spec-meta.yaml       # number, branch, status, current_phase
-    │   ├── prd-delta.md         # optional PRD change
-    │   ├── discovery/           # optional feature-scoped research
-    │   ├── architecture/        # optional feature ADRs and data models
-    │   ├── ui/                  # optional feature flows/wireframes/components
-    │   ├── stories/
-    │   ├── tests/               # dev-generated e2e checklists
-    │   └── gate.yaml            # qa-gate output
-    └── archive/                 # completed specs
+├── index.md          # auto-generated entry point (task: index-docs)
+├── discovery/        # mosk-analyst
+├── prd/              # mosk-pm (sharded)
+├── architecture/     # mosk-architect (+ adr/)
+├── ui/               # mosk-ux-expert + mosk-ui-expert
+├── qa/gates/         # mosk-qa
+└── specs/            # per-spec folders + archive/
 ```
+
+The full canonical tree (including the per-spec internals like `spec-meta.yaml`, `stories/`, `tests/`, `gate.yaml`) is documented in [`mosk/.claude/mosk/templates/project-rule-tmpl.md`](mosk/.claude/mosk/templates/project-rule-tmpl.md), the file `/mosk-boot` uses to generate `.claude/rules/project.md` in every consuming project.
 
 **Base vs spec decision rule**
 
@@ -232,6 +223,7 @@ Natural language is the preferred UX — slash-activate the agent and describe w
 /mosk-dev implement a spec 012
 /mosk-dev archive a spec 012
 /mosk-dev index-docs
+/mosk-dev audit
 ```
 
 ### Quality (mosk-qa)
@@ -261,6 +253,7 @@ Natural language is the preferred UX — slash-activate the agent and describe w
 | `qa-gate` | stays with `mosk-qa` |
 | `archive` | stays with `mosk-dev` (promotes artifacts, moves spec to archive) |
 | `index-docs` | refreshes `docs/index.md` |
+| `audit` | runs the docs-paths integrity audit (5 rules; exits 1 on violations) |
 
 ## Spec Types
 
@@ -387,6 +380,7 @@ Under `.claude/mosk/scripts/`:
 - `link-codex-skills.sh` — refreshes `.codex/skills/`, `.codex/rules/`, and `AGENTS.md` for Codex users.
 - `migrate-docs-structure.sh` — migrates a legacy `docs/` layout to the current one (idempotent).
 - `migrate-ctx-skills-to-rules.sh` — converts legacy `ctx-*` context skills to `.claude/rules/*.md`.
+- `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
 ## Optional Environment Tools

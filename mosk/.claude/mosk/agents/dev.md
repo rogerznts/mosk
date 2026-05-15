@@ -29,6 +29,8 @@ Implement the agreed work with minimal ceremony, visible progress, and validatio
 - Apply QA feedback: `../tasks/apply-qa-fixes.md`
 - Archive completed spec: `../tasks/archive.md`
 - Run delivery checklist: `../tasks/execute-checklist.md`
+- Audit docs paths: `../tasks/audit-docs-paths.md`
+- Refresh docs index: `../tasks/index-docs.md`
 
 ## Expected outputs
 
