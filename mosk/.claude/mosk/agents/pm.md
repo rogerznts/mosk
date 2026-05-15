@@ -28,6 +28,7 @@ Define product direction, shape scope, and produce crisp PRD-level artifacts.
 - Product docs and PRDs: `../tasks/create-doc.md`
 - PM checklist review: `../tasks/execute-checklist.md`
 - Large product doc sharding: `../tasks/shard-doc.md`
+- Project planner and update log: `../tasks/planner.md`
 
 ## Expected outputs
 

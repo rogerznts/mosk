@@ -7,8 +7,8 @@
 Maintain `docs/index.md` as the canonical entry point for new
 contributors. The file is auto-generated and combines:
 
-1. **Project Overview** — links to the 5 base domains (`discovery/`,
-   `prd/`, `architecture/`, `ui/`, `qa/`) and the project
+1. **Project Overview** — links to the 6 base domains (`discovery/`,
+   `prd/`, `architecture/`, `ui/`, `qa/`, `project/`) and the project
    `constitution.md` when present.
 2. **Active Specs** table — one row per folder in `docs/specs/*/`
    whose `spec-meta.yaml` has `status: active`.
@@ -36,11 +36,11 @@ project documentation, with the MOSK v2 layout as the default shape.
    below.
 
 2. **Scan base domains**: for each of `docs/discovery/`, `docs/prd/`,
-   `docs/architecture/`, `docs/ui/`, `docs/qa/`, check whether the
-   folder exists. Drop Overview links for folders that don't exist
-   (warn the user that `mosk-boot` can scaffold them). Also check
-   whether `docs/constitution.md` exists — if it does, render a
-   Constitution link in Overview; if it doesn't, omit silently.
+   `docs/architecture/`, `docs/ui/`, `docs/qa/`, `docs/project/`,
+   check whether the folder exists. Drop Overview links for folders
+   that don't exist (warn the user that `mosk-boot` can scaffold them).
+   Also check whether `docs/constitution.md` exists — if it does,
+   render a Constitution link in Overview; if it doesn't, omit silently.
 
 3. **Scan active specs**: iterate over `docs/specs/*/` (excluding
    `archive/`). For each folder:
@@ -84,6 +84,7 @@ Last updated: YYYY-MM-DDTHH:MM:SSZ
 - **[Architecture](./architecture/index.md)** — system design + ADRs
 - **[UI](./ui/index.md)** — design system, flows, wireframes
 - **[QA](./qa/)** — quality gates
+- **[Project](./project/plan.md)** — living project plan + dated updates
 
 ## Active Specs
 
@@ -134,6 +135,13 @@ _Only render this section when `docs/constitution.md` exists._
 ### QA
 
 - **[Gates](./qa/gates/)** — quality gate records
+
+### Project
+
+- **[Plan](./project/plan.md)** — living project plan
+- **[Latest update](./project/update-YYYYMMDD.md)** — most recent dated update (`N` total)
+
+_Only render this section when `docs/project/` exists. The "Latest update" entry links to the file with the most recent date in its name and prints the total update count._
 
 <!-- custom -->
 <!-- /custom -->

@@ -25,7 +25,7 @@ Runs five checks against the MOSK toolkit:
   R4  Every <domain>.<key> reference in tasks must exist in core-config.yaml.
   R5  Every templates/*-tmpl.{yaml,md} referenced by a task must exist.
 
-Canonical docs/ domains: discovery, prd, architecture, ui, qa, specs.
+Canonical docs/ domains: discovery, prd, architecture, ui, qa, project, specs.
 Whitelisted top-level files: docs/index.md, docs/constitution.md.
 
 OPTIONS
@@ -44,7 +44,7 @@ TASKS_DIR="$MOSK_ROOT/tasks"
 TEMPLATES_DIR="$MOSK_ROOT/templates"
 CONFIG_FILE="$MOSK_ROOT/core-config.yaml"
 
-CANONICAL_DOMAIN_RE='docs/(index\.md|constitution\.md|(discovery|prd|architecture|ui|qa|specs)/)'
+CANONICAL_DOMAIN_RE='docs/(index\.md|constitution\.md|(discovery|prd|architecture|ui|qa|project|specs)/)'
 
 VIOLATIONS=()
 add() { VIOLATIONS+=("$1"); }

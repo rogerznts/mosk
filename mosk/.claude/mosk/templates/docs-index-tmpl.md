@@ -9,6 +9,7 @@ Last updated: {{LAST_UPDATED}}
 - **[Architecture](./architecture/index.md)** — system design + ADRs
 - **[UI](./ui/index.md)** — design system, flows, wireframes
 - **[QA](./qa/)** — quality gates
+- **[Project](./project/plan.md)** — living project plan + dated updates
 
 ## Active Specs
 

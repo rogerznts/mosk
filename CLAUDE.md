@@ -22,12 +22,14 @@ mosk/                        # installable template (source of truth)
 │   │   ├── agents/          # persona prompts (9 agents; canonical)
 │   │   ├── tasks/           # executable workflows (specify, plan, tasks,
 │   │   │                    # implement, qa-gate, archive, boot, full-spec,
-│   │   │                    # index-docs, clarify, analyze, checklist,
-│   │   │                    # create-epic, create-story, correct-course,
-│   │   │                    # assess-*, design-tests, trace-spec, …)
+│   │   │                    # index-docs, planner, clarify, analyze,
+│   │   │                    # checklist, create-epic, create-story,
+│   │   │                    # correct-course, assess-*, design-tests,
+│   │   │                    # trace-spec, …)
 │   │   ├── templates/       # *-tmpl.yaml / *-tmpl.md (PRD, architecture,
 │   │   │                    # story, qa-gate, spec-meta, docs-index,
-│   │   │                    # project-rule, …)
+│   │   │                    # project-rule, project-manual,
+│   │   │                    # project-plan, project-update, …)
 │   │   ├── checklists/
 │   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
 │   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,

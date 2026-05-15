@@ -22,6 +22,11 @@ qa:
   qaLocation: docs/qa
   gatesDir: docs/qa/gates
   assessmentsDir: docs/qa/assessments
+project:
+  root: docs/project
+  livingFile: docs/project/plan.md
+  updatePattern: docs/project/update-YYYYMMDD.md
+  manual: docs/discovery/project-manual.md
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md

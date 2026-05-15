@@ -64,6 +64,7 @@ docs/
 ├── architecture/            # mosk-architect writes here (+ adr/)
 ├── ui/                      # mosk-ux-expert + mosk-ui-expert
 ├── qa/gates/                # mosk-qa writes gates here
+├── project/                 # mosk-pm planner writes here (plan.md + update-YYYYMMDD.md)
 └── specs/
     ├── {###}-{type}-{name}/
     │   ├── spec.md
@@ -189,8 +190,8 @@ archived), and after `migrate-docs-structure.sh`.
 
 The index always contains:
 
-- **Overview** with links to the 5 base domains (discovery, prd,
-  architecture, ui, qa).
+- **Overview** with links to the 6 base domains (discovery, prd,
+  architecture, ui, qa, project).
 - **Active Specs** table (reading `spec-meta.yaml` from each
   `docs/specs/*/`).
 - **Archived Specs** list.
