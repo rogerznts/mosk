@@ -6,6 +6,7 @@ JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 FEATURE_TYPE=""
+EXTENDS=""
 NO_PUSH=false
 MAX_RETRIES=3
 ARGS=()
@@ -43,6 +44,19 @@ while [ $i -le $# ]; do
             fi
             FEATURE_TYPE="$next_arg"
             ;;
+        --extends)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --extends requires a value' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --extends requires a value' >&2
+                exit 1
+            fi
+            EXTENDS="$next_arg"
+            ;;
         --number)
             if [ $((i + 1)) -gt $# ]; then
                 echo 'Error: --number requires a value' >&2
@@ -60,11 +74,12 @@ while [ $i -le $# ]; do
             NO_PUSH=true
             ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--type <type>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
+            echo "Usage: $0 [--json] [--type <type>] [--extends <spec-id>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
-            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental"
+            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental|extension"
+            echo "  --extends <spec-id> Parent spec this one extends (REQUIRED when --type=extension)"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --no-push           Do not push the new branch to origin (useful for forks or offline work)"
@@ -78,6 +93,7 @@ while [ $i -le $# ]; do
             echo "  $0 --type feature --short-name 'user-auth' 'Add user authentication system'"
             echo "  $0 --type fix --short-name 'payment-timeout' 'Fix payment processing timeout'"
             echo "  $0 --type gmud --number 5 'Deploy rollback procedure'"
+            echo "  $0 --type extension --extends 005-feature-checkout-coupon 'Add coupon usage cap per user'"
             exit 0
             ;;
         *)
@@ -91,6 +107,23 @@ FEATURE_DESCRIPTION="${ARGS[*]}"
 if [ -z "$FEATURE_DESCRIPTION" ]; then
     echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>" >&2
     exit 1
+fi
+
+# When the spec type is `extension`, the parent spec id is mandatory.
+# Extensions are used to extend an already-archived spec without
+# breaking archive immutability (see Document Organization in the
+# project rules).
+if [ "$FEATURE_TYPE" = "extension" ] && [ -z "$EXTENDS" ]; then
+    echo "Error: --type extension requires --extends <spec-id>" >&2
+    echo "Example: $0 --type extension --extends 005-feature-checkout-coupon 'Add coupon cap'" >&2
+    exit 1
+fi
+
+# --extends only makes sense with --type extension. Warn but do not
+# fail, so callers experimenting with linkage between sibling specs
+# are not blocked.
+if [ -n "$EXTENDS" ] && [ "$FEATURE_TYPE" != "extension" ]; then
+    >&2 echo "[specify] Warning: --extends '$EXTENDS' is set but --type is not 'extension'; the link will still be written to spec-meta.yaml."
 fi
 
 # Function to find the repository root by searching for existing project markers
@@ -311,6 +344,7 @@ write_initial_spec_meta() {
     local spec_id="$3"
     local spec_type="$4"
     local spec_branch="$5"
+    local spec_extends="$6"
     local now
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local created_by=""
@@ -335,6 +369,9 @@ status: active
 current_phase: specify
 last_phase_change: "$now"
 EOF
+    if [ -n "$spec_extends" ]; then
+        echo "extends: \"$spec_extends\"" >> "$spec_dir/spec-meta.yaml"
+    fi
 }
 
 # Set up branch + folder. In git mode, also push atomically with retry
@@ -363,7 +400,7 @@ create_branch_and_folder() {
         SPEC_FILE="$FEATURE_DIR/spec.md"
         if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME"
+        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
 
         # Try atomic push if git is present and user didn't opt out.
         if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then

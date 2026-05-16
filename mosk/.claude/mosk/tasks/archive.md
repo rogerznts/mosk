@@ -30,6 +30,10 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 - Leia `docs/specs/<id>/tasks.md` e verifique se todas as tasks estão marcadas `- [x]`.
 - Se houver tasks pendentes, avise o usuário e peça confirmação explícita para arquivar mesmo assim.
+- **Verifique adendos abertos** em `docs/specs/<id>/artefacts/`:
+  - Para cada `artefacts/<NNN>-<slug>.md`, leia o front-matter `status:`.
+  - Se algum artefato estiver com `status:` diferente de `done`, **interrompa** o arquivamento e liste os adendos pendentes com seus status atuais. Mensagem sugerida: "Resolva ou marque como `done` os adendos abaixo antes de arquivar a spec, ou confirme explicitamente o arquivamento mesmo com adendos abertos."
+  - Só prossiga após confirmação explícita do usuário se houver adendos não concluídos.
 
 ### 3. Scan de promoção
 

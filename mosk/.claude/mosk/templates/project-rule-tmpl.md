@@ -77,6 +77,7 @@ docs/
     │   ├── ui/                 # optional, feature flows/wireframes/components
     │   ├── stories/            # stories live HERE, not in a global docs/stories/
     │   ├── tests/              # dev-generated e2e checklists
+    │   ├── artefacts/          # optional, PO addenda within the spec scope
     │   └── gate.yaml           # qa-gate output
     └── archive/                # completed specs
 ```
@@ -110,6 +111,34 @@ Supported modes:
 
 Without `promote:`, the artifact freezes inside the archived spec and
 does not touch the base `docs/`.
+
+## Artefacts (per-spec addenda)
+
+Inside an **active** spec, `mosk-po` can create small, planned
+addenda — "artefacts" — that complement the parent spec without
+opening a new branch or new spec. They live at:
+
+```
+docs/specs/{id}/artefacts/{NNN}-{slug}.md         # the addendum
+docs/specs/{id}/artefacts/{NNN}-{slug}-tasks.md   # its own task list
+```
+
+Rules:
+
+- Each artefact is numbered locally (`001`, `002`, …) within its parent
+  spec's `artefacts/` folder.
+- Each artefact carries its own acceptance criteria, tasks, and dev →
+  QA cycle, independent of the parent's `tasks.md` / `gate.yaml`.
+- The parent spec's `current_phase` does NOT change when an artefact
+  is added. `spec-meta.yaml` gains an `artefacts:` list with
+  `{number, slug, created_at, status}` per entry.
+- Artefacts inherit the `promote:` convention. Use it when the
+  artefact yields canonical content (ADR, base flow, etc.).
+- **Archived specs reject in-place artefacts** to preserve archive
+  immutability. Use `--type extension --extends <spec-id>` to open a
+  new spec linked to the archived one instead.
+
+Created by `/mosk-po artefact "<description>"`.
 
 ## Agent Roles
 
@@ -169,16 +198,30 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 ```yaml
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
-type: feature
+type: feature              # feature | fix | hotfix | gmud | refactor | experimental | extension
 branch: "005-feature-checkout-coupon"
 created_at: "2026-04-22T14:30:00Z"
 created_by: "<name>"
 status: active             # active | archived
 current_phase: specify     # specify | plan | tasks | implement | qa-gate | archived
+# extends: "003-feature-checkout"   # only when type == extension
 ```
 
 Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
 `archive.md`) update `current_phase` when they run.
+
+**Spec types:**
+
+- `feature` — new capability.
+- `fix` — bug fix.
+- `hotfix` — urgent production fix.
+- `gmud` — change management / GMUD.
+- `refactor` — code reorganization without behavior change.
+- `experimental` — exploratory work (may be archived without promotion).
+- `extension` — extends an already-archived spec without breaking
+  archive immutability. **Requires** `extends: "<spec-id>"` pointing
+  at the parent spec. Created via
+  `create-new-feature.sh --type extension --extends <spec-id> "<desc>"`.
 
 ## docs/index.md as Entry Point
 
