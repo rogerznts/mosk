@@ -92,7 +92,6 @@ loading protocol.
 
 | Task | What it does |
 |---|---|
-| `constitution` | Creates/updates the project constitution, syncing dependent templates. |
 | `full-spec` | Runs `specify → plan → tasks` in one pass. |
 | `specify` | Creates/updates only `spec.md` from a natural-language request. |
 | `clarify` | Resolves only critical ambiguities in `spec.md` (≤3 questions, intentionally light — opposite of `grill`). |

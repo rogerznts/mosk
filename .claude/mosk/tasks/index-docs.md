@@ -7,15 +7,13 @@
 Maintain `docs/index.md` as the canonical entry point for new
 contributors. The file is auto-generated and combines:
 
-1. **Project Overview** — links to the 5 base domains (`discovery/`,
-   `prd/`, `architecture/`, `ui/`, `qa/`) and the project
-   `constitution.md` when present.
+1. **Project Overview** — links to the 6 base domains (`discovery/`,
+   `prd/`, `architecture/`, `ui/`, `qa/`, `project/`).
 2. **Active Specs** table — one row per folder in `docs/specs/*/`
    whose `spec-meta.yaml` has `status: active`.
 3. **Archived Specs** list — one row per folder in `docs/specs/archive/*/`.
 4. **Domain Contents** — alphabetical file listing per domain folder,
-   with titles and brief descriptions. The project `constitution.md`
-   (if present) is rendered as its own top-level entry.
+   with titles and brief descriptions.
 
 This task is invoked automatically at the end of `boot`, `specify`,
 `plan`, `tasks`, `implement`, `qa-gate`, `archive`, and
@@ -36,11 +34,9 @@ project documentation, with the MOSK v2 layout as the default shape.
    below.
 
 2. **Scan base domains**: for each of `docs/discovery/`, `docs/prd/`,
-   `docs/architecture/`, `docs/ui/`, `docs/qa/`, check whether the
-   folder exists. Drop Overview links for folders that don't exist
-   (warn the user that `mosk-boot` can scaffold them). Also check
-   whether `docs/constitution.md` exists — if it does, render a
-   Constitution link in Overview; if it doesn't, omit silently.
+   `docs/architecture/`, `docs/ui/`, `docs/qa/`, `docs/project/`,
+   check whether the folder exists. Drop Overview links for folders
+   that don't exist (warn the user that `mosk-boot` can scaffold them).
 
 3. **Scan active specs**: iterate over `docs/specs/*/` (excluding
    `archive/`). For each folder:
@@ -78,12 +74,12 @@ Last updated: YYYY-MM-DDTHH:MM:SSZ
 
 ## Overview
 
-- **[Constitution](./constitution.md)** — project principles and governance _(only rendered when the file exists)_
 - **[Discovery](./discovery/)** — research, briefs, brainstorming
 - **[PRD](./prd/index.md)** — product requirements (sharded)
 - **[Architecture](./architecture/index.md)** — system design + ADRs
 - **[UI](./ui/index.md)** — design system, flows, wireframes
 - **[QA](./qa/)** — quality gates
+- **[Project](./project/plan.md)** — living project plan + dated updates
 
 ## Active Specs
 
@@ -102,12 +98,6 @@ If no active specs, render: _No active specs._
 If no archived specs, render: _No archived specs yet._
 
 ## Domain Contents
-
-### Constitution
-
-- **[Constitution](./constitution.md)** — project principles, non-negotiable rules, and governance
-
-_Only render this section when `docs/constitution.md` exists._
 
 ### Discovery
 
@@ -134,6 +124,13 @@ _Only render this section when `docs/constitution.md` exists._
 ### QA
 
 - **[Gates](./qa/gates/)** — quality gate records
+
+### Project
+
+- **[Plan](./project/plan.md)** — living project plan
+- **[Latest update](./project/update-YYYYMMDD.md)** — most recent dated update (`N` total)
+
+_Only render this section when `docs/project/` exists. The "Latest update" entry links to the file with the most recent date in its name and prints the total update count._
 
 <!-- custom -->
 <!-- /custom -->

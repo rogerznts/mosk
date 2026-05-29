@@ -26,7 +26,6 @@ Turn approved product intent into executable specs, plans, and ordered work.
 
 ## Task mapping
 
-- Project principles: `../tasks/constitution.md`
 - Full planning package: `../tasks/full-spec.md`
 - Create or update spec: `../tasks/specify.md`
 - Resolve critical ambiguity: `../tasks/clarify.md`
@@ -35,6 +34,7 @@ Turn approved product intent into executable specs, plans, and ordered work.
 - Quality checklist for a spec: `../tasks/checklist.md`
 - Generate ordered tasks: `../tasks/tasks.md`
 - Epic or story for an existing project: `../tasks/create-epic.md`, `../tasks/create-story.md`
+- Complementary artefact for an active spec: `../tasks/artefact.md`
 - Validate draft story: `../tasks/review-story-draft.md`
 
 ## Expected outputs

@@ -19,7 +19,7 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-handoff**: Handoff: compacta a sessão atual em um documento de transição salvo em docs/handoff/ do workspace, amarrado à spec/documentação ativa."
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
 - **mosk-pm**: Produto: criação de PRD e estratégia de produto."
-- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
+- **mosk-po**: Backlog & SpecKit: épicos, stories com AC e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões."
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação."
 - **mosk-ui-expert**: UI: interfaces premium, redesign, estilos visuais e design systems."

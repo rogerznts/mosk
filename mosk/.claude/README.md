@@ -13,8 +13,7 @@ This is the installed MOSK toolkit inside your project. Nine specialist agents, 
 │   ├── templates/     # *-tmpl.yaml / *-tmpl.md (prd, architecture, story, spec-meta, docs-index, project-rule, …)
 │   ├── checklists/
 │   ├── scripts/       # lifecycle scripts (see below)
-│   ├── core-config.yaml
-│   └── constitution.md
+│   └── core-config.yaml
 ├── rules/             # generated per project by /mosk-boot (project.md + frontend.md + optional extras)
 └── skills/            # slash-command wrappers pointing at agents/tasks
 ```

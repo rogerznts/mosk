@@ -34,7 +34,6 @@ Also:
   - Moves docs/brief.md, docs/market-research.md, docs/competitor-analysis.md
     into docs/discovery/.
   - Moves docs/ui-architecture.md into docs/architecture/.
-  - Moves a legacy .claude/mosk/constitution.md into docs/constitution.md.
   - Rewrites .claude/mosk/core-config.yaml to the v2 schema.
     A backup is saved as .claude/mosk/core-config.yaml.legacy.
   - Creates spec-meta.yaml retroactively for each existing
@@ -64,8 +63,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 DOCS_DIR="$INSTALL_ROOT/docs"
 CONFIG_FILE="$INSTALL_ROOT/.claude/mosk/core-config.yaml"
-LEGACY_CONSTITUTION="$INSTALL_ROOT/.claude/mosk/constitution.md"
-CONSTITUTION_FILE="$DOCS_DIR/constitution.md"
 
 if $DRY_RUN; then
     echo "Mode: DRY RUN (no changes will be made)"
@@ -151,7 +148,6 @@ check_legacy_state() {
     [[ -f "$DOCS_DIR/market-research.md" ]] && reason+=" docs/market-research.md"
     [[ -f "$DOCS_DIR/competitor-analysis.md" ]] && reason+=" docs/competitor-analysis.md"
     [[ -f "$DOCS_DIR/ui-architecture.md" ]] && reason+=" docs/ui-architecture.md"
-    [[ -f "$LEGACY_CONSTITUTION" ]] && reason+=" .claude/mosk/constitution.md"
     if [[ -f "$CONFIG_FILE" ]]; then
         if grep -qE "^(prdFile|architectureFile|prdSharded|prdShardedLocation|architectureSharded|architectureShardedLocation|devStoryLocation)[[:space:]]*:" "$CONFIG_FILE"; then
             reason+=" legacy-core-config"
@@ -222,20 +218,6 @@ move_or_copy "$DOCS_DIR/competitor-analysis.md" \
 move_or_copy "$DOCS_DIR/ui-architecture.md" \
              "$DOCS_DIR/architecture/ui-architecture.md" \
              "ui-architecture -> architecture/"
-echo
-
-# ---------- phase 3.5: migrate legacy constitution ----------
-
-echo "=== phase 3.5: migrate legacy constitution ==="
-if [[ -f "$LEGACY_CONSTITUTION" ]]; then
-    if [[ -f "$CONSTITUTION_FILE" ]]; then
-        echo "skip    $CONSTITUTION_FILE already exists; manual review needed for $LEGACY_CONSTITUTION"
-    else
-        move_or_copy "$LEGACY_CONSTITUTION" "$CONSTITUTION_FILE" "constitution -> docs/"
-    fi
-else
-    echo "no legacy .claude/mosk/constitution.md — skipping"
-fi
 echo
 
 # ---------- phase 4: migrate stories ----------

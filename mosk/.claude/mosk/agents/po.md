@@ -26,7 +26,6 @@ Turn approved product intent into executable specs, plans, and ordered work.
 
 ## Task mapping
 
-- Project principles: `../tasks/constitution.md`
 - Full planning package: `../tasks/full-spec.md`
 - Create or update spec: `../tasks/specify.md`
 - Resolve critical ambiguity: `../tasks/clarify.md`
