@@ -166,11 +166,15 @@ loading protocol.
 |---|---|
 | `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Run first; re-run when structure changes. (task: `boot`) |
 | `/mosk-handoff` | Compacts the current session into a handoff document saved to `docs/handoff/handoff-<YYYY-MM-DD>-<slug>.md` in the **current workspace** (never OS temp), anchored to the active spec/documentation. |
+| `/mosk-write-skill` | Scaffolds a new MOSK skill (agent wrapper or direct support) with proper structure, a trigger-rich description, optional backing task, and the sync steps. |
+| `/mosk-update` | Updates the installed toolkit via `npx degit … --force` (clean-tree guarded), reads the latest `README.md`/`TASKS.md` from GitHub, and reports what changed. |
 | `/mosk-help` | Short MOSK guide: recommended flow, natural-language usage, and when to call each agent. |
 
 ```
 /mosk-boot
 /mosk-handoff próxima sessão vai implementar o checkout (spec 012)
+/mosk-write-skill uma skill para exportar specs em PDF
+/mosk-update
 /mosk-help
 ```
 

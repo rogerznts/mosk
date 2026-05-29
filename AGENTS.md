@@ -23,7 +23,9 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões."
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação."
 - **mosk-ui-expert**: UI: interfaces premium, redesign, estilos visuais e design systems."
+- **mosk-update**: Update: atualiza o toolkit MOSK instalado via `npx degit --force`, lê o README e o TASKS.md direto do GitHub e resume as mudanças. Use ao atualizar/sincronizar a versão do MOSK no projeto."
 - **mosk-ux-expert**: UX: user flows, wireframes e front-end specs."
+- **mosk-write-skill**: Write Skill: cria uma nova skill MOSK (wrapper de agente ou direta de suporte) com estrutura, descrição com gatilhos e sincronização Codex correta."
 - **tea-commit**: Stages and commits pending changes using Conventional Commits format. Reads the diff, alerts for debug code, generates a clear commit message, and commits without skipping hooks.
 - **tea-open-fast-pr**: Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea."
 - **tea-open-pr**: Opens a Pull Request on Gitea using the `tea` CLI. Auto-detects branch type, generates PR text, applies label and assignee automatically.
