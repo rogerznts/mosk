@@ -8,9 +8,32 @@ npx degit rogerznts/mosk/mosk .
 
 ## Important Workspace Note
 
-- The product source of truth is `mosk/`.
-- The root `.claude/` directory in this repository is only the local execution environment for working on MOSK itself.
-- When changing the installable toolkit, edit files under `mosk/`.
+**This is the single most important rule in this repo. Internalize it before any change.**
+
+`npx degit rogerznts/mosk/mosk .` ships **only the contents of `mosk/`**.
+Therefore:
+
+- **Every MOSK product change goes under `mosk/`** — agents, tasks,
+  templates, skills, scripts, checklists. If it should reach a consuming
+  project, it MUST live inside `mosk/`. Nothing outside `mosk/` ships.
+- **Everything at the repo root is "our" local workspace, not the
+  product** and does NOT ship via degit:
+  - root `.claude/` — local execution environment (a mirror used to run
+    MOSK on itself). Editing it never reaches consumers.
+  - root `README.md`, `TASKS.md`, `AGENTS.md`, `CLAUDE.md` — repo-facing
+    docs and instructions for working *on* MOSK.
+  - root `docs/` — our own discovery/specs about MOSK's evolution.
+- **Scripts derive `INSTALL_ROOT` from their own location.** Running
+  `mosk/.claude/mosk/scripts/<x>.sh` targets the **template** (`mosk/`);
+  running the root mirror `.claude/mosk/scripts/<x>.sh` targets the
+  **local env** (repo root). Pick the copy that matches your intent. In
+  particular, `AGENTS.md` and `.codex/` are generated per-root, so the
+  template's parity for consumers comes from the skills existing under
+  `mosk/.claude/skills/` (consumers regenerate their own `AGENTS.md`
+  post-install) — not from any `AGENTS.md` you generate here.
+
+When in doubt: "will a consumer of `npx degit` need this?" → `mosk/`.
+"Is this about building/documenting MOSK itself?" → repo root.
 
 ## Repository Shape
 

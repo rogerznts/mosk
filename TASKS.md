@@ -1,0 +1,193 @@
+# MOSK Task & Skill Catalog
+
+Every MOSK capability, grouped by the agent or skill that owns it. Each
+agent maps natural-language requests to one of these tasks; you can also
+name the task directly (e.g. `/mosk-architect grill`, `/mosk-po artefact`).
+
+- **Pipeline agents** (`po`, `sm`, `dev`, `qa`) run the spec lifecycle.
+- **Preamble agents** (`analyst`, `pm`, `architect`, `ux-expert`, `ui-expert`) ground the work before/around the pipeline.
+- **Standalone skills** (`mosk-boot`, `mosk-handoff`, `mosk-help`) are utilities not tied to a persona.
+- **Support tasks** are invoked by other tasks/templates, not directly.
+
+See the [README](README.md) for the overall flow and document layout.
+
+---
+
+## Preamble agents
+
+### `/mosk-analyst` — Maria · discovery & research
+
+| Task | What it does |
+|---|---|
+| `create-brief` | Project brief → `docs/discovery/brief.md`. |
+| `create-market-research` | Market research report → `docs/discovery/market-research.md`. |
+| `create-competitor-analysis` | Competitor analysis → `docs/discovery/competitor-analysis.md`. |
+| `facilitate-brainstorming-session` | Facilitated brainstorming workshop, captured to `docs/discovery/brainstorming/`. |
+| `create-deep-research-prompt` | Builds a targeted deep-research prompt from briefs/research/questions. |
+| `create-doc` | Generic document from any analyst template. |
+
+### `/mosk-pm` — João · product & PRD
+
+| Task | What it does |
+|---|---|
+| `create-doc` | PRDs and product docs from template → `docs/prd/`. |
+| `execute-checklist` | Validates a product doc against the PM checklist. |
+| `shard-doc` | Splits a monolithic PRD (`docs/prd/raw.md`) into `index.md` + section files. |
+| `planner` | Maintains a living project plan + update log in `docs/project/plan.md`. |
+
+### `/mosk-architect` — Vinicius · architecture & technical design
+
+| Task | What it does |
+|---|---|
+| `create-doc` | Architecture / technical design document → `docs/architecture/`. |
+| `grill` | Relentless one-question-at-a-time interview that stress-tests a plan/design against the domain glossary and documented decisions; sharpens terminology inline (`docs/architecture/glossary.md`) and offers ADRs sparingly. |
+| `execute-checklist` | Architecture checklist review. |
+| `shard-doc` | Shards a large architecture doc (`docs/architecture/raw.md`). |
+
+```
+/mosk-architect design doc para o serviço de cupom
+/mosk-architect grill o plano da spec 012
+```
+
+### `/mosk-ux-expert` — Salete · flows, wireframes, UX behavior
+
+| Task | What it does |
+|---|---|
+| `create-doc` | UX / front-end spec document → `docs/ui/`. |
+| `draft-frontend-prompt` | Generates a front-end build prompt for an external tool. |
+
+### `/mosk-ui-expert` — Tiago · visual polish & design system
+
+Built on the **[taste](https://github.com/Leonxlnx/taste-skill)** design
+engineering system — opinionated rules that override default LLM biases
+toward generic, template-like UI. The taste rules are embedded directly
+in the agent and its tasks; no extra skill discovery is required. The
+agent still loads `.claude/rules/*.md` via the standard MOSK context
+loading protocol.
+
+| Task | Style / effect | Example |
+|---|---|---|
+| *(no arg)* | Shows the menu with all options. | `/mosk-ui-expert` |
+| `webdesign-brutalist` | Swiss typography, terminal aesthetics, rigid grids. | `/mosk-ui-expert brutalist dashboard de monitoramento` |
+| `webdesign-minimalist` | Editorial, warm monochrome, flat bento grids. | `/mosk-ui-expert minimalist landing de analytics` |
+| `webdesign-soft` | $150k+ agency feel, haptic depth, cinematic motion. | `/mosk-ui-expert soft pricing page` |
+| `webdesign-redesign` | Audits and upgrades an existing interface. | `/mosk-ui-expert redesign da home atual` |
+| `webdesign-stitch` | Generates a `DESIGN.md` for Google Stitch. | `/mosk-ui-expert stitch` |
+| `webdesign-output` | Enforces full code generation, no truncation. | `/mosk-ui-expert output completo` |
+
+**What taste enforces:**
+
+- strict anti-AI-pattern rules (no Inter font, no neon glows, no 3-card grids, no generic names)
+- metric-based design dials (variance, motion intensity, visual density)
+- hardware-accelerated CSS animation constraints
+- mandatory interaction states (loading, empty, error, active)
+- responsive collapse guarantees
+- dependency verification before any import
+
+---
+
+## Pipeline agents
+
+### `/mosk-po` — Sara · specs, planning, task generation
+
+| Task | What it does |
+|---|---|
+| `constitution` | Creates/updates the project constitution, syncing dependent templates. |
+| `full-spec` | Runs `specify → plan → tasks` in one pass. |
+| `specify` | Creates/updates only `spec.md` from a natural-language request. |
+| `clarify` | Resolves only critical ambiguities in `spec.md` (≤3 questions, intentionally light — opposite of `grill`). |
+| `plan` | Creates/updates `plan.md` plus supporting artifacts when they add value. |
+| `analyze` | Focused consistency review across the spec artifacts. |
+| `checklist` | Creates/updates a focused quality checklist for the active spec. |
+| `tasks` | Generates a dependency-ordered `tasks.md` from the design artifacts. |
+| `create-epic` / `create-story` | Epic or story for an existing project. |
+| `artefact` | Creates a complementary addendum (small, planned scope addition) for an **active** spec, instead of opening a new branch/spec. |
+| `review-story-draft` | Validates a draft story for completeness. |
+
+```
+/mosk-po full-spec login social para clientes B2B
+/mosk-po specify checkout com cupom
+/mosk-po plan para a spec atual
+/mosk-po tasks para a spec atual
+/mosk-po artefact ajuste de copy no checkout (spec 012)
+```
+
+`full-spec` stops at `tasks`; implementation stays with `/mosk-dev`.
+
+### `/mosk-sm` — Roberto · story readiness & sequencing
+
+| Task | What it does |
+|---|---|
+| `enrich-story` | Prepares the next story, enriching it with technical context. |
+| `review-story-draft` | Validates a draft story before it goes to Dev. |
+| `correct-course` | Re-plans/sequences when work drifts from the agreed path. |
+| `execute-checklist` | Runs the readiness checklist. |
+
+### `/mosk-dev` — Jaime · implementation, QA fixes, archive
+
+| Task | What it does |
+|---|---|
+| `implement` | Executes the active `tasks.md`, keeping progress visible. |
+| `apply-qa-fixes` | Consumes QA gate/assessments and applies code/test changes. |
+| `archive` | Promotes canonical artifacts and moves the spec to `docs/specs/archive/`. |
+| `execute-checklist` | Runs the delivery checklist. |
+| `audit-docs-paths` | Path-integrity audit (5 rules, exit 1 on violations). Also `/mosk-dev audit`. |
+| `index-docs` | Regenerates `docs/index.md`. |
+
+```
+/mosk-dev implement a spec 012
+/mosk-dev archive a spec 012
+/mosk-dev index-docs
+/mosk-dev audit
+```
+
+### `/mosk-qa` — Joaquim · gates, test strategy, reviews
+
+| Task | What it does |
+|---|---|
+| `qa-gate` | Creates/updates the quality gate decision (`gate.yaml`). |
+| `review-story` | Comprehensive test-architecture review + gate decision. |
+| `design-tests` | Test scenarios with recommended test levels. |
+| `trace-spec` | Maps requirements to test cases (Given-When-Then) for traceability. |
+| `assess-risk` | Risk matrix via probability × impact. |
+| `assess-nfr` | NFR validation (security, performance, reliability, maintainability). |
+| `apply-qa-fixes` | Applies QA-driven fixes (shared with Dev). |
+
+```
+/mosk-qa qa-gate a spec 012
+/mosk-qa review a story 2.1
+```
+
+---
+
+## Standalone skills
+
+| Skill | What it does |
+|---|---|
+| `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Run first; re-run when structure changes. (task: `boot`) |
+| `/mosk-handoff` | Compacts the current session into a handoff document saved to `docs/handoff/handoff-<YYYY-MM-DD>-<slug>.md` in the **current workspace** (never OS temp), anchored to the active spec/documentation. |
+| `/mosk-help` | Short MOSK guide: recommended flow, natural-language usage, and when to call each agent. |
+
+```
+/mosk-boot
+/mosk-handoff próxima sessão vai implementar o checkout (spec 012)
+/mosk-help
+```
+
+Git helpers via the `tea` CLI ship alongside MOSK: `/tea-commit`,
+`/tea-open-pr`, `/tea-open-fast-pr`, `/tea-prune-branches`.
+
+---
+
+## Support tasks (invoked indirectly)
+
+These are building blocks called by other tasks/templates — you rarely
+invoke them by name:
+
+| Task | Used by |
+|---|---|
+| `create-doc` | The template-driven doc engine behind analyst/pm/architect/ux `create-doc` entries. |
+| `execute-checklist` | Generic checklist validation engine (pm, architect, sm, dev). |
+| `shard-doc` | Splits any monolithic `raw.md` into `index.md` + sections. |
+| `advanced-elicitation` | Elicitation-method menu offered by document templates during `create-doc`. |
+| `map-project` | Maps an existing project's structure; used by `create-story` and the existing-project PRD template. |

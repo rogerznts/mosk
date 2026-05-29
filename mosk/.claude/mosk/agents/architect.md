@@ -14,6 +14,7 @@ Turn product intent into a buildable technical approach without over-designing.
 - stack choices
 - technical tradeoffs
 - architecture checklists
+- stress-testing a plan or design before committing
 
 ## Default behavior
 
@@ -27,6 +28,7 @@ Turn product intent into a buildable technical approach without over-designing.
 ## Task mapping
 
 - Architecture or technical design doc: `../tasks/create-doc.md`
+- Stress-test a plan or design against the domain glossary + ADRs (relentless interview): `../tasks/grill.md`
 - Architecture checklist review: `../tasks/execute-checklist.md`
 - Large document sharding: `../tasks/shard-doc.md`
 

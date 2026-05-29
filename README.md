@@ -55,6 +55,8 @@ Restart Claude Code after install so the new skills load.
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 
+**Every task each agent (and standalone skill) can run — with a one-line description and usage examples — is catalogued in [TASKS.md](TASKS.md).** Natural language is the preferred UX: slash-activate the agent and describe what you want; you can also name the task directly.
+
 ## Flow
 
 A single pipeline. An optional **preamble** runs first whenever the base of the project (or the feature) is not yet grounded.
@@ -204,57 +206,6 @@ MOSK agents can be invoked two ways inside Claude Code:
 
 For daily use, prefer skills.
 
-## Common Commands
-
-Natural language is the preferred UX — slash-activate the agent and describe what you want.
-
-### Planning (mosk-po)
-
-```
-/mosk-po full-spec login social para clientes B2B
-/mosk-po specify checkout com cupom
-/mosk-po plan para a spec atual
-/mosk-po tasks para a spec atual
-```
-
-### Implementation (mosk-dev)
-
-```
-/mosk-dev implement a spec 012
-/mosk-dev archive a spec 012
-/mosk-dev index-docs
-/mosk-dev audit
-```
-
-### Quality (mosk-qa)
-
-```
-/mosk-qa qa-gate a spec 012
-/mosk-qa review a story 2.1
-```
-
-### UI (mosk-ui-expert)
-
-```
-/mosk-ui-expert landing page para SaaS de analytics
-/mosk-ui-expert redesign da home atual
-/mosk-ui-expert brutalist dashboard de monitoramento
-```
-
-### Command Intent
-
-| Command | What it does |
-|---|---|
-| `full-spec` | runs `specify → plan → tasks` in one pass |
-| `specify` | creates or updates only `spec.md` |
-| `plan` | creates or updates only `plan.md` |
-| `tasks` | creates or updates only `tasks.md` |
-| `implement` | stays with `mosk-dev` |
-| `qa-gate` | stays with `mosk-qa` |
-| `archive` | stays with `mosk-dev` (promotes artifacts, moves spec to archive) |
-| `index-docs` | refreshes `docs/index.md` |
-| `audit` | runs the docs-paths integrity audit (5 rules; exits 1 on violations) |
-
 ## Spec Types
 
 Specs share a single pipeline; the type lives in the folder/branch name:
@@ -277,31 +228,6 @@ Example:
 ```
 012-feature-checkout-coupon
 ```
-
-## UI Expert and the Taste System
-
-The `/mosk-ui-expert` agent (Tiago) is built on top of the **[taste](https://github.com/Leonxlnx/taste-skill)** design engineering system — opinionated rules that override default LLM biases toward generic, template-like UI output. The taste rules are embedded directly into the agent and its tasks; no extra skill discovery is required.
-
-| Command | Style |
-|---|---|
-| `/mosk-ui-expert` | shows menu with all options |
-| `/mosk-ui-expert brutalist` | Swiss typography, terminal aesthetics, rigid grids |
-| `/mosk-ui-expert minimalist` | editorial, warm monochrome, flat bento grids |
-| `/mosk-ui-expert soft` | agency feel, haptic depth, cinematic motion |
-| `/mosk-ui-expert redesign` | audit and upgrade an existing interface |
-| `/mosk-ui-expert stitch` | generate a DESIGN.md for Google Stitch |
-| `/mosk-ui-expert output completo` | enforce full code generation, no truncation |
-
-What taste enforces:
-
-- strict anti-AI-pattern rules (no Inter font, no neon glows, no 3-card grids, no generic names)
-- metric-based design dials (variance, motion intensity, visual density)
-- hardware-accelerated CSS animation constraints
-- mandatory interaction states (loading, empty, error, active)
-- responsive collapse guarantees
-- dependency verification before any import
-
-The agent still loads `.claude/rules/*.md` normally through the standard MOSK context loading protocol.
 
 ## Migrating Existing Projects
 
@@ -350,6 +276,7 @@ your-project/
 │       ├── mosk-architect/
 │       ├── mosk-boot/
 │       ├── mosk-dev/
+│       ├── mosk-handoff/
 │       ├── mosk-help/
 │       ├── mosk-pm/
 │       ├── mosk-po/

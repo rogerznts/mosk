@@ -14,13 +14,15 @@ The following skills are linked in `.codex/skills/`:
 
 - **mosk-analyst**: Discovery: brief, pesquisa de mercado, análise competitiva e brainstorming."
 - **mosk-architect**: Arquitetura: design de sistemas, stack, APIs e infraestrutura."
-- **mosk-boot**: Bootstrap de contexto compacto: gera ctx-project e, se necessario, ctx-frontend."
+- **mosk-boot**: Bootstrap: gera .claude/rules/ com contexto compacto do projeto (project.md e, se houver frontend, frontend.md)."
 - **mosk-dev**: Implementação: implement, archive, debugging, refatoração e apply-qa-fixes."
+- **mosk-handoff**: Handoff: compacta a sessão atual em um documento de transição salvo em docs/handoff/ do workspace, amarrado à spec/documentação ativa."
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
-- **mosk-pm**: Produto: criação de PRD e estratégia de produto (executa uma vez por projeto)."
-- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify → plan → tasks)."
+- **mosk-pm**: Produto: criação de PRD e estratégia de produto."
+- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões."
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação."
+- **mosk-ui-expert**: UI: interfaces premium, redesign, estilos visuais e design systems."
 - **mosk-ux-expert**: UX: user flows, wireframes e front-end specs."
 - **tea-commit**: Stages and commits pending changes using Conventional Commits format. Reads the diff, alerts for debug code, generates a clear commit message, and commits without skipping hooks.
 - **tea-open-fast-pr**: Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea."
