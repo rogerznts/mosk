@@ -18,6 +18,17 @@
   template). Both are consumer-facing templates seeded by MOSK tasks.
 -->
 
+> **Audiência dos artefatos do planner.** `plan.md` e `update-*.md` são
+> documentos de acompanhamento para **PO, stakeholders, gestores de
+> projeto e usuários não-técnicos**. Por padrão o planner escreve em
+> linguagem de progresso/valor, não técnica — detalhe técnico é citável,
+> mas nunca prioritário. Ajuste o tom abaixo se a sua audiência for outra.
+
+> **Escopo por branch.** Na branch principal o planner mantém o plano do
+> **projeto inteiro** (`docs/project/`). Em uma branch de spec, mantém o
+> plano daquela **spec** (`docs/specs/{id}/project/`) e dá um refresh no
+> plano do projeto. Este manual governa os dois escopos.
+
 ## Tracking Cadence
 
 {{TRACKING_CADENCE}}

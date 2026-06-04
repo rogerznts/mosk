@@ -128,6 +128,7 @@ docs/
     │   ├── discovery/          # optional, feature-specific research
     │   ├── architecture/       # optional, feature ADRs + data models
     │   ├── ui/                 # optional, feature flows/wireframes/components
+    │   ├── project/            # optional, planner tracking for this spec (non-technical: plan.md + update-YYYYMMDD.md)
     │   ├── stories/            # stories live HERE, not in a global docs/stories/
     │   ├── tests/              # dev-generated e2e checklists
     │   └── gate.yaml           # qa-gate output

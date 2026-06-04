@@ -33,7 +33,12 @@ See the [README](README.md) for the overall flow and document layout.
 | `create-doc` | PRDs and product docs from template → `docs/prd/`. |
 | `execute-checklist` | Validates a product doc against the PM checklist. |
 | `shard-doc` | Splits a monolithic PRD (`docs/prd/raw.md`) into `index.md` + section files. |
-| `planner` | Maintains a living project plan + update log in `docs/project/plan.md`. |
+| `planner` | Maintains a **non-technical** tracking plan + dated update log for PO/stakeholders. Scope follows the branch: base branch → whole project (`docs/project/`); spec branch → that spec (`docs/specs/{id}/project/`) **plus** a refresh of the project plan. |
+
+```
+/mosk-pm planner                              # tracks the project (base branch) or the current spec (feature branch)
+/mosk-pm planner "fechamos o épico de cupom"  # the comment guides the dated update's narrative
+```
 
 ### `/mosk-architect` — Vinicius · architecture & technical design
 
