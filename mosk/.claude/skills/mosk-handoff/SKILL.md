@@ -76,6 +76,7 @@ Report the saved path and a one-line summary of what the next agent should do fi
 
 ## Rules
 
+- **Write the handoff in the project's communication language** (field *Idioma de comunicação* in `.claude/rules/project.md`; default **português pt-BR** when none is set) — keep code identifiers, commands, paths and file names in their literal form.
 - **Always write inside the workspace** at `docs/handoff/` — never the OS temp directory.
 - **Anchor to the active documentation.** If a spec/PRD/architecture doc is in play, the handoff must name it and link its artifacts by path. This relationship is mandatory, not optional.
 - **Do not duplicate** content already captured in PRDs, plans, ADRs, issues, commits, or diffs — reference them by path or URL instead.

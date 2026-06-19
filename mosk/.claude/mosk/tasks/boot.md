@@ -76,9 +76,12 @@ Create the `.claude/rules/` directory if it does not exist, then write these fil
 
 When generating `project.md`, start from the canonical template at
 `.claude/mosk/templates/project-rule-tmpl.md` and fill in the project
-placeholders (`{{PROJECT_NAME}}`, `{{LANGUAGE_RUNTIME}}`, `{{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}`,
+placeholders (`{{PROJECT_NAME}}`, `{{LANGUAGE_RUNTIME}}`, `{{COMMUNICATION_LANGUAGE}}`, `{{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}`,
 `{{FOLDER_CONVENTIONS_DISCOVERED_IN_THE_CODEBASE}}`, `{{HOW_TO_RUN_TESTS_UNIT_INTEGRATION_E2E}}`,
 `{{PROJECT_SPECIFIC_AI_RULES}}`) with information discovered in Phase 1.
+For `{{COMMUNICATION_LANGUAGE}}` (the language every MOSK agent/skill replies in),
+default to **português (pt-BR)** unless `CLAUDE.md` or the user's request clearly
+indicates another communication language.
 **Keep the MOSK-invariant sections** (Document Organization, Promotion
 Convention, Agent Roles, Escalation Policy, Spec Numbering, docs/index.md)
 exactly as they appear in the template — they are the framework

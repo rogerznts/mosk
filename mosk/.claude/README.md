@@ -66,6 +66,7 @@ Helpers:
 
 - `mosk-boot` — generates `.claude/rules/` and scaffolds `docs/` on first install
 - `mosk-help` — short reference guide
+- `mosk-suggestion` — reads the current phase and suggests the next agent with a ready-to-paste prompt
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure/behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 

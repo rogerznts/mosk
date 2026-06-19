@@ -19,6 +19,13 @@
 
 {{ONE_PARAGRAPH_DESCRIBING_WHAT_THIS_PROJECT_IS_AND_ITS_PRIMARY_GOAL}}
 
+## Communication
+
+- **Idioma de comunicação:** {{COMMUNICATION_LANGUAGE}}
+
+Todos os agentes e skills do MOSK respondem nesse idioma. Para trocar o
+idioma do projeto, edite apenas o valor acima (o padrão é português / pt-BR).
+
 ## Stack
 
 - Language / runtime: {{LANGUAGE_RUNTIME}}
@@ -249,6 +256,10 @@ Manual regeneration: `/mosk-dev index-docs`.
 
 - Read this file and every other `.claude/rules/*.md` before starting
   any task. These are the durable project context.
+- **Idioma:** responda no idioma definido em *Idioma de comunicação*
+  (seção Communication, acima); o padrão é **português (pt-BR)**.
+  Mantenha em forma literal apenas identificadores de código, comandos,
+  caminhos e nomes de arquivo.
 - Respect the `docs/` layout above. Never create ad-hoc folders under
   `docs/` outside the canonical set without updating this rule file.
 - When in doubt whether an artifact belongs to the base or to a spec,

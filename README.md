@@ -291,6 +291,7 @@ your-project/
 │       ├── mosk-po/
 │       ├── mosk-qa/
 │       ├── mosk-sm/
+│       ├── mosk-suggestion/
 │       ├── mosk-ui-expert/
 │       └── mosk-ux-expert/
 └── docs/

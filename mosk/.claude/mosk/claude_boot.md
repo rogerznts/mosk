@@ -72,6 +72,10 @@ This repository contains the MOSK template that is installed into other projects
 npx degit rogerznts/mosk/mosk .
 ```
 
+## Idioma
+
+Os agentes e skills do MOSK respondem no **idioma de comunicação definido nas regras do projeto** (campo *Idioma de comunicação* em `.claude/rules/project.md`). Quando nenhum idioma está definido, o padrão é **português (pt-BR)**. Isso vale independentemente do idioma deste arquivo, dos prompts internos, dos templates ou das tasks (mantidos em inglês por convenção do template). Mantenha em forma literal apenas identificadores de código, comandos, caminhos e nomes de arquivo.
+
 ## Important Workspace Note
 
 - The product source of truth is `mosk/`.
