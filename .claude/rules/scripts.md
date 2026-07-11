@@ -24,16 +24,35 @@ bash .claude/mosk/scripts/create-new-feature.sh \
 ```
 
 **Behavior:**
-- Computes next spec number globally: `max(remote branches, local
-  branches, spec dirs) + 1` (base-10 forced to avoid octal traps).
+- Computes next spec number globally: `max(remote branches, **number
+  reservations**, local branches, active spec dirs, archived spec dirs)
+  + 1` (base-10 forced to avoid octal traps).
+- **Atomic number reservation (collision-proof):** before creating the
+  branch, it reserves the number on `origin` by pushing an immutable ref
+  `refs/spec-numbers/<NNN>` (a unique dangling commit under a
+  must-not-exist `--force-with-lease`). If a concurrent creator grabbed
+  the same number first, git rejects the reservation and the script
+  renumbers and retries (up to `MAX_RESERVE_ATTEMPTS=5`). This closes the
+  old gap where two branches with the same number but different suffixes
+  (e.g. `040-feature-x` and `040-chore-y`) both pushed successfully —
+  the previous exact-branch-name push-rejection check never caught it.
+- These reservation refs are invisible to `git branch`/`git tag`, form a
+  **durable registry**, and are never deleted — so a number is never
+  reused even after its branch is merged and deleted. Read them with
+  `git ls-remote origin 'refs/spec-numbers/*'`.
+- Remotes that reject custom ref namespaces (verified working on GitHub)
+  degrade gracefully to best-effort branch/dir detection with a warning.
+  `--no-push` / non-git installs skip reservation (local numbering only).
+- `--number N` is honored strictly: if that number is already reserved
+  or in use it **fails loudly** instead of silently duplicating.
 - Refuses to create from environment/release/feature branches. Only
   base branches allowed: `main master develop dev`.
 - Branch format: `{###}-{type}-{short-name}` (or `{###}-{short-name}`
   for backward compat). Truncates to 244 bytes (GitHub limit).
 - Generates `spec-meta.yaml` with `status: active`,
   `current_phase: specify`, ISO 8601 timestamps.
-- On push rejection (race): re-fetches, renumbers, renames branch +
-  folder, retries (max 3 attempts).
+- On branch push rejection (rare, exact-name race): re-fetches,
+  renumbers + re-reserves, renames branch + folder, retries.
 - Exports `SPECIFY_FEATURE=<branch>` in the calling shell.
 
 **Called by:** `specify` task (and `full-spec`).

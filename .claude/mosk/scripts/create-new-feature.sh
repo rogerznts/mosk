@@ -6,8 +6,10 @@ JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
 FEATURE_TYPE=""
+EXTENDS=""
 NO_PUSH=false
 MAX_RETRIES=3
+MAX_RESERVE_ATTEMPTS=5
 ARGS=()
 i=1
 while [ $i -le $# ]; do
@@ -43,6 +45,19 @@ while [ $i -le $# ]; do
             fi
             FEATURE_TYPE="$next_arg"
             ;;
+        --extends)
+            if [ $((i + 1)) -gt $# ]; then
+                echo 'Error: --extends requires a value' >&2
+                exit 1
+            fi
+            i=$((i + 1))
+            next_arg="${!i}"
+            if [[ "$next_arg" == --* ]]; then
+                echo 'Error: --extends requires a value' >&2
+                exit 1
+            fi
+            EXTENDS="$next_arg"
+            ;;
         --number)
             if [ $((i + 1)) -gt $# ]; then
                 echo 'Error: --number requires a value' >&2
@@ -60,24 +75,31 @@ while [ $i -le $# ]; do
             NO_PUSH=true
             ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--type <type>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
+            echo "Usage: $0 [--json] [--type <type>] [--extends <spec-id>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
             echo ""
             echo "Options:"
             echo "  --json              Output in JSON format"
-            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental"
+            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental|extension"
+            echo "  --extends <spec-id> Parent spec this one extends (REQUIRED when --type=extension)"
             echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
             echo "  --number N          Specify branch number manually (overrides auto-detection)"
             echo "  --no-push           Do not push the new branch to origin (useful for forks or offline work)"
             echo "  --help, -h          Show this help message"
             echo ""
-            echo "Concurrency: when pushing the new branch fails because another dev"
-            echo "grabbed the same number, the script automatically refetches, renumbers,"
-            echo "renames the branch + folder, and retries (up to 3 times)."
+            echo "Concurrency: before creating the branch, the script atomically"
+            echo "reserves the spec number on 'origin' via an immutable ref"
+            echo "(refs/spec-numbers/<NNN>). If another creator grabbed the same"
+            echo "number first, git rejects the reservation and the script renumbers"
+            echo "and retries. These refs are invisible to 'git branch'/'git tag' and"
+            echo "form a durable registry, so a number is never reused even after its"
+            echo "branch is merged and deleted. Remotes that reject custom refs fall"
+            echo "back to best-effort branch/dir detection."
             echo ""
             echo "Examples:"
             echo "  $0 --type feature --short-name 'user-auth' 'Add user authentication system'"
             echo "  $0 --type fix --short-name 'payment-timeout' 'Fix payment processing timeout'"
             echo "  $0 --type gmud --number 5 'Deploy rollback procedure'"
+            echo "  $0 --type extension --extends 005-feature-checkout-coupon 'Add coupon usage cap per user'"
             exit 0
             ;;
         *)
@@ -91,6 +113,27 @@ FEATURE_DESCRIPTION="${ARGS[*]}"
 if [ -z "$FEATURE_DESCRIPTION" ]; then
     echo "Usage: $0 [--json] [--short-name <name>] [--number N] <feature_description>" >&2
     exit 1
+fi
+
+# Remember an explicitly requested number so retries never silently
+# renumber it; auto-assignment leaves this empty.
+MANUAL_NUMBER="$BRANCH_NUMBER"
+
+# When the spec type is `extension`, the parent spec id is mandatory.
+# Extensions are used to extend an already-archived spec without
+# breaking archive immutability (see Document Organization in the
+# project rules).
+if [ "$FEATURE_TYPE" = "extension" ] && [ -z "$EXTENDS" ]; then
+    echo "Error: --type extension requires --extends <spec-id>" >&2
+    echo "Example: $0 --type extension --extends 005-feature-checkout-coupon 'Add coupon cap'" >&2
+    exit 1
+fi
+
+# --extends only makes sense with --type extension. Warn but do not
+# fail, so callers experimenting with linkage between sibling specs
+# are not blocked.
+if [ -n "$EXTENDS" ] && [ "$FEATURE_TYPE" != "extension" ]; then
+    >&2 echo "[specify] Warning: --extends '$EXTENDS' is set but --type is not 'extension'; the link will still be written to spec-meta.yaml."
 fi
 
 # Function to find the repository root by searching for existing project markers
@@ -117,17 +160,25 @@ get_next_global_number() {
     # Check ALL remote feature branches (any name, just extract the numeric prefix)
     local remote_nums=$(git ls-remote --heads origin 2>/dev/null | grep -oE 'refs/heads/[0-9]+' | grep -oE '[0-9]+' | sort -n)
 
+    # Check durable number reservations (refs/spec-numbers/*). These are
+    # immutable and survive branch deletion, so an archived/merged spec's
+    # number is never handed out twice.
+    local reserved_nums=$(git ls-remote origin 'refs/spec-numbers/*' 2>/dev/null | grep -oE 'refs/spec-numbers/[0-9]+' | grep -oE '[0-9]+$' | sort -n)
+
     # Check ALL local feature branches
     local local_nums=$(git branch 2>/dev/null | grep -oE '[0-9]{3}-' | grep -oE '[0-9]+' | sort -n)
 
-    # Check ALL spec directories
-    local spec_nums=""
+    # Check ALL spec directories (active + archived) so numbers are not reused
+    local spec_nums="" archived_nums=""
     if [ -d "$SPECS_DIR" ]; then
         spec_nums=$(find "$SPECS_DIR" -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename 2>/dev/null | grep -oE '^[0-9]+' | sort -n)
     fi
+    if [ -d "$SPECS_DIR/archive" ]; then
+        archived_nums=$(find "$SPECS_DIR/archive" -maxdepth 1 -type d 2>/dev/null | xargs -n1 basename 2>/dev/null | grep -oE '^[0-9]+' | sort -n)
+    fi
 
     # Combine all sources and get the highest number
-    for num in $remote_nums $local_nums $spec_nums; do
+    for num in $remote_nums $reserved_nums $local_nums $spec_nums $archived_nums; do
         num=$((10#$num))  # force base-10 to avoid octal issues
         if [ "$num" -gt "$max_num" ]; then
             max_num=$num
@@ -156,6 +207,13 @@ else
 fi
 
 cd "$REPO_ROOT"
+
+# Whether we can talk to an 'origin' remote (needed for atomic number
+# reservation and remote collision checks).
+ORIGIN_AVAILABLE=false
+if [ "$HAS_GIT" = true ] && git remote get-url origin >/dev/null 2>&1; then
+    ORIGIN_AVAILABLE=true
+fi
 
 # Guard: only allow branch creation from stable base branches
 # Blocked branches: environment, release, and any existing feature branch
@@ -251,58 +309,134 @@ else
     BRANCH_SUFFIX=$(generate_branch_name "$FEATURE_DESCRIPTION")
 fi
 
-# Determine branch number
-if [ -z "$BRANCH_NUMBER" ]; then
+# GitHub enforces a 244-byte limit on branch names.
+MAX_BRANCH_LENGTH=244
+
+# List spec numbers already reserved on origin (see refs/spec-numbers/*
+# below). Echoes one integer per line; empty when there is no origin.
+list_reserved_numbers() {
+    [ "$HAS_GIT" = true ] && [ "$ORIGIN_AVAILABLE" = true ] || return 0
+    git ls-remote origin 'refs/spec-numbers/*' 2>/dev/null \
+        | grep -oE 'refs/spec-numbers/[0-9]+' | grep -oE '[0-9]+$'
+}
+
+# True when we can atomically reserve numbers on origin.
+reservation_available() {
+    [ "$HAS_GIT" = true ] && [ "$ORIGIN_AVAILABLE" = true ] && [ "$NO_PUSH" = false ]
+}
+
+# Atomically reserve a spec number on origin by creating the immutable
+# ref refs/spec-numbers/<NNN>. It pushes a UNIQUE dangling commit under a
+# "must-not-exist" lease (--force-with-lease=<ref>: with empty expected
+# value). The uniqueness is essential: if two creators pushed the same
+# object git would short-circuit with "Everything up-to-date" and never
+# evaluate the lease. With distinct objects, exactly one push wins and the
+# loser is rejected with "stale info". Returns 0 when we won the number,
+# non-zero when it was already taken (or the push failed). Verified against
+# GitHub; degrades gracefully on remotes that reject custom ref namespaces.
+reserve_spec_number() {
+    local n="$1" tree commit gu gm nonce
+    tree=$(git hash-object -t tree /dev/null 2>/dev/null) || return 1
+    gu=$(git config user.name 2>/dev/null); [ -n "$gu" ] || gu="mosk"
+    gm=$(git config user.email 2>/dev/null); [ -n "$gm" ] || gm="mosk@local"
+    nonce="${n}-$(date -u +%s)-$$-${RANDOM}${RANDOM}-$(hostname 2>/dev/null || echo host)"
+    commit=$(GIT_AUTHOR_NAME="$gu" GIT_AUTHOR_EMAIL="$gm" \
+             GIT_COMMITTER_NAME="$gu" GIT_COMMITTER_EMAIL="$gm" \
+             git commit-tree "$tree" -m "mosk: reserve spec number $nonce" 2>/dev/null) || return 1
+    git push --force-with-lease="refs/spec-numbers/$n:" origin \
+        "${commit}:refs/spec-numbers/$n" >/dev/null 2>&1
+}
+
+# Build BRANCH_NAME / FEATURE_NUM from the current BRANCH_NUMBER and
+# enforce GitHub's branch-name byte limit.
+rebuild_branch_name() {
+    FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
+    local prefix
+    if [ -n "$FEATURE_TYPE" ]; then
+        CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+        prefix="${FEATURE_NUM}-${CLEAN_TYPE}-"
+    else
+        prefix="${FEATURE_NUM}-"
+    fi
+    BRANCH_NAME="${prefix}${BRANCH_SUFFIX}"
+    if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
+        local max_suffix=$((MAX_BRANCH_LENGTH - ${#prefix}))
+        local trimmed
+        trimmed=$(echo "$BRANCH_SUFFIX" | cut -c1-"$max_suffix" | sed 's/-$//')
+        local original="$BRANCH_NAME"
+        BRANCH_NAME="${prefix}${trimmed}"
+        >&2 echo "[specify] Warning: Branch name exceeded GitHub's ${MAX_BRANCH_LENGTH}-byte limit"
+        >&2 echo "[specify] Original: $original (${#original} bytes)"
+        >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
+    fi
+}
+
+# Pick a spec number and, when a live origin allows it, reserve it
+# atomically so two concurrent creators can never grab the same number.
+# Sets BRANCH_NUMBER, FEATURE_NUM, BRANCH_NAME and (on success) marks
+# NUMBER_RESERVED=true.
+NUMBER_RESERVED=false
+acquire_spec_number() {
+    # Explicit --number: honor it strictly. Never silently renumber; fail
+    # loudly when it is already taken so the caller picks another.
+    if [ -n "$MANUAL_NUMBER" ]; then
+        BRANCH_NUMBER="$MANUAL_NUMBER"
+        rebuild_branch_name
+        if reservation_available; then
+            git fetch --all --prune >/dev/null 2>&1 || true
+            if reserve_spec_number "$FEATURE_NUM"; then
+                NUMBER_RESERVED=true
+            else
+                echo "Error: spec number $FEATURE_NUM is already reserved or in use on origin." >&2
+                echo "       Choose another with --number, or omit --number to auto-assign." >&2
+                exit 1
+            fi
+        elif [ -d "$SPECS_DIR" ] && ls -d "$SPECS_DIR/${FEATURE_NUM}-"*/ >/dev/null 2>&1; then
+            echo "Error: a spec directory with number $FEATURE_NUM already exists locally." >&2
+            echo "       Choose another with --number, or omit --number to auto-assign." >&2
+            exit 1
+        fi
+        return
+    fi
+
+    if reservation_available; then
+        local attempt=1
+        while [ "$attempt" -le "$MAX_RESERVE_ATTEMPTS" ]; do
+            BRANCH_NUMBER=$(get_next_global_number)   # fetches + unions reservations
+            rebuild_branch_name
+            if reserve_spec_number "$FEATURE_NUM"; then
+                NUMBER_RESERVED=true
+                return
+            fi
+            >&2 echo "[specify] Number $FEATURE_NUM was just reserved by another creator; retrying ($attempt/$MAX_RESERVE_ATTEMPTS)…"
+            attempt=$((attempt + 1))
+        done
+        >&2 echo "[specify] Warning: could not atomically reserve a number after $MAX_RESERVE_ATTEMPTS attempts."
+        >&2 echo "[specify]          Proceeding best-effort; the branch-name push still guards exact-name collisions."
+        BRANCH_NUMBER=$(get_next_global_number)
+        rebuild_branch_name
+        return
+    fi
+
+    # No origin / --no-push / no git: best-effort local numbering.
     if [ "$HAS_GIT" = true ]; then
-        # Find the highest number across ALL branches and specs globally
         BRANCH_NUMBER=$(get_next_global_number)
     else
-        # Fall back to local directory check
-        HIGHEST=0
-        if [ -d "$SPECS_DIR" ]; then
-            for dir in "$SPECS_DIR"/*; do
-                [ -d "$dir" ] || continue
-                dirname=$(basename "$dir")
-                number=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
-                number=$((10#$number))
-                if [ "$number" -gt "$HIGHEST" ]; then HIGHEST=$number; fi
-            done
-        fi
-        BRANCH_NUMBER=$((HIGHEST + 1))
+        local highest=0 d dn num
+        for d in "$SPECS_DIR"/* "$SPECS_DIR"/archive/*; do
+            [ -d "$d" ] || continue
+            dn=$(basename "$d")
+            num=$(echo "$dn" | grep -oE '^[0-9]+' || echo "0")
+            num=$((10#$num))
+            [ "$num" -gt "$highest" ] && highest=$num
+        done
+        BRANCH_NUMBER=$((highest + 1))
     fi
-fi
+    rebuild_branch_name
+    >&2 echo "[specify] Note: atomic number reservation unavailable (no origin or --no-push); using best-effort local numbering."
+}
 
-FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
-
-# Build branch name: {###}-{type}-{name} or {###}-{name} (backward compat)
-if [ -n "$FEATURE_TYPE" ]; then
-    # Clean the type value
-    CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-    BRANCH_NAME="${FEATURE_NUM}-${CLEAN_TYPE}-${BRANCH_SUFFIX}"
-else
-    BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
-fi
-
-# GitHub enforces a 244-byte limit on branch names
-# Validate and truncate if necessary
-MAX_BRANCH_LENGTH=244
-if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
-    # Calculate how much we need to trim from suffix
-    # Account for: feature number (3) + hyphen (1) = 4 chars
-    MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - 4))
-    
-    # Truncate suffix at word boundary if possible
-    TRUNCATED_SUFFIX=$(echo "$BRANCH_SUFFIX" | cut -c1-$MAX_SUFFIX_LENGTH)
-    # Remove trailing hyphen if truncation created one
-    TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
-    
-    ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
-    BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
-    
-    >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
-    >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
-    >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
-fi
+acquire_spec_number
 
 # Write initial spec-meta.yaml for the new spec.
 write_initial_spec_meta() {
@@ -311,6 +445,7 @@ write_initial_spec_meta() {
     local spec_id="$3"
     local spec_type="$4"
     local spec_branch="$5"
+    local spec_extends="$6"
     local now
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local created_by=""
@@ -335,6 +470,9 @@ status: active
 current_phase: specify
 last_phase_change: "$now"
 EOF
+    if [ -n "$spec_extends" ]; then
+        echo "extends: \"$spec_extends\"" >> "$spec_dir/spec-meta.yaml"
+    fi
 }
 
 # Set up branch + folder. In git mode, also push atomically with retry
@@ -363,7 +501,7 @@ create_branch_and_folder() {
         SPEC_FILE="$FEATURE_DIR/spec.md"
         if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME"
+        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
 
         # Try atomic push if git is present and user didn't opt out.
         if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then
@@ -413,32 +551,12 @@ create_branch_and_folder() {
     done
 }
 
-# Recompute the next number and rebuild BRANCH_NAME / FEATURE_NUM.
+# Recompute the next number and rebuild BRANCH_NAME / FEATURE_NUM after a
+# collision. Abandon any manual number (the collision forced us off it) and
+# acquire — and, when possible, atomically reserve — a fresh number.
 renumber_and_rebuild() {
-    if [ "$HAS_GIT" = true ]; then
-        git fetch --all --prune 2>/dev/null || true
-        BRANCH_NUMBER=$(get_next_global_number)
-    else
-        # Local fallback: scan existing spec dirs again.
-        local highest=0 dirname num
-        if [ -d "$SPECS_DIR" ]; then
-            for d in "$SPECS_DIR"/*; do
-                [ -d "$d" ] || continue
-                dirname=$(basename "$d")
-                num=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
-                num=$((10#$num))
-                [ "$num" -gt "$highest" ] && highest=$num
-            done
-        fi
-        BRANCH_NUMBER=$((highest + 1))
-    fi
-    FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
-    if [ -n "$FEATURE_TYPE" ]; then
-        CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-        BRANCH_NAME="${FEATURE_NUM}-${CLEAN_TYPE}-${BRANCH_SUFFIX}"
-    else
-        BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
-    fi
+    MANUAL_NUMBER=""
+    acquire_spec_number
 }
 
 create_branch_and_folder
