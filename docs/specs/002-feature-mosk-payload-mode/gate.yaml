@@ -113,9 +113,11 @@ top_issues:
     action: "Monitor: validar o isolamento Tier-2 numa sessão Codex real quando conveniente."
 
 residual_risks:
-  - "MONITOR: fase `po` (plan/tasks) e galho de auto-escalação dev→architect não exercitados no smoke ao vivo (só dev→qa)."
-  - "MONITOR: isolamento Tier-2 do Codex é contrato (ADR-0004), não observado em sessão Codex real."
-  - "MECÂNICO: modo só materializa via degit da default branch após o merge na master."
+  - "NEGÓCIO (não é defeito): a granularidade do 'conflito de agenda' (timestamp exato vs dia) é escolha do usuário; o modo adota um default seguro e reversível e sinaliza para o grill — comportamento correto por design."
+  # RESOLVIDOS após validações ao vivo (mantidos como histórico):
+  # - fase po + auto-escalação dev→architect → OBSERVADOS ao vivo (fan-out completo po→dev→architect→dev, 16/16).
+  # - isolamento Tier-2 do Codex → codex exec leu e honrou o contrato.
+  # - degit da default branch → PR #4 MERGED; degit sem #branch serve o modo.
 
 mitigations_applied:
   - id: STARTER-002
@@ -145,15 +147,29 @@ mitigations_applied:
     what: >-
       Codex CLI presente (0.144.6); link-codex-skills.sh num consumer cria
       `.codex/skills/mosk-bench` e a entrada `/mosk-bench` no AGENTS.md. Paridade
-      estrutural confirmada.
+      estrutural confirmada. AO VIVO: `codex exec` (read-only) leu o contrato
+      shippado (bench-mode.md + SKILL.md) e descreveu corretamente o isolamento
+      Tier-2 (executa invoke_phase_agent na mesma sessão, suprime saída técnica,
+      build-log.md efêmero, decisions-log.md auditável). Contrato consumido e
+      honrado — não só materializado.
+  - id: FASEB-001-fanout-completo
+    date: "2026-07-20"
+    what: >-
+      Fan-out COMPLETO po→dev→architect→dev observado ao vivo (projeto Agenda de
+      Compromissos, 2 regras). mosk-po produziu plan.md/tasks.md; mosk-dev
+      implementou tudo e AUTO-ESCALOU a granularidade da Regra 1 ao architect
+      (ADR-0002) em vez de chutar; mosk-architect decidiu (A) por default seguro
+      reversível E sinalizou o resíduo de NEGÓCIO (A vs B) para o grill/pm sem
+      bloquear (limite duro do ADR-0002 respeitado — não inventou regra); mosk-dev
+      retomou, fechou a Regra 1, loop verde em 2 iterações. Final: 16/16 testes,
+      Regra 1 + Regra 2 + smoke cobertos. decisions-log registrou escalação e
+      resolução.
 
 recommendations:
   immediate: []   # todos os 4 top_issues endereçados
-  before_merge:
-    - "Abrir PR para master (fecha a parte mecânica de DEGIT-003)."
+  before_merge: []   # PR #4 aberto e MERGED em master
   monitor:
-    - "Fase `po` (plan/tasks) e auto-escalação dev→architect ao vivo (FASEB-001 residual)."
-    - "Isolamento Tier-2 numa sessão Codex real (CODEX-004 residual)."
+    - "Granularidade da Regra 1 do tipo 'conflito de agenda' (A timestamp vs B dia): resíduo de NEGÓCIO — confirmar com o usuário no grill quando um caso real surgir. Exemplo emergiu no smoke ao vivo; não é defeito do modo."
 
 waiver:
   active: false
