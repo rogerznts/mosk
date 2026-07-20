@@ -52,6 +52,9 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-sm` (Roberto) | story readiness, sequencing |
 | `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
+| `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
+
+`/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter).
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 

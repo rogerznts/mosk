@@ -99,7 +99,7 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 - [x] T023 Rodar `bash mosk/.claude/mosk/scripts/sync-agents-skills.sh --clean` (gera `.claude/agents/mosk-bench.md`, alinha as 3 camadas) e validar cross-refs skill↔agente↔task (FR-037).
 - [ ] T024 Rodar `bash mosk/.claude/mosk/scripts/link-codex-skills.sh` (paridade Codex; `AGENTS.md` auto-gerado, nunca editar à mão) e confirmar equivalência de comportamento nos dois runtimes (FR-030).
 - [ ] T025 [P] Smoke-install: `npx degit rogerznts/mosk/mosk .` em diretório scratch; confirmar que skill/task/agente/starter/scripts materializam; subir o starter e validar admin pt-BR + login + smoke verde.
-- [ ] T026 Atualizar docs do repo (CLAUDE.md/README/rules) mencionando o modo `/mosk-bench` e refrescar `docs/index.md` (task `index-docs`).
+- [x] T026 Atualizar docs do repo (CLAUDE.md/README/rules) mencionando o modo `/mosk-bench` e refrescar `docs/index.md`. Feito: README (roster + nota do modo), CLAUDE.md (10 agents), `.claude/rules/project.md` (10 persona prompts + nota bench), TASKS.md (linha `/mosk-bench` em Standalone skills), `docs/index.md` (refs `/mosk-payload`→`/mosk-bench`, fase `implement`, ADR-0004). Index atualizado à mão (não via `index-docs`) para preservar o conteúdo PMO curado.
 
 ---
 

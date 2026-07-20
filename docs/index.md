@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-07-19
+Last updated: 2026-07-20
 
 ## Visão geral
 
@@ -17,11 +17,12 @@ Corporativo).
 - **discovery/** — `project-manual.md` (manual de acompanhamento PMO: Tripé,
   Protocolo Nexus, Pulsação, auditoria de metadados);
   [`mosk-payload-mode-brief.md`](./discovery/mosk-payload-mode-brief.md)
-  (brief do modo `/mosk-payload`, persona Bento — 13 decisões).
+  (brief do modo `/mosk-bench`, persona Bento — 13 decisões).
 - **architecture/** — [`mosk-payload-mode.md`](./architecture/mosk-payload-mode.md)
-  (design do modo `/mosk-payload`) + [`adr/`](./architecture/adr/)
+  (design do modo `/mosk-bench`) + [`adr/`](./architecture/adr/)
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
-  ADR-0003 golden starter versionado).
+  ADR-0003 golden starter versionado; ADR-0004 orquestração agnóstica de
+  runtime, ainda na spec 002 — será promovido no archive).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
   - [`guia-atualizacao-plane.md`](./project/guia-atualizacao-plane.md) — como
@@ -46,7 +47,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 002 | [feature-mosk-payload-mode](./specs/002-feature-mosk-payload-mode/) | tasks | 002-feature-mosk-payload-mode | 2026-07-19 |
+| 002 | [feature-mosk-payload-mode](./specs/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | implement | 002-feature-mosk-payload-mode | 2026-07-19 |
 
 ### Outras
 
