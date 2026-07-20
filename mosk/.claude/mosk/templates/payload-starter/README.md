@@ -55,11 +55,12 @@ smoke verde.
 - As versões em `package.json` estão **pinadas exatas** (sem `^`/`~`) para subida
   reprodutível. Ao atualizar o Payload/Next, faça-o como **mudança versionada e
   revisada** aqui no `mosk/` (ADR-0003).
-- **`pnpm-lock.yaml` não é versionado neste template.** Ele é gerado na primeira
-  subida (`pnpm install` dentro do container) e persiste no volume do projeto
-  gerado. Se o time MOSK quiser travar também as dependências transitivas,
-  rode `pnpm install` uma vez neste starter e **commite o `pnpm-lock.yaml`
-  resultante** — a partir daí o compose pode usar `pnpm install --frozen-lockfile`.
+- **`pnpm-lock.yaml` é versionado neste template** (FR-034), travando também as
+  dependências transitivas. O compose usa `pnpm install --frozen-lockfile`, então
+  a instalação é reprodutível entre máquinas e datas. Ao mudar `package.json`
+  (ex.: bump do Payload/Next), **regenere o lock** — suba o starter uma vez, rode
+  `pnpm install` (sem `--frozen`) dentro do container e **commite o
+  `pnpm-lock.yaml` atualizado** junto com o `package.json`.
 - Os arquivos sob `src/app/(payload)/` são **boilerplate gerado pelo Payload 3**.
   Ao subir a versão do Payload, reconcilie-os com o template oficial da versão
   pinada (`create-payload-app` blank) durante a validação M1.

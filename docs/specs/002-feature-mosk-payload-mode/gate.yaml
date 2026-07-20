@@ -1,0 +1,137 @@
+schema: 1
+identifier: "002-feature-mosk-payload-mode"
+gate: CONCERNS
+status_reason: >-
+  MVP (US1/US3) validado em runtime com invariantes travadas por construção e as
+  26 tarefas fechadas. Pós-gate: STARTER-002 RESOLVIDO (pnpm-lock.yaml versionado
+  + --frozen-lockfile validado) e FASEB-001 materialmente de-riscado por um smoke
+  real da Fase B (loop-until-green red→green com regra de negócio, teto 3,
+  decisions-log/build-log/gate gerados). Resta como CONCERNS estreito: o fan-out
+  po→dev→qa AO VIVO (via invoke_phase_agent numa sessão real) e a paridade Codex
+  seguem como contrato/monitor, não observados em runtime. Pronto para PR.
+reviewer: "Joaquim (mosk-qa) + mitigações pós-gate (mosk-analyst)"
+updated: "2026-07-20T03:40:00Z"
+
+# ---------------------------------------------------------------------------
+# Evidência por invariante (INV-1..6) — travadas por construção, não pelo LLM
+# ---------------------------------------------------------------------------
+invariants:
+  INV-1_admin_ptBR_menu_completo:
+    status: verified
+    evidence: >-
+      payload.config.ts: i18n.fallbackLanguage 'pt' + supportedLanguages {pt,en};
+      collections sem admin.hidden/group. Runtime confirmou admin lang="pt".
+  INV-2_modulo_igual_collection:
+    status: verified
+    evidence: >-
+      payload.config registra collections; FR-011 trava LLM a editar só
+      src/collections/ e labels. Runtime: collection Produtos (pt-BR) criada como
+      collection e /api/produtos registrado no menu.
+  INV-3_postgres_redis:
+    status: verified
+    evidence: >-
+      .mosk-infra/docker-compose.yml: postgres:16-alpine + redis:7-alpine na
+      mosk-net; payload.config usa postgresAdapter. Runtime: pg_isready+redis ping OK.
+  INV-4_zero_build_local:
+    status: verified
+    evidence: >-
+      compose do projeto só serviço app (node:22-bookworm-slim, sem build);
+      payload-env.sh só valida/instala Docker com confirmação explícita.
+  INV-5_grill_so_regra_de_negocio:
+    status: verified_by_contract
+    evidence: >-
+      bench.md/bench-mode.md: pergunta só regra de negócio; bifurcação técnica =>
+      default seguro + aviso (FR-014). Contrato de prompt; não há suite automatizada.
+  INV-6_saida_ptBR_simples:
+    status: verified_by_contract
+    evidence: >-
+      bench.md proíbe jargão/porta/DB/YAML/comando ao leigo; entrega e resumos
+      CONCERNS em pt-BR. Contrato de prompt.
+
+# ---------------------------------------------------------------------------
+# FRs críticos
+# ---------------------------------------------------------------------------
+critical_frs:
+  FR-003_004_env_docker: { status: verified, evidence: "payload-env.sh: ordem --version→info→compose version; instalação guiada com UMA confirmação, sudo, --dry-run/--help. US3 validado sem Docker." }
+  FR-005_006_infra_idempotente: { status: verified, evidence: "payload-infra.sh idempotente (reusa se de pé) + health gate pg_isready/redis-cli ping. Runtime: infra sobe e é reusada." }
+  FR-007_008_provisionamento: { status: verified, evidence: "DB por slug (checa pg_database), Redis 0-15 c/ fallback prefixo, porta bind-test /dev/tcp desde 3000, tudo em registry.yaml. Runtime: 2 projetos com porta/db/redis distintos." }
+  FR-009_scaffold: { status: verified, evidence: "Runtime: starter copiado, git init, .env, .claude/rules/payload.md gerados." }
+  FR-012_021_iteracao_aditiva: { status: verified_by_contract, evidence: "bench-mode.md Fase 6: pula scaffold, spec aditiva N via create-new-feature.sh, reusa registry. Não exercitado em runtime multi-ciclo." }
+  FR-019_testes_local_api: { status: verified, evidence: "smoke.test.ts (Vitest/Local API). Runtime: suíte acumulada 5/5 (smoke 4 + módulo 1)." }
+  FR-020_022_025_faseB_loop_autoescalacao: { status: mostly_verified, evidence: "bench-mode.md define RAPC + seam invoke_phase_agent (Tier 1/2), MAX_FIX_ATTEMPTS=3, decisions-log.md, qa-gate. Smoke pós-gate exercitou o loop-until-green de verdade: regra 'só admin exclui' virou teste, tentativa 1 VERMELHA (comum excluía), tentativa 2 VERDE (access.delete), suíte 6/6, decisions-log.md/build-log.md/gate-smoke.yaml gerados. Resta não-observado: o fan-out po→dev→qa AO VIVO via subagentes reais." }
+  FR-030_paridade_runtime: { status: verified_by_contract, evidence: "ADR-0004: contrato de fases agnóstico + isolamento como capacidade (Tier1 estrutural / Tier2 lógico). Paridade Codex não exercitada em runtime." }
+  FR-034_starter: { status: verified, evidence: "22 arquivos + pnpm-lock.yaml (5642 linhas) versionados; next 15.3.9 + @payloadcms/translations pinados; compose usa pnpm install --frozen-lockfile (validado: 'Lockfile is up to date'). Reprodutibilidade garantida." }
+  FR-037_sync_camadas: { status: verified, evidence: "sync-agents-skills.sh --clean rodado (T023); cross-refs skill↔agente↔task válidas." }
+
+top_issues:
+  - id: FASEB-001
+    severity: low   # rebaixado de high após smoke pós-gate
+    status: mitigated
+    finding: >-
+      O loop-until-green autônomo da Fase B (fan-out real po→dev→qa com
+      auto-escalação) é o coração diferenciador do modo. Era contrato de prompt
+      não exercitado; um smoke real pós-gate exercitou o loop de ponta a ponta
+      (ver mitigations). Resta não-observado apenas o fan-out AO VIVO via
+      subagentes reais numa sessão do modo.
+    affects: [FR-020, FR-022, FR-025, FR-026, SC-004]
+    action: >-
+      RESOLVIDO parcialmente: loop/teto/artefatos provados por smoke. Monitorar a
+      primeira execução real do modo para observar o fan-out po→dev→qa ao vivo.
+  - id: STARTER-002
+    severity: medium
+    status: resolved
+    finding: >-
+      pnpm-lock.yaml não versionado no starter, contrariando FR-034. RESOLVIDO:
+      lock (5642 linhas) versionado e compose migrado para --frozen-lockfile
+      (validado 'Lockfile is up to date').
+    affects: [FR-034, FR-005]
+    action: "RESOLVIDO."
+  - id: DEGIT-003
+    severity: medium
+    finding: >-
+      npx degit real contra o GitHub só reflete o modo na branch 002 (validado por
+      cópia local + branch pushada), ainda não na master.
+    affects: [FR-030, T025]
+    action: "Merge para master e smoke-install real via degit antes de anunciar disponível."
+  - id: CODEX-004
+    severity: low
+    finding: >-
+      T024 (link-codex) resolvido por decisão de workspace (artefatos per-root não
+      shipam), não por execução; paridade Codex validada por presença de skill, não
+      por rodar o modo no Codex.
+    affects: [FR-030, T024]
+    action: "Aceitável pela regra do CLAUDE.md; validar em sessão Codex quando possível."
+
+residual_risks:
+  - "Fase B autônoma não exercitada: comportamento real do fan-out/escalação é inferido do prompt."
+  - "Reprodutibilidade do starter depende do pin de package.json até o lock nascer."
+  - "Paridade Codex é contrato (ADR-0004), não validada em runtime."
+
+mitigations_applied:
+  - id: STARTER-002
+    date: "2026-07-20"
+    what: >-
+      pnpm-lock.yaml (5642 linhas) gerado a partir do package.json corrigido e
+      versionado no starter; compose migrado para `pnpm install --frozen-lockfile`;
+      README atualizado. Validado no container: 'Lockfile is up to date'.
+  - id: FASEB-001
+    date: "2026-07-20"
+    what: >-
+      Smoke real da Fase B: briefing mínimo (collection Tarefas + regra 'só admin
+      exclui'). Regra derivada em teste; build-loop tentativa 1 VERMELHA (comum
+      excluía), tentativa 2 VERDE (access.delete=admin) dentro do teto (2/3);
+      suíte final 6/6; artefatos decisions-log.md/build-log.md/gate-smoke.yaml
+      gerados. Prova loop-until-green + teto + registro de decisão técnica
+      automática + tradução de regra de negócio em teste. Não coberto: o fan-out
+      po→dev→qa AO VIVO via subagentes reais (segue como monitor).
+
+recommendations:
+  immediate: []   # STARTER-002 e FASEB-001 endereçados
+  before_merge:
+    - "Merge para master + smoke-install degit real (DEGIT-003)."
+  monitor:
+    - "Observar o fan-out po→dev→qa ao vivo na primeira execução real do modo (FASEB-001 residual)."
+    - "Primeira validação do modo no Codex quando houver ambiente (CODEX-004)."
+
+waiver:
+  active: false

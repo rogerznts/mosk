@@ -3,15 +3,18 @@
 # (~/projects/.mosk-infra/), provisionada por payload-infra.sh (ADR-0001).
 #
 # INVARIANTE (INV-4): imagem pinada, zero build local. O código é montado
-# como volume; a primeira subida roda `pnpm install` (demora um pouco) e
-# `node_modules` fica num volume nomeado para as próximas subidas serem rápidas.
+# como volume; a primeira subida roda `pnpm install --frozen-lockfile` (demora
+# um pouco) e `node_modules` fica num volume nomeado para as próximas subidas
+# serem rápidas. O `pnpm-lock.yaml` é versionado no starter (FR-034), então a
+# instalação é reprodutível entre máquinas/datas.
 
 services:
   app:
     image: node:22-bookworm-slim
     working_dir: /app
     # corepack habilita o pnpm que já vem com a imagem do Node 22.
-    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    # --frozen-lockfile: falha se package.json divergir do lock (reprodutível).
+    command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm dev"
     ports:
       - "${ADMIN_PORT}:3000"
     env_file:
