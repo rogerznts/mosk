@@ -26,11 +26,11 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 
 ---
 
-## Phase 2: Foundational — Starter versionado (M1) 🎯 base "sobe e loga"
+## Phase 2: Foundational — Starter versionado (M1) base "sobe e loga"
 
 **Purpose**: golden starter que sobe e loga antes de qualquer customização (ADR-0003). Bloqueia US1/US2 (o build da Fase B depende do starter e dos smoke tests).
 
-**⚠️ CRITICAL**: nenhuma story funciona end-to-end sem o starter verde.
+**CRITICAL**: nenhuma story funciona end-to-end sem o starter verde.
 
 - [x] T002 [P] Criar `mosk/.claude/mosk/templates/payload-starter/docker-compose.yml` — só serviço `app` (`node:22-bookworm-slim`, sem build), código como volume + volume nomeado `node_modules`, rede externa `mosk-net`, `${ADMIN_PORT}:3000`, `command: corepack enable && pnpm install && pnpm dev` (FR-010).
 - [x] T003 [P] Criar `mosk/.claude/mosk/templates/payload-starter/.mosk-infra/docker-compose.yml` — Postgres `16-alpine` + Redis `7-alpine` + rede `mosk-net` (`name: mosk-net`, quem cria a rede), volumes nomeados persistentes (FR-005, ADR-0001).
@@ -67,14 +67,14 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 
 ---
 
-## Phase 5: US1 — Criar ferramenta do zero + Fase A/B (M4/M5) 🎯 MVP
+## Phase 5: US1 — Criar ferramenta do zero + Fase A/B (M4/M5) MVP
 
 **Goal**: fluxo end-to-end do leigo (spec US1). **Independent Test**: `/mosk-bench` em máquina só com Docker gera ferramenta que sobe/loga/responde às regras, sem decisão técnica exposta.
 
 - [x] T016 [US1] Em `bench-mode.md`: bloco de **scaffold de projeto novo** — copia `payload-starter/` as-is p/ `~/projects/<nome>`, `git init`, gera `.env` (DB/porta/Redis do `registry.yaml`), gera `.claude/rules/payload.md` a partir do T014 (FR-009).
 - [x] T017 [US1] Em `bench-mode.md`: **Fase A (grill)** — invoca `tasks/grill.md` com checklist obrigatório (collections+campos, papéis, integrações, labels pt-BR, regras, critério de "pronto"); pergunta só regra de negócio; bifurcação técnica → default+aviso; converge só com checklist 100%; escape "chega" congela com lacunas (FR-013/014/015/016).
 - [x] T018 [US1] Em `bench-mode.md`: **congelar briefing + derivar testes** — grava `briefing.md`+`checklist.yaml`; deriva camadas de teste (smoke herdado; por collection: existe/campos/CRUD/papéis; asserts de regra) via Local API, simetria checklist=testes (FR-017/018/019).
-- [x] T019 [US1] Em `bench-mode.md`: **Fase B (build headless)** — orquestração SDD `specify→plan→tasks→build-loop→qa-gate→deliver` como **contrato de fases agnóstico de runtime (RAPC)**, estado por filesystem (`spec-meta.yaml.current_phase`, artefatos, `decisions-log.md`), loop determinístico com `MAX_FIX_ATTEMPTS=3`, auto-escalação escopada (ADR-0002). Isolamento via **um único seam** `invoke_phase_agent(role, phase, spec_dir)`: **Tier 1** = subagente nativo (Claude Code, isolamento estrutural); **Tier 2** = mesma sessão com supressão de output + `build-log.md` (Codex, isolamento lógico). **Contrato de apresentação único** (mesma linha de progresso pt-BR por fase + entrega final nos dois runtimes). `gate.yaml`, entrega pt-BR (FR-020..029, ADR-0004). ✅ **Desbloqueado** por T020.
+- [x] T019 [US1] Em `bench-mode.md`: **Fase B (build headless)** — orquestração SDD `specify→plan→tasks→build-loop→qa-gate→deliver` como **contrato de fases agnóstico de runtime (RAPC)**, estado por filesystem (`spec-meta.yaml.current_phase`, artefatos, `decisions-log.md`), loop determinístico com `MAX_FIX_ATTEMPTS=3`, auto-escalação escopada (ADR-0002). Isolamento via **um único seam** `invoke_phase_agent(role, phase, spec_dir)`: **Tier 1** = subagente nativo (Claude Code, isolamento estrutural); **Tier 2** = mesma sessão com supressão de output + `build-log.md` (Codex, isolamento lógico). **Contrato de apresentação único** (mesma linha de progresso pt-BR por fase + entrega final nos dois runtimes). `gate.yaml`, entrega pt-BR (FR-020..029, ADR-0004). **Desbloqueado** por T020.
 - [x] T020 [US1] **[RESOLVIDO]** ADR-0004 fechado — síntese: contrato de fases agnóstico de runtime + isolamento como capacidade (Tier 1 estrutural / Tier 2 lógico), **não** (a) puro nem (b) nivelado por baixo. Ver `architecture/adr-0004-runtime-agnostic-phase-orchestration.md` (promove p/ `docs/architecture/adr/`). Ajustes aplicados: FR-030 e Edge Case Codex suavizados para "equivalente + isolamento por capacidade"; T019 reescrito.
 
 **Checkpoint US1/MVP**: fluxo do zero à ferramenta rodando; smoke+regra verdes; entrega pt-BR com URL/credenciais.
@@ -123,7 +123,7 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 
 ### MVP (US1)
 1. T001 → Foundational (T002–T011) → Prompt (T012–T015).
-2. ✅ **T020 (ADR-0004) fechado** — T019 desbloqueado.
+2. **T020 (ADR-0004) fechado** — T019 desbloqueado.
 3. US1 (T016–T019) → **validar end-to-end** (leigo do zero à ferramenta rodando).
 
 ### Incremental

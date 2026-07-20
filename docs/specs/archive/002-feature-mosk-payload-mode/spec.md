@@ -203,3 +203,8 @@ Um usuário leigo ativa o modo numa máquina sem Docker. O modo detecta o SO, mo
 - **[NEEDS CLARIFICATION: mecanismo de encadeamento de subagentes headless]** — O ADR-0002 e a arquitetura (§5.4) definem *o contrato* do escalonamento automático dos subagentes (`po → dev → qa`, e destes para `architect`/`pm`) dentro do `Workflow` da Fase B, mas **o mecanismo técnico exato** de como o MOSK encadeia esses subagentes headless (qual tool/runtime orquestra o fan-out, como o estado da spec é passado entre eles, como o log de decisões automáticas é capturado, e como isso se comporta identicamente em Claude Code e Codex) é o principal item aberto a ser resolvido no `plan`. Este é o maior risco de implementação da Fase B.
 
 > Demais decisões estão fechadas no brief (13 decisões) e nos ADRs; o `plan` deve consumi-las como dadas e focar em como implementar, especialmente o item aberto acima.
+
+---
+**Arquivado em:** 2026-07-20
+**Status final:** Concluído
+**Promoções aplicadas:** 1 `copy` — `architecture/adr-0004-runtime-agnostic-phase-orchestration.md` → `docs/architecture/adr/adr-0004-runtime-agnostic-phase-orchestration.md`. Nenhuma `append`, nenhuma `manual` pendente.

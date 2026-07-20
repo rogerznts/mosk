@@ -21,8 +21,8 @@ Corporativo).
 - **architecture/** — [`mosk-payload-mode.md`](./architecture/mosk-payload-mode.md)
   (design do modo `/mosk-bench`) + [`adr/`](./architecture/adr/)
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
-  ADR-0003 golden starter versionado; ADR-0004 orquestração agnóstica de
-  runtime, ainda na spec 002 — será promovido no archive).
+  ADR-0003 golden starter versionado, ADR-0004 orquestração agnóstica de
+  runtime — promovido no archive da spec 002).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
   - [`guia-atualizacao-plane.md`](./project/guia-atualizacao-plane.md) — como
@@ -45,9 +45,13 @@ Corporativo).
 
 ### Ativas
 
-| # | Spec | Fase | Branch | Criada |
+_Nenhuma spec ativa no momento._
+
+### Arquivadas
+
+| # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
-| 002 | [feature-mosk-payload-mode](./specs/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | implement | 002-feature-mosk-payload-mode | 2026-07-19 |
+| 002 | [feature-mosk-payload-mode](./specs/archive/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | archived | 002-feature-mosk-payload-mode | 2026-07-20 |
 
 ### Outras
 

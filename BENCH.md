@@ -1,4 +1,4 @@
-# 🛠️ MOSK Bench — crie suas próprias ferramentas de trabalho, sem saber programar
+# MOSK Bench — crie suas próprias ferramentas de trabalho, sem saber programar
 
 > **Você descreve o que precisa. O Bench constrói, testa e entrega — funcionando.**
 >
@@ -45,9 +45,9 @@ sobre o que ele não pode adivinhar sozinho**:
 - Quem acessa? Quem pode fazer o quê?
 - Quais são as regras? (*"só o gerente aprova"*, *"não pode repetir CPF"*…)
 
-👉 **Ele nunca te pergunta nada técnico.** Banco de dados, servidor, código —
-tudo isso ele decide por você, escolhendo sempre a opção segura. Se uma escolha
-sua tiver implicação técnica, ele resolve e apenas te **avisa** em português.
+Ele nunca te pergunta nada técnico. Banco de dados, servidor, código — tudo isso
+ele decide por você, escolhendo sempre a opção segura. Se uma escolha sua tiver
+implicação técnica, ele resolve e apenas te **avisa** em português.
 
 Ele só para de perguntar quando **entendeu tudo** — e você pode dizer *"chega"*
 a qualquer momento.
@@ -59,15 +59,15 @@ ficar tudo verde. Você não vê a bagunça do processo — só o resultado.
 
 ### 4. Você recebe pronto
 No fim, ele te dá:
-- 🔗 o **endereço** para abrir no navegador (ex.: `http://localhost:3000`),
-- 🔑 o **login e senha** para entrar,
-- ✅ um **resumo em português** do que foi criado e do que foi testado.
+- o **endereço** para abrir no navegador (ex.: `http://localhost:3000`),
+- o **login e senha** para entrar,
+- um **resumo em português** do que foi criado e do que foi testado.
 
 ---
 
 ## O que você ganha
 
-| ✔️ | |
+| | |
 |---|---|
 | **Tudo em português** | O sistema inteiro — telas, menus, botões — nasce em português do Brasil. |
 | **Já vem com login** | Controle de acesso e senha prontos desde o primeiro minuto. |
@@ -82,11 +82,11 @@ No fim, ele te dá:
 
 Pense em qualquer coisa que hoje vive numa planilha bagunçada:
 
-- 📇 **Cadastro de clientes** — com e-mail único e histórico.
-- ✅ **Controle de tarefas** — com responsável e status, e *"só o gerente conclui"*.
-- 📦 **Controle de estoque** — produtos, quantidades, alertas.
-- 📝 **Fluxo de aprovações** — pedidos que só avançam depois do OK de alguém.
-- 👥 **Base de fornecedores, contratos, chamados, agendamentos…**
+- **Cadastro de clientes** — com e-mail único e histórico.
+- **Controle de tarefas** — com responsável e status, e *"só o gerente conclui"*.
+- **Controle de estoque** — produtos, quantidades, alertas.
+- **Fluxo de aprovações** — pedidos que só avançam depois do OK de alguém.
+- **Base de fornecedores, contratos, chamados, agendamentos…**
 
 Cada "assunto" que a sua ferramenta guarda (clientes, produtos, tarefas…) vira um
 **módulo próprio no menu** — todos sempre visíveis, nada escondido.
@@ -95,13 +95,13 @@ Cada "assunto" que a sua ferramenta guarda (clientes, produtos, tarefas…) vira
 
 ## Duas coisas que fazem o Bench diferente
 
-### 🎯 Ele te entrevista de verdade (o "grill")
+### Ele te entrevista de verdade (o "grill")
 Em vez de adivinhar e errar, o Bento **cava** cada detalhe do seu pedido, uma
 pergunta por vez, sempre sugerindo uma resposta recomendada. O resultado é uma
 ferramenta que faz **exatamente** o que você quis dizer — não o que ele achou que
 você quis.
 
-### 🔁 Ele não entrega no escuro
+### Ele não entrega no escuro
 O Bench só considera a ferramenta pronta quando **todos os testes passam**. Ele
 tenta, conserta e re-testa em ciclo fechado. Se esbarrar em algo que depende de
 uma decisão sua de negócio, ele **para e te pergunta** — nunca inventa uma regra
@@ -138,7 +138,7 @@ E então, com suas palavras:
 > *"Quero uma ferramenta para cadastrar meus clientes, com nome e e-mail, e só
 > eu (administrador) posso excluir um cliente."*
 
-O resto é com o Bento. ☕
+O resto é com o Bento.
 
 ---
 

@@ -34,46 +34,46 @@ Resultado esperado: fluxo uniforme para greenfield e brownfield, menos confusão
 
 ```
 docs/
-├── discovery/              # mosk-analyst (base)
-│   ├── brief.md
-│   ├── market-research.md
-│   ├── competitor-analysis.md
-│   └── brainstorming/
-├── prd/                    # mosk-pm (sharded-only)
-│   ├── index.md
-│   ├── goals.md
-│   ├── personas.md
-│   ├── user-stories.md
-│   ├── metrics.md
-│   └── scope-out.md
-├── architecture/           # mosk-architect (sharded-only)
-│   ├── index.md
-│   ├── tech-stack.md
-│   ├── coding-standards.md
-│   ├── source-tree.md
-│   ├── data-models.md
-│   └── adr/                # decision records
-├── ui/                     # mosk-ux-expert (flows/wireframes) + mosk-ui-expert (design-system/styles)
-│   ├── index.md
-│   ├── flows/              # mosk-ux-expert
-│   ├── wireframes/         # mosk-ux-expert
-│   ├── design-system.md    # mosk-ui-expert (ex-webdesigner, taste system)
-│   └── styles/             # mosk-ui-expert
-├── qa/                     # mosk-qa (base)
-│   └── gates/
-└── specs/                  # coração — tudo por feature/fix/refactor/...
-    ├── 001-feature-checkout-coupon/
-    │   ├── spec.md
-    │   ├── plan.md
-    │   ├── tasks.md
-    │   ├── prd-delta.md         # opcional — mudanças à PRD global
-    │   ├── discovery/           # opcional — discovery específico
-    │   ├── architecture/        # opcional — ADRs e decisões da feature
-    │   ├── ui/                  # opcional — flows/wireframes da feature
-    │   ├── stories/             # stories vivem AQUI (não em docs/stories/)
-    │   ├── tests/               # e2e checklists do dev
-    │   └── gate.yaml            # qa-gate desta spec
-    └── archive/                 # specs concluídas
+├── discovery/ # mosk-analyst (base)
+│ ├── brief.md
+│ ├── market-research.md
+│ ├── competitor-analysis.md
+│ └── brainstorming/
+├── prd/ # mosk-pm (sharded-only)
+│ ├── index.md
+│ ├── goals.md
+│ ├── personas.md
+│ ├── user-stories.md
+│ ├── metrics.md
+│ └── scope-out.md
+├── architecture/ # mosk-architect (sharded-only)
+│ ├── index.md
+│ ├── tech-stack.md
+│ ├── coding-standards.md
+│ ├── source-tree.md
+│ ├── data-models.md
+│ └── adr/ # decision records
+├── ui/ # mosk-ux-expert (flows/wireframes) + mosk-ui-expert (design-system/styles)
+│ ├── index.md
+│ ├── flows/ # mosk-ux-expert
+│ ├── wireframes/ # mosk-ux-expert
+│ ├── design-system.md # mosk-ui-expert (ex-webdesigner, taste system)
+│ └── styles/ # mosk-ui-expert
+├── qa/ # mosk-qa (base)
+│ └── gates/
+└── specs/ # coração — tudo por feature/fix/refactor/...
+ ├── 001-feature-checkout-coupon/
+ │ ├── spec.md
+ │ ├── plan.md
+ │ ├── tasks.md
+ │ ├── prd-delta.md # opcional — mudanças à PRD global
+ │ ├── discovery/ # opcional — discovery específico
+ │ ├── architecture/ # opcional — ADRs e decisões da feature
+ │ ├── ui/ # opcional — flows/wireframes da feature
+ │ ├── stories/ # stories vivem AQUI (não em docs/stories/)
+ │ ├── tests/ # e2e checklists do dev
+ │ └── gate.yaml # qa-gate desta spec
+ └── archive/ # specs concluídas
 ```
 
 ### Convenção front-matter `promote:`
@@ -101,20 +101,20 @@ Sem front-matter `promote:`, o artefato fica congelado dentro da spec arquivada.
 
 ```
 PREÂMBULO (opcional, usado quando a base está incompleta)
-  mosk-analyst   → docs/discovery/     ou  specs/{id}/discovery/
-  mosk-pm        → docs/prd/           ou  specs/{id}/prd-delta.md
-  mosk-architect → docs/architecture/  ou  specs/{id}/architecture/
-  mosk-ux-expert → docs/ui/flows/|wireframes/  ou  specs/{id}/ui/
-  mosk-ui-expert → docs/ui/design-system.md|styles/  ou  specs/{id}/ui/
+ mosk-analyst → docs/discovery/ ou specs/{id}/discovery/
+ mosk-pm → docs/prd/ ou specs/{id}/prd-delta.md
+ mosk-architect → docs/architecture/ ou specs/{id}/architecture/
+ mosk-ux-expert → docs/ui/flows/|wireframes/ ou specs/{id}/ui/
+ mosk-ui-expert → docs/ui/design-system.md|styles/ ou specs/{id}/ui/
 
 PIPELINE (sempre igual)
-  mosk-po: specify → plan → tasks   (ou full-spec)
-  mosk-sm: readiness dos stories em specs/{id}/stories/
-  mosk-dev: implement
-    ↳ loop com mosk-qa: qa-gate → apply-qa-fixes → qa-gate
-  mosk-dev: archive
-    ↳ fase de promoção aplica os front-matter promote:
-    ↳ move specs/{id}/ → specs/archive/{id}/
+ mosk-po: specify → plan → tasks (ou full-spec)
+ mosk-sm: readiness dos stories em specs/{id}/stories/
+ mosk-dev: implement
+ ↳ loop com mosk-qa: qa-gate → apply-qa-fixes → qa-gate
+ mosk-dev: archive
+ ↳ fase de promoção aplica os front-matter promote:
+ ↳ move specs/{id}/ → specs/archive/{id}/
 ```
 
 ---
@@ -132,34 +132,34 @@ Executar na ordem. Cada workstream é auto-contido e tem critério de aceite cla
 ```yaml
 markdownExploder: true
 specs:
-  root: docs/specs
-  archive: docs/specs/archive
-  storiesSubdir: stories
-  testsSubdir: tests
-  gateFile: gate.yaml
+ root: docs/specs
+ archive: docs/specs/archive
+ storiesSubdir: stories
+ testsSubdir: tests
+ gateFile: gate.yaml
 discovery:
-  root: docs/discovery
+ root: docs/discovery
 prd:
-  root: docs/prd
-  indexFile: docs/prd/index.md
+ root: docs/prd
+ indexFile: docs/prd/index.md
 architecture:
-  root: docs/architecture
-  indexFile: docs/architecture/index.md
-  adrDir: docs/architecture/adr
+ root: docs/architecture
+ indexFile: docs/architecture/index.md
+ adrDir: docs/architecture/adr
 ui:
-  root: docs/ui
-  indexFile: docs/ui/index.md
+ root: docs/ui
+ indexFile: docs/ui/index.md
 qa:
-  gatesDir: docs/qa/gates
+ gatesDir: docs/qa/gates
 promotion:
-  defaults:
-    "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
-    "specs/*/ui/flows/*.md":          { target: docs/ui/flows/,       mode: copy }
-    "specs/*/prd-delta.md":           { target: docs/prd/,             mode: manual }
+ defaults:
+ "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
+ "specs/*/ui/flows/*.md": { target: docs/ui/flows/, mode: copy }
+ "specs/*/prd-delta.md": { target: docs/prd/, mode: manual }
 devLoadAlwaysFiles:
-  - docs/architecture/coding-standards.md
-  - docs/architecture/tech-stack.md
-  - docs/architecture/source-tree.md
+ - docs/architecture/coding-standards.md
+ - docs/architecture/tech-stack.md
+ - docs/architecture/source-tree.md
 slashPrefix: MOSK
 ```
 
@@ -279,26 +279,26 @@ e mover a pasta para docs/specs/archive/.
 2. Validar prontidão (igual ao atual: tasks.md todas [x]).
 
 3. **Scan de promoção** — percorrer docs/specs/<id>/**/*.md buscando
-   front-matter YAML com chave `promote:`. Para cada arquivo encontrado,
-   ler também `promote_mode:` (default: copy).
+ front-matter YAML com chave `promote:`. Para cada arquivo encontrado,
+ ler também `promote_mode:` (default: copy).
 
 4. **Aplicar promoções** (interativo — apresentar tabela e confirmar em bloco):
 
-   | Arquivo | Modo | Destino | Status |
-   |---|---|---|---|
-   | specs/001-.../architecture/adr-0007-coupon-service.md | copy | docs/architecture/adr/adr-0007-coupon-service.md | novo |
-   | specs/001-.../prd-delta.md | manual | docs/prd/ | manual |
+ | Arquivo | Modo | Destino | Status |
+ |---|---|---|---|
+ | specs/001-.../architecture/adr-0007-coupon-service.md | copy | docs/architecture/adr/adr-0007-coupon-service.md | novo |
+ | specs/001-.../prd-delta.md | manual | docs/prd/ | manual |
 
-   - `copy`: copia o arquivo (com front-matter intacto); falha se destino existe — pergunta ao usuário.
-   - `append`: concatena corpo (sem front-matter) no final do destino.
-   - `manual`: apenas lista o arquivo para o usuário aplicar a mão; não toca na base.
+ - `copy`: copia o arquivo (com front-matter intacto); falha se destino existe — pergunta ao usuário.
+ - `append`: concatena corpo (sem front-matter) no final do destino.
+ - `manual`: apenas lista o arquivo para o usuário aplicar a mão; não toca na base.
 
 5. Criar `docs/specs/archive/` se não existir.
 
 6. Mover a pasta: `mv docs/specs/<id> docs/specs/archive/<id>`.
 
 7. Registrar nota de encerramento em `docs/specs/archive/<id>/spec.md` com
-   data, status final e resumo das promoções aplicadas.
+ data, status final e resumo das promoções aplicadas.
 
 8. Oferecer criação de PR (mantém comportamento atual).
 
@@ -308,7 +308,7 @@ e mover a pasta para docs/specs/archive/.
 - `manual` nunca edita a base — apenas imprime instruções.
 - Se o scan encontrar `promote:` sem `promote_mode:`, assumir `copy`.
 - Front-matter `promote:` é preservado no arquivo movido para archive
-  (auditabilidade).
+ (auditabilidade).
 ```
 
 **Critério de aceite:** task roda num caso sintético em `/tmp` com 1 spec contendo 3 arquivos com diferentes modos; todos os destinos resultantes conferem; arquivo `manual` não é copiado; relatório final imprime contagem correta.
@@ -339,7 +339,7 @@ For each path below, create only if missing. Never overwrite existing files.
 Each README.md explains:
 - which agent writes here (e.g., "mosk-analyst writes discovery artifacts here")
 - the distinction between base and per-spec content (base = project-wide;
-  per-spec = docs/specs/{id}/<domain>/)
+ per-spec = docs/specs/{id}/<domain>/)
 - what gets promoted from spec to base at archive time
 
 If the project is brownfield (has code but no .claude/rules/, or existing
@@ -360,39 +360,39 @@ continuing. Do not run it automatically.
 **Comportamento:**
 
 1. **Detecção:** decide que há migração a fazer se qualquer um existir:
-   - `docs/prd.md` (monolito)
-   - `docs/architecture.md` (monolito)
-   - `docs/stories/` (diretório global)
-   - `docs/brainstorming-session-results.md` (solto na raiz)
-   - `docs/front-end-spec.md` (solto na raiz)
-   - `.claude/mosk/core-config.yaml` com chaves legadas (`prdFile`, `devStoryLocation`, etc.)
+ - `docs/prd.md` (monolito)
+ - `docs/architecture.md` (monolito)
+ - `docs/stories/` (diretório global)
+ - `docs/brainstorming-session-results.md` (solto na raiz)
+ - `docs/front-end-spec.md` (solto na raiz)
+ - `.claude/mosk/core-config.yaml` com chaves legadas (`prdFile`, `devStoryLocation`, etc.)
 
 2. **Criar skeleton** (igual ao `boot.md Phase 2.5`):
-   - `docs/discovery/`, `docs/discovery/brainstorming/`
-   - `docs/prd/` (se já existe sharded, preserva conteúdo)
-   - `docs/architecture/`, `docs/architecture/adr/`
-   - `docs/ui/`, `docs/ui/flows/`
-   - `docs/qa/gates/`
-   - `docs/specs/`
+ - `docs/discovery/`, `docs/discovery/brainstorming/`
+ - `docs/prd/` (se já existe sharded, preserva conteúdo)
+ - `docs/architecture/`, `docs/architecture/adr/`
+ - `docs/ui/`, `docs/ui/flows/`
+ - `docs/qa/gates/`
+ - `docs/specs/`
 
 3. **Migrar PRD:**
-   - Se `docs/prd.md` existe E `docs/prd/` já tem conteúdo sharded: move `docs/prd.md` para `docs/prd/raw.md` (com log) — fica disponível como bruto caso o usuário queira re-sharded.
-   - Se `docs/prd.md` existe E `docs/prd/` está vazio: move `docs/prd.md` → `docs/prd/raw.md`. Avisa o usuário que pode rodar `shard-doc` para gerar `index.md` + seções a partir desse bruto.
-   - Sem monolito: nada a fazer.
+ - Se `docs/prd.md` existe E `docs/prd/` já tem conteúdo sharded: move `docs/prd.md` para `docs/prd/raw.md` (com log) — fica disponível como bruto caso o usuário queira re-sharded.
+ - Se `docs/prd.md` existe E `docs/prd/` está vazio: move `docs/prd.md` → `docs/prd/raw.md`. Avisa o usuário que pode rodar `shard-doc` para gerar `index.md` + seções a partir desse bruto.
+ - Sem monolito: nada a fazer.
 
 4. **Migrar Architecture:** análogo ao PRD (destino `docs/architecture/raw.md`).
 
 5. **Migrar Stories:**
-   - Se `docs/stories/` existe:
-     - Listar stories por prefixo epic (`epic-N-story-M.md` ou `N.M.*.md`).
-     - Para cada epic N, tentar casar com spec em `docs/specs/` que contenha essa numeração (heurística: mesmo prefixo de 3 dígitos ou match por epic number nos títulos de specs).
-     - Se casou: mover para `docs/specs/<spec-id>/stories/`.
-     - Se não casou: mover para `docs/specs/_orphan-stories/` e avisar o usuário para redirecionar manualmente.
-   - Com `--keep-old`: copia em vez de mover.
+ - Se `docs/stories/` existe:
+ - Listar stories por prefixo epic (`epic-N-story-M.md` ou `N.M.*.md`).
+ - Para cada epic N, tentar casar com spec em `docs/specs/` que contenha essa numeração (heurística: mesmo prefixo de 3 dígitos ou match por epic number nos títulos de specs).
+ - Se casou: mover para `docs/specs/<spec-id>/stories/`.
+ - Se não casou: mover para `docs/specs/_orphan-stories/` e avisar o usuário para redirecionar manualmente.
+ - Com `--keep-old`: copia em vez de mover.
 
 6. **Migrar arquivos soltos:**
-   - `docs/brainstorming-session-results.md` → `docs/discovery/brainstorming/`
-   - `docs/front-end-spec.md` → `docs/ui/index.md` (se `docs/ui/index.md` não existe)
+ - `docs/brainstorming-session-results.md` → `docs/discovery/brainstorming/`
+ - `docs/front-end-spec.md` → `docs/ui/index.md` (se `docs/ui/index.md` não existe)
 
 7. **Reescrever `core-config.yaml`** para o novo schema (Workstream A). Antes de sobrescrever, salva backup em `.claude/mosk/core-config.yaml.legacy`.
 
@@ -410,8 +410,8 @@ continuing. Do not run it automatically.
 **Execução manual via Claude Code:** documentado no README como:
 
 ```bash
-bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run   # revisar
-bash .claude/mosk/scripts/migrate-docs-structure.sh              # aplicar
+bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run # revisar
+bash .claude/mosk/scripts/migrate-docs-structure.sh # aplicar
 ```
 
 **Critério de aceite:**
@@ -466,12 +466,12 @@ Atualizar `mosk/.claude/mosk/scripts/create-new-feature.sh` — função princip
 4. **NOVO:** criar diretório da spec + copiar template + commit inicial (`git add` + `git commit -m "spec({###}): bootstrap"`).
 5. **NOVO:** `git push -u origin <branch>` imediatamente.
 6. **NOVO:** se o push falhar com "already exists" ou "rejected":
-   - `git fetch --all --prune`
-   - recalcular `next_number`
-   - renomear branch local: `git branch -m <novo-nome>`
-   - renomear pasta: `mv docs/specs/<antigo> docs/specs/<novo>`
-   - amendar commit se necessário e retentar push
-   - até MAX_RETRIES=3; se continuar falhando, abortar e instruir o usuário a resolver manualmente.
+ - `git fetch --all --prune`
+ - recalcular `next_number`
+ - renomear branch local: `git branch -m <novo-nome>`
+ - renomear pasta: `mv docs/specs/<antigo> docs/specs/<novo>`
+ - amendar commit se necessário e retentar push
+ - até MAX_RETRIES=3; se continuar falhando, abortar e instruir o usuário a resolver manualmente.
 
 **Controle via flag `--no-push`** para ambientes sem remote ou testes locais.
 
@@ -486,7 +486,7 @@ type: feature
 branch: "005-feature-checkout-coupon"
 created_at: "2026-04-22T14:30:00Z"
 created_by: "Roger <roger.santos@ballroom.com.br>"
-status: active        # active | archived
+status: active # active | archived
 current_phase: specify # specify | plan | tasks | implement | qa-gate | archived
 ```
 
@@ -603,7 +603,7 @@ Criar `mosk/.claude/mosk/templates/docs-index-tmpl.md` com a estrutura esperada 
 #### Integração com Workstream H
 
 - `index-docs` lê `spec-meta.yaml` de cada spec para montar tabelas "Active Specs" e "Archived Specs" (número, phase, branch, datas).
-- Se `spec-meta.yaml` não existe (spec antiga antes da migração), infere do nome da pasta e marca com `⚠️ meta missing` na tabela — sinal para o dev rodar `migrate-docs-structure.sh` de novo ou criar o meta manualmente.
+- Se `spec-meta.yaml` não existe (spec antiga antes da migração), infere do nome da pasta e marca com ` meta missing` na tabela — sinal para o dev rodar `migrate-docs-structure.sh` de novo ou criar o meta manualmente.
 
 #### Critério de aceite
 
@@ -632,15 +632,15 @@ present an "Escalation suggested" block to the user, and wait for
 their decision. Never invoke another agent automatically.
 
 - Ambiguity in architecture / data model / API contract not covered by
-  `plan.md` or `docs/architecture/` → `/mosk-architect`.
+ `plan.md` or `docs/architecture/` → `/mosk-architect`.
 - Missing UI behavior, flow, or interaction spec you need to implement
-  → `/mosk-ux-expert` (flows/wireframes) or `/mosk-ui-expert` (visual
-  acabamento / design system).
+ → `/mosk-ux-expert` (flows/wireframes) or `/mosk-ui-expert` (visual
+ acabamento / design system).
 - Missing or contradictory product requirement → `/mosk-pm`.
 - Discovery gap (assumption about user/market not backed by evidence)
-  → `/mosk-analyst`.
+ → `/mosk-analyst`.
 - Story unclear enough that you cannot identify the next task deterministically
-  → `/mosk-sm` to re-draft.
+ → `/mosk-sm` to re-draft.
 
 ## Escalation block format
 
@@ -807,7 +807,7 @@ grep -rn "docs/stories" mosk/.claude/mosk/ mosk/README.md mosk/.claude/README.md
 
 # C — rename completo (deve retornar ZERO para webdesigner; UX Expert permanece)
 grep -rn "webdesigner\|mosk-webdesigner" mosk/
-grep -rn "mosk-ux-expert" mosk/     # não é zero — ux-expert continua válido
+grep -rn "mosk-ux-expert" mosk/ # não é zero — ux-expert continua válido
 
 # F — script válido
 bash -n mosk/.claude/mosk/scripts/migrate-docs-structure.sh
@@ -833,12 +833,12 @@ cp -r /Users/admin/Projects/mosk/mosk/.claude .
 # Verificar estrutura:
 tree docs/
 # Esperado:
-#   docs/discovery/README.md
-#   docs/prd/index.md
-#   docs/architecture/index.md (+ adr/)
-#   docs/ui/index.md (+ flows/)
-#   docs/qa/gates/
-#   docs/specs/
+# docs/discovery/README.md
+# docs/prd/index.md
+# docs/architecture/index.md (+ adr/)
+# docs/ui/index.md (+ flows/)
+# docs/qa/gates/
+# docs/specs/
 ```
 
 ### Smoke test — brownfield
@@ -861,14 +861,14 @@ bash .claude/mosk/scripts/migrate-docs-structure.sh
 # Verificar:
 tree docs/
 # Esperado:
-#   docs/discovery/brainstorming/brainstorming-session-results.md
-#   docs/prd/raw.md (conteúdo do antigo docs/prd.md — pode ser shardeado depois via shard-doc)
-#   docs/architecture/raw.md (conteúdo do antigo docs/architecture.md)
-#   docs/ui/ (criado; index.md pode estar vazio ou herdado de docs/front-end-spec.md se existia)
-#   docs/specs/001-feature-x/ (intacto)
-#   docs/specs/_orphan-stories/epic-1-story-1.md (não casou com spec)
-#   .claude/mosk/core-config.yaml (novo schema)
-#   .claude/mosk/core-config.yaml.legacy (backup)
+# docs/discovery/brainstorming/brainstorming-session-results.md
+# docs/prd/raw.md (conteúdo do antigo docs/prd.md — pode ser shardeado depois via shard-doc)
+# docs/architecture/raw.md (conteúdo do antigo docs/architecture.md)
+# docs/ui/ (criado; index.md pode estar vazio ou herdado de docs/front-end-spec.md se existia)
+# docs/specs/001-feature-x/ (intacto)
+# docs/specs/_orphan-stories/epic-1-story-1.md (não casou com spec)
+# .claude/mosk/core-config.yaml (novo schema)
+# .claude/mosk/core-config.yaml.legacy (backup)
 
 # Idempotência
 bash .claude/mosk/scripts/migrate-docs-structure.sh
@@ -898,8 +898,8 @@ echo "- [x] task 1" > docs/specs/002-feature-y/tasks.md
 
 # Simular /mosk-dev archive 002
 # Verificar:
-ls docs/architecture/adr/adr-0007.md          # deve existir (copy)
-ls docs/specs/archive/002-feature-y/          # deve existir (movido)
+ls docs/architecture/adr/adr-0007.md # deve existir (copy)
+ls docs/specs/archive/002-feature-y/ # deve existir (movido)
 # spec-meta.yaml deve ter status: archived
 grep "status:" docs/specs/archive/002-feature-y/spec-meta.yaml
 # docs/index.md deve ter 002 na tabela "Archived Specs"
@@ -930,8 +930,8 @@ bash .claude/mosk/scripts/create-new-feature.sh "feature B" &
 wait
 
 # Verificar — esperado:
-#   dev-a push primeiro: pega 001-feature-a
-#   dev-b detecta conflito: refetcha, renumera para 002-feature-b, pushe
+# dev-a push primeiro: pega 001-feature-a
+# dev-b detecta conflito: refetcha, renumera para 002-feature-b, pushe
 cd /tmp/mosk-concurrency/dev-a && git branch --list
 cd /tmp/mosk-concurrency/dev-b && git branch --list
 # Verificar no origin:
@@ -960,7 +960,7 @@ EOF
 # Verificar docs/index.md:
 cat docs/index.md | head -40
 # Esperado: seções Overview, Active Specs (com 004), Archived Specs, Domain Contents
-ls docs/prd/                                  # inalterado (manual)
+ls docs/prd/ # inalterado (manual)
 # Output do archive deve listar prd-delta.md como pendente manual
 ```
 
@@ -1008,7 +1008,7 @@ O patch solicitado pelo usuário é o próprio **`migrate-docs-structure.sh`** (
 npx degit rogerznts/mosk/mosk . --force
 bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run
 bash .claude/mosk/scripts/migrate-docs-structure.sh
-bash .claude/mosk/scripts/link-codex-skills.sh    # se usar Codex
+bash .claude/mosk/scripts/link-codex-skills.sh # se usar Codex
 ```
 
 Isso é o "patch" do ponto de vista do usuário final — um script instalável + guia de uso no README.

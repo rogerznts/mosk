@@ -2,9 +2,9 @@
 
 Spec-driven development toolkit for Claude Code. Nine specialist agents, one pipeline, two mirrored layers of documentation — installable into any repository through `.claude/`.
 
-> 🛠️ **Novo — MOSK Bench:** um modo que deixa pessoas **não técnicas** criarem e
+> **Novo — MOSK Bench:** um modo que deixa pessoas **não técnicas** criarem e
 > testarem suas próprias ferramentas internas só descrevendo o que precisam, em
-> português e sem nenhuma decisão técnica. **[Leia o guia do Bench →](./BENCH.md)**
+> português e sem nenhuma decisão técnica. **[Leia o guia do Bench](./BENCH.md)**
 
 ## Why MOSK
 
