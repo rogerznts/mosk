@@ -42,11 +42,17 @@ ativa (default): `payload`.** Mapa do adapter Payload:
 | Template da rule de contexto  | `.claude/mosk/templates/payload-rule-tmpl.md`              |
 | Rule de contexto gerada       | `.claude/rules/payload.md`                                  |
 | Comando de teste (no container)| `docker compose exec app pnpm test` (Vitest, Local API)   |
+| Deploy / publicação†          | `.claude/mosk/scripts/payload-deploy.sh` (Railway)         |
 | Termo de "módulo"             | collection do Payload                                       |
 | Invariantes da stack          | INV-1..6 (ver abaixo)                                       |
 
 > Onde este documento disser "o adapter", leia a linha correspondente na tabela.
 > Toda a lógica de fases da Fase B (SDD) é **genérica** e não depende da stack.
+>
+> † **Deploy é uma skill SEPARADA e opt-in (`/mosk-deploy`), não uma fase deste
+> fluxo.** O bench entrega sempre em `http://localhost:<porta>` (dev) e não faz
+> deploy. A publicação em produção é conduzida pela task `deploy-mode.md` — o build
+> roda remoto no provedor, então INV-4 permanece válida (ver ADR-0005).
 
 ### Invariantes da stack Payload (contrato — nunca violar)
 
