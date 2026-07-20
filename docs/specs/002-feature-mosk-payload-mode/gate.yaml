@@ -1,16 +1,18 @@
 schema: 1
 identifier: "002-feature-mosk-payload-mode"
-gate: CONCERNS
+gate: PASS
 status_reason: >-
-  MVP (US1/US3) validado em runtime com invariantes travadas por construção e as
-  26 tarefas fechadas. Pós-gate: STARTER-002 RESOLVIDO (pnpm-lock.yaml versionado
-  + --frozen-lockfile validado) e FASEB-001 materialmente de-riscado por um smoke
-  real da Fase B (loop-until-green red→green com regra de negócio, teto 3,
-  decisions-log/build-log/gate gerados). Resta como CONCERNS estreito: o fan-out
-  po→dev→qa AO VIVO (via invoke_phase_agent numa sessão real) e a paridade Codex
-  seguem como contrato/monitor, não observados em runtime. Pronto para PR.
-reviewer: "Joaquim (mosk-qa) + mitigações pós-gate (mosk-analyst)"
-updated: "2026-07-20T03:40:00Z"
+  MVP (US1/US3) validado em runtime, invariantes travadas por construção, 26
+  tarefas fechadas. Todos os 4 top_issues do gate inicial (CONCERNS) foram
+  endereçados com evidência concreta: STARTER-002 resolvido (lockfile versionado
+  + --frozen-lockfile); FASEB-001 validado ao vivo (fan-out dev→qa com subagentes
+  REAIS e headless — dev implementou collection+2 regras, loop verde, qa deu PASS
+  independente); DEGIT-003 validado com `npx degit` REAL do GitHub (branch 002 →
+  materializa, boota com lockfile congelado, smoke 4/4); CODEX-004 com Codex CLI
+  presente e paridade estrutural confirmada num consumer (mosk-bench vira skill
+  Codex + entra no AGENTS.md). Monitores residuais (não bloqueantes) abaixo.
+reviewer: "Joaquim (mosk-qa) — gate inicial + re-avaliação pós-mitigações"
+updated: "2026-07-20T03:50:00Z"
 
 # ---------------------------------------------------------------------------
 # Evidência por invariante (INV-1..6) — travadas por construção, não pelo LLM
@@ -65,18 +67,20 @@ critical_frs:
 
 top_issues:
   - id: FASEB-001
-    severity: low   # rebaixado de high após smoke pós-gate
-    status: mitigated
+    severity: low   # high → low após smoke; agora validado ao vivo
+    status: resolved
     finding: >-
-      O loop-until-green autônomo da Fase B (fan-out real po→dev→qa com
-      auto-escalação) é o coração diferenciador do modo. Era contrato de prompt
-      não exercitado; um smoke real pós-gate exercitou o loop de ponta a ponta
-      (ver mitigations). Resta não-observado apenas o fan-out AO VIVO via
-      subagentes reais numa sessão do modo.
+      O loop-until-green da Fase B com fan-out po→dev→qa era contrato de prompt.
+      Foi (1) provado por smoke manual (red→green + teto) e (2) validado AO VIVO
+      com subagentes reais e headless: um mosk-dev implementou a collection
+      Clientes + 2 regras de negócio (email único; só admin exclui) levando a
+      suíte a 7/7 verde, e um mosk-qa independente deu PASS confirmando as regras
+      no código. Isolamento Tier-1 confirmado (output dos subagentes não vazou ao
+      contexto pai).
     affects: [FR-020, FR-022, FR-025, FR-026, SC-004]
     action: >-
-      RESOLVIDO parcialmente: loop/teto/artefatos provados por smoke. Monitorar a
-      primeira execução real do modo para observar o fan-out po→dev→qa ao vivo.
+      RESOLVIDO. Monitor residual: fase `po` (plan/tasks) e o galho de
+      auto-escalação dev→architect não foram exercitados neste smoke (só dev→qa).
   - id: STARTER-002
     severity: medium
     status: resolved
@@ -88,24 +92,30 @@ top_issues:
     action: "RESOLVIDO."
   - id: DEGIT-003
     severity: medium
+    status: resolved
     finding: >-
-      npx degit real contra o GitHub só reflete o modo na branch 002 (validado por
-      cópia local + branch pushada), ainda não na master.
+      Validado com `npx degit rogerznts/mosk/mosk#002-feature-mosk-payload-mode`
+      REAL: a árvore materializa do GitHub (skill/task/agente/starter/scripts +
+      pnpm-lock.yaml + pins corrigidos), a infra sobe pelo script puxado, o app
+      boota com "Lockfile is up to date" e o smoke passa 4/4. Falta só o merge
+      para master (será o PR) para o degit sem `#branch` refletir o modo.
     affects: [FR-030, T025]
-    action: "Merge para master e smoke-install real via degit antes de anunciar disponível."
+    action: "Merge para master via PR; degit da default branch passa a servir o modo."
   - id: CODEX-004
     severity: low
+    status: mitigated
     finding: >-
-      T024 (link-codex) resolvido por decisão de workspace (artefatos per-root não
-      shipam), não por execução; paridade Codex validada por presença de skill, não
-      por rodar o modo no Codex.
+      Codex CLI presente (codex-cli 0.144.6). Paridade estrutural validada num
+      consumer: link-codex-skills.sh cria `.codex/skills/mosk-bench` e insere a
+      entrada `/mosk-bench` no AGENTS.md gerado. Não coberto: rodar o modo AO VIVO
+      numa sessão Codex para observar o isolamento Tier-2 (ADR-0004).
     affects: [FR-030, T024]
-    action: "Aceitável pela regra do CLAUDE.md; validar em sessão Codex quando possível."
+    action: "Monitor: validar o isolamento Tier-2 numa sessão Codex real quando conveniente."
 
 residual_risks:
-  - "Fase B autônoma não exercitada: comportamento real do fan-out/escalação é inferido do prompt."
-  - "Reprodutibilidade do starter depende do pin de package.json até o lock nascer."
-  - "Paridade Codex é contrato (ADR-0004), não validada em runtime."
+  - "MONITOR: fase `po` (plan/tasks) e galho de auto-escalação dev→architect não exercitados no smoke ao vivo (só dev→qa)."
+  - "MONITOR: isolamento Tier-2 do Codex é contrato (ADR-0004), não observado em sessão Codex real."
+  - "MECÂNICO: modo só materializa via degit da default branch após o merge na master."
 
 mitigations_applied:
   - id: STARTER-002
@@ -117,21 +127,33 @@ mitigations_applied:
   - id: FASEB-001
     date: "2026-07-20"
     what: >-
-      Smoke real da Fase B: briefing mínimo (collection Tarefas + regra 'só admin
-      exclui'). Regra derivada em teste; build-loop tentativa 1 VERMELHA (comum
-      excluía), tentativa 2 VERDE (access.delete=admin) dentro do teto (2/3);
-      suíte final 6/6; artefatos decisions-log.md/build-log.md/gate-smoke.yaml
-      gerados. Prova loop-until-green + teto + registro de decisão técnica
-      automática + tradução de regra de negócio em teste. Não coberto: o fan-out
-      po→dev→qa AO VIVO via subagentes reais (segue como monitor).
+      (1) Smoke manual: briefing mínimo (Tarefas + 'só admin exclui'); build-loop
+      tentativa 1 VERMELHA → tentativa 2 VERDE dentro do teto (2/3); 6/6;
+      decisions-log/build-log/gate-smoke gerados. (2) VALIDAÇÃO AO VIVO: fan-out
+      com subagentes REAIS e headless — mosk-dev implementou Clientes + 2 regras
+      (email único; só admin exclui), suíte 7/7 verde na 1ª iteração sem
+      regressão; mosk-qa independente deu PASS confirmando R1/R2 no código e
+      invariantes. Isolamento Tier-1 confirmado (output não vazou ao pai).
+  - id: DEGIT-003
+    date: "2026-07-20"
+    what: >-
+      `npx degit rogerznts/mosk/mosk#002-...` REAL do GitHub: árvore materializa
+      completa (inclui pnpm-lock.yaml + pins), infra sobe pelo script puxado, app
+      boota com "Lockfile is up to date, resolution step is skipped", smoke 4/4.
+  - id: CODEX-004
+    date: "2026-07-20"
+    what: >-
+      Codex CLI presente (0.144.6); link-codex-skills.sh num consumer cria
+      `.codex/skills/mosk-bench` e a entrada `/mosk-bench` no AGENTS.md. Paridade
+      estrutural confirmada.
 
 recommendations:
-  immediate: []   # STARTER-002 e FASEB-001 endereçados
+  immediate: []   # todos os 4 top_issues endereçados
   before_merge:
-    - "Merge para master + smoke-install degit real (DEGIT-003)."
+    - "Abrir PR para master (fecha a parte mecânica de DEGIT-003)."
   monitor:
-    - "Observar o fan-out po→dev→qa ao vivo na primeira execução real do modo (FASEB-001 residual)."
-    - "Primeira validação do modo no Codex quando houver ambiente (CODEX-004)."
+    - "Fase `po` (plan/tasks) e auto-escalação dev→architect ao vivo (FASEB-001 residual)."
+    - "Isolamento Tier-2 numa sessão Codex real (CODEX-004 residual)."
 
 waiver:
   active: false
