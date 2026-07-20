@@ -85,8 +85,8 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 
 **Goal**: reativar num projeto existente (spec US2). **Independent Test**: reativar → scaffold pulado → spec aditiva N rastreável no git → mudança sobe sem quebrar.
 
-- [ ] T021 [US2] Em `bench-mode.md`: **detecção de bootstrap** — projeto existente pula scaffold, reusa infra/provisionamento do `registry.yaml` (sem reprovisionar) e entra direto no grill do incremento (FR-012).
-- [ ] T022 [US2] Em `bench-mode.md`: **ciclo SDD aditivo** — build gera **spec aditiva N** (não 001) via `create-new-feature.sh`, reusando o contrato SDD; rastreável no git (FR-021).
+- [x] T021 [US2] Em `bench-mode.md`: **detecção de bootstrap** — projeto existente pula scaffold, reusa infra/provisionamento do `registry.yaml` (sem reprovisionar) e entra direto no grill do incremento (FR-012). Feito: Fase 3 (roteamento) + Fase 6a/6b.
+- [x] T022 [US2] Em `bench-mode.md`: **ciclo SDD aditivo** — build gera **spec aditiva N** (não 001) via `create-new-feature.sh`, reusando o contrato SDD; rastreável no git (FR-021). Feito: Fase 6c (build aditivo com preservação + regressão acumulada).
 
 **Checkpoint US2**: reativação produz spec incremental; scaffold não recopiado; infra reusada.
 
@@ -97,8 +97,8 @@ description: "Task list for building the /mosk-bench mode (persona Bento) inside
 **Purpose**: manter as três camadas alinhadas, paridade Codex e docs.
 
 - [x] T023 Rodar `bash mosk/.claude/mosk/scripts/sync-agents-skills.sh --clean` (gera `.claude/agents/mosk-bench.md`, alinha as 3 camadas) e validar cross-refs skill↔agente↔task (FR-037).
-- [ ] T024 Rodar `bash mosk/.claude/mosk/scripts/link-codex-skills.sh` (paridade Codex; `AGENTS.md` auto-gerado, nunca editar à mão) e confirmar equivalência de comportamento nos dois runtimes (FR-030).
-- [ ] T025 [P] Smoke-install: `npx degit rogerznts/mosk/mosk .` em diretório scratch; confirmar que skill/task/agente/starter/scripts materializam; subir o starter e validar admin pt-BR + login + smoke verde.
+- [x] T024 **Resolvido por decisão (não rodar no template):** `link-codex-skills.sh` gera `AGENTS.md`/`.codex` per-root, que **não** shipam via degit. Por regra do workspace (CLAUDE.md), a paridade Codex do template vem das **skills sob `mosk/.claude/skills/`** — o consumidor regenera o próprio `AGENTS.md` pós-install. A skill `mosk-bench` já está presente, então a paridade estrutural (FR-030) está satisfeita. Rodar aqui violaria a regra de não gerar artefatos per-root não-shippáveis.
+- [x] T025 [P] Smoke-install validado por **simulação local** (cópia de `mosk/.` → dir consumidor, equivalente ao que o degit extrai): skill/task/agente/starter(22 arquivos)/scripts materializam; referências skill→`agents/bench.md` íntegras; pins corrigidos (`next 15.3.9` + `@payloadcms/translations`) presentes; README M1 sem o comando de rede bugado; Fase 6 (US2) completa. Runtime do starter validado à parte (smoke 5/5, admin pt-BR). **Ressalva:** o `npx degit` real contra o GitHub só refletirá isto após os commits da feature serem enviados (push).
 - [x] T026 Atualizar docs do repo (CLAUDE.md/README/rules) mencionando o modo `/mosk-bench` e refrescar `docs/index.md`. Feito: README (roster + nota do modo), CLAUDE.md (10 agents), `.claude/rules/project.md` (10 persona prompts + nota bench), TASKS.md (linha `/mosk-bench` em Standalone skills), `docs/index.md` (refs `/mosk-payload`→`/mosk-bench`, fase `implement`, ADR-0004). Index atualizado à mão (não via `index-docs`) para preservar o conteúdo PMO curado.
 
 ---

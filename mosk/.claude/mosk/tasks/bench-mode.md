@@ -256,10 +256,46 @@ final. Todo o resto vai para `build-log.md`/`decisions-log.md`. O transcript vis
 
 ## Fase 6 — Iteração aditiva (US2 — T021/T022)
 
-*(Fora do MVP desta rodada. Esboço do contrato:)*
-Bootstrap detectado ⇒ pula scaffold, reusa infra/alocação do `registry.yaml` sem
-reprovisionar (FR-012), entra direto no grill do incremento, e a Fase B gera uma **spec
-aditiva N** (não a 001) via `create-new-feature.sh`, rastreável no git (FR-021).
+Este é o caminho quando a Fase 3 detectou **bootstrap** (projeto do bench já existe
+aqui). O leigo volta para pedir uma mudança ("quero também guardar fornecedores",
+"o gerente precisa aprovar antes de publicar"). O modo **evolui** a ferramenta, nunca
+a reconstrói.
+
+### 6a — Reuso determinístico (sem reprovisionar)
+
+1. **Pula o scaffold** (starter já está no disco).
+2. **Reusa infra e alocação**: `bash .claude/mosk/scripts/payload-infra.sh --provision
+   <nome-projeto>` é **idempotente** — projeto já registrado no `registry.yaml` é
+   reusado sem tocar em banco/porta/índice Redis (FR-012). A ferramenta mantém o
+   **mesmo endereço** de sempre.
+3. **Carrega o contexto vivo**: leia a rule do adapter (`.claude/rules/payload.md`) e
+   as collections existentes (`src/collections/`) para aterrissar o grill no que já
+   existe — o leigo não repete o que já foi decidido.
+
+### 6b — Grill só do incremento (Fase A, reduzida)
+
+- Rode a Fase A **apenas sobre o delta**: o checklist de completude cobre só a mudança
+  pedida (novos módulos/campos, nova regra, novo papel), não a ferramenta inteira.
+- **Desafie contra o que já existe**: se o incremento colide com uma collection/regra
+  atual, resolva no grill (renomear? estender? substituir?) antes de congelar.
+- Mesmo critério de convergência (checklist verde) e escape manual ("chega").
+
+### 6c — Build aditivo (Fase B, mesmo contrato)
+
+- **specify** cria uma **spec aditiva N** (não a 001) via `create-new-feature.sh`
+  (reserva de número atômica; branch + `spec-meta` próprios) — cada incremento é uma
+  spec rastreável no git (FR-021).
+- **plan → tasks → build-loop → qa-gate → deliver** seguem o **mesmo** contrato da
+  Fase B (RAPC), com uma garantia extra:
+  - **Preservação**: o LLM só **adiciona/edita** dentro de `src/collections/` e labels
+    para atender o delta; **não** remove nem reescreve módulos existentes salvo se o
+    incremento explicitamente pedir (e o grill confirmou em 6b).
+  - **Regressão**: os testes **acumulam** — o smoke da base + os testes dos módulos
+    antigos continuam rodando junto com os do módulo novo. "Verde" exige **tudo**
+    passando, então uma mudança que quebre o que já existia falha o gate (não entrega
+    silenciosamente uma regressão).
+- **deliver**: mesmo endereço `http://localhost:<ADMIN_PORT>`, resumo em pt-BR do que
+  **mudou** nesta iteração (linguagem de negócio), sem jargão.
 
 ---
 
