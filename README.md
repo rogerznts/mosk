@@ -57,8 +57,11 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
 | `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
+| `/mosk-deploy` (Bento) | publishes a `/mosk-bench` tool to a hosting provider (Railway) using the user's own account — remote build, managed DB, public URL, pt-BR |
 
 `/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter). **For a non-technical, plain-language walkthrough of everything it does, see [BENCH.md](./BENCH.md).**
+
+`/mosk-deploy` is an **opt-in, separate** skill that publishes a bench tool to a hosting provider (Railway today) using the user's own account: the build runs **remotely** (so the local "zero build" invariant holds), managed Postgres/Redis are provisioned, and the user gets a public URL — all in pt-BR, deciding only account/token. See [ADR-0005](./docs/architecture/adr/adr-0005-deploy-skill-scoped-outside-local-invariants.md). The stack × provider model leaves room for PHP and other providers (Vercel/Fly) later.
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 
