@@ -14,17 +14,22 @@ The following skills are linked in `.codex/skills/`:
 
 - **mosk-analyst**: Discovery: brief, pesquisa de mercado, análise competitiva e brainstorming."
 - **mosk-architect**: Arquitetura: design de sistemas, stack, APIs e infraestrutura."
+- **mosk-bench**: Modo bench (persona Bento): workbench stack-agnóstico que leva um usuário leigo de 'quero uma ferramenta interna' a uma ferramenta rodando e testada em pt-BR, sem nenhuma decisão técnica. Stack ativa hoje: Payload (adapter). Use para criar do zero ou iterar sobre uma ferramenta interna."
 - **mosk-boot**: Bootstrap: gera .claude/rules/ com contexto compacto do projeto (project.md e, se houver frontend, frontend.md)."
 - **mosk-dev**: Implementação: implement, archive, debugging, refatoração e apply-qa-fixes."
 - **mosk-handoff**: Handoff: compacta a sessão atual em um documento de transição salvo em docs/handoff/ do workspace, amarrado à spec/documentação ativa."
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
+- **mosk-master**: Generalista: pedidos cross-funcionais, ajuda tática e trabalho misto."
+- **mosk-orchestrator**: Orquestrador: coordenação de workflow, roteamento multi-agente e orientação."
 - **mosk-pm**: Produto: criação de PRD e estratégia de produto."
-- **mosk-po**: Backlog & SpecKit: épicos, stories com AC e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
+- **mosk-po**: Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões."
+- **mosk-security**: Segurança: security review diff-aware, auditoria de vulnerabilidades e triagem de findings."
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação."
 - **mosk-ui-expert**: UI: interfaces premium, redesign, estilos visuais e design systems."
 - **mosk-update**: Update: atualiza o toolkit MOSK instalado via `npx degit --force`, lê o README e o TASKS.md direto do GitHub e resume as mudanças. Use ao atualizar/sincronizar a versão do MOSK no projeto."
 - **mosk-ux-expert**: UX: user flows, wireframes e front-end specs."
+- **mosk-webdesigner**: Web Design: interfaces premium, redesign, estilos visuais e design systems."
 - **mosk-write-skill**: Write Skill: cria uma nova skill MOSK (wrapper de agente ou direta de suporte) com estrutura, descrição com gatilhos e sincronização Codex correta."
 - **tea-commit**: Stages and commits pending changes using Conventional Commits format. Reads the diff, alerts for debug code, generates a clear commit message, and commits without skipping hooks.
 - **tea-open-fast-pr**: Full flow from scratch using `tea` CLI: asks branch type, creates and checkouts the branch (from stable branch for hotfix, from integration branch otherwise), commits pending changes, pushes, and opens a PR on Gitea."

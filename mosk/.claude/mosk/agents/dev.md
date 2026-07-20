@@ -52,6 +52,7 @@ If during implementation you detect any of the signals below, **PAUSE and emit t
 - Requirement contradiction or scope question → `/mosk-pm` (PRD delta).
 - Assumption about users/market without supporting evidence that blocks a decision → `/mosk-analyst`.
 - Story too unclear to derive the next task deterministically → `/mosk-sm` to re-draft.
+- Implemented diff touches security-sensitive surface (auth, user input, queries, secrets, endpoints, deserialization, crypto) → suggest `/mosk-security` review **before** the gate (handled at the end of `implement`).
 
 ### Escalation block format
 

@@ -51,6 +51,7 @@ If your review surfaces a finding that requires a preamble agent to resolve, **P
 - Risk or blocker rooted in an architectural decision → `/mosk-architect`.
 - Finding indicates UX confusion or missing flow → `/mosk-ux-expert` (flow/behavior) or `/mosk-ui-expert` (visual/state).
 - NFR gap that changes a product premise (e.g., capacity, tenancy, SLA) → `/mosk-pm` (PRD delta).
+- Security concern beyond a quick check, or the changes need a dedicated vulnerability review → `/mosk-security`.
 
 ### Escalation block format
 

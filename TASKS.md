@@ -162,6 +162,20 @@ loading protocol.
 /mosk-qa review a story 2.1
 ```
 
+### `/mosk-security` — Heitor · vulnerability review & audit
+
+On-demand security reviewer (inspired by Anthropic's `claude-code-security-review`): contextual, diff-aware analysis with a hard confidence threshold and an explicit false-positive exclusion list. Not a pipeline phase — its report **feeds the `qa-gate`** (a `SECURITY: FAIL`/`CONCERNS` verdict informs the gate).
+
+| Task | What it does |
+|---|---|
+| `security-review` | Diff-aware review of the branch's pending changes (3 phases: repo context → comparative analysis → vulnerability assessment). Reports findings with severity + confidence to `docs/qa/security/`. |
+| `assess-security` | Full-codebase security audit (same taxonomy, broader scope). On demand, outside the happy path. |
+
+```
+/mosk-security review the pending changes
+/mosk-security audit the whole codebase
+```
+
 ---
 
 ## Standalone skills

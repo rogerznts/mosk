@@ -58,6 +58,24 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
    `docs/index.md`. Automatic — no extra prompt.
 
+10. **Security review suggestion (conditional).** Inspect the diff you just
+    implemented. If it touches security-sensitive surface — authentication or
+    authorization, user-controlled input, database/queries, secrets or config,
+    external/inbound endpoints, deserialization, crypto, or file/path handling —
+    emit the suggestion block below and **wait**. Do not auto-invoke another
+    agent (MOSK contract). Skip silently when the change is clearly non-sensitive
+    (docs, pure refactor, tests). Recommended order: security **before** the gate,
+    so `/mosk-qa qa-gate` can read the `SECURITY:` verdict.
+
+    > **Security review suggested**
+    > - Signal: <one line — which sensitive surface the diff touched>
+    > - Recommended agent: `/mosk-security`
+    > - Suggested prompt: `/mosk-security review the pending changes`
+    > - Why now: diff is fresh; the verdict feeds `/mosk-qa qa-gate`.
+    > - On return: resume toward the quality gate.
+
+    Do not proceed until the user confirms `go`/`skip`/alternative.
+
 ## Rules
 
 - Do not read the entire project when the active tasks point to a narrow slice.

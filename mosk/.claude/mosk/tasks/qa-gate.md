@@ -16,6 +16,23 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - test results
    - open risks
    - unresolved acceptance gaps
+   - security report under `{qa.qaLocation}/security/`, when one exists.
+     Read its `SECURITY:` verdict: an unresolved HIGH finding (`SECURITY: FAIL`)
+     justifies `FAIL`; a `SECURITY: CONCERNS` justifies at least `CONCERNS`.
+   - **If no security report exists and the change touched security-sensitive
+     surface** (auth/authz, user input, queries, secrets/config, external
+     endpoints, deserialization, crypto, file/path handling), emit the block
+     below and **wait** before deciding the gate. Do not auto-invoke another
+     agent (MOSK contract). Skip silently for clearly non-sensitive changes.
+
+     > **Security review suggested**
+     > - Signal: <one line — which sensitive surface the change touched, no report on disk>
+     > - Recommended agent: `/mosk-security`
+     > - Suggested prompt: `/mosk-security review the pending changes`
+     > - Why now: the gate should read a `SECURITY:` verdict before deciding.
+     > - On return: resume this gate with the report as evidence.
+
+     Do not proceed until the user confirms `go`/`skip`/alternative.
 
 3. Decide one status:
    - `PASS`
