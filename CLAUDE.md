@@ -42,7 +42,7 @@ mosk/                        # installable template (source of truth)
 ├── .claude/
 │   ├── agents/              # Claude Code agents (thin wrappers, synced)
 │   ├── mosk/
-│   │   ├── agents/          # persona prompts (9 agents; canonical)
+│   │   ├── agents/          # persona prompts (10 agents; canonical)
 │   │   ├── tasks/           # executable workflows (specify, plan, tasks,
 │   │   │                    # implement, qa-gate, archive, boot, full-spec,
 │   │   │                    # index-docs, planner, clarify, analyze,

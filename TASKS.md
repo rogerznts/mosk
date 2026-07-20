@@ -168,6 +168,7 @@ loading protocol.
 
 | Skill | What it does |
 |---|---|
+| `/mosk-bench` (Bento) | Self-contained **workbench mode** for non-technical users: grills a business briefing, then autonomously runs the SDD pipeline to build & iterate an internal tool — Docker-based, pt-BR, zero technical decisions for the user. Active stack: Payload (pluggable adapter). (task: `bench-mode`) |
 | `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Run first; re-run when structure changes. (task: `boot`) |
 | `/mosk-handoff` | Compacts the current session into a handoff document saved to `docs/handoff/handoff-<YYYY-MM-DD>-<slug>.md` in the **current workspace** (never OS temp), anchored to the active spec/documentation. |
 | `/mosk-suggestion` | Reads the current session state (active spec, `current_phase`, on-disk artifacts, conversation focus) and suggests the **next** MOSK agent to call, with a ready-to-paste prompt. Suggest-only — never invokes another agent. |

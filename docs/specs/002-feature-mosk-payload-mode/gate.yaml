@@ -1,0 +1,159 @@
+schema: 1
+identifier: "002-feature-mosk-payload-mode"
+gate: PASS
+status_reason: >-
+  MVP (US1/US3) validado em runtime, invariantes travadas por construção, 26
+  tarefas fechadas. Todos os 4 top_issues do gate inicial (CONCERNS) foram
+  endereçados com evidência concreta: STARTER-002 resolvido (lockfile versionado
+  + --frozen-lockfile); FASEB-001 validado ao vivo (fan-out dev→qa com subagentes
+  REAIS e headless — dev implementou collection+2 regras, loop verde, qa deu PASS
+  independente); DEGIT-003 validado com `npx degit` REAL do GitHub (branch 002 →
+  materializa, boota com lockfile congelado, smoke 4/4); CODEX-004 com Codex CLI
+  presente e paridade estrutural confirmada num consumer (mosk-bench vira skill
+  Codex + entra no AGENTS.md). Monitores residuais (não bloqueantes) abaixo.
+reviewer: "Joaquim (mosk-qa) — gate inicial + re-avaliação pós-mitigações"
+updated: "2026-07-20T03:50:00Z"
+
+# ---------------------------------------------------------------------------
+# Evidência por invariante (INV-1..6) — travadas por construção, não pelo LLM
+# ---------------------------------------------------------------------------
+invariants:
+  INV-1_admin_ptBR_menu_completo:
+    status: verified
+    evidence: >-
+      payload.config.ts: i18n.fallbackLanguage 'pt' + supportedLanguages {pt,en};
+      collections sem admin.hidden/group. Runtime confirmou admin lang="pt".
+  INV-2_modulo_igual_collection:
+    status: verified
+    evidence: >-
+      payload.config registra collections; FR-011 trava LLM a editar só
+      src/collections/ e labels. Runtime: collection Produtos (pt-BR) criada como
+      collection e /api/produtos registrado no menu.
+  INV-3_postgres_redis:
+    status: verified
+    evidence: >-
+      .mosk-infra/docker-compose.yml: postgres:16-alpine + redis:7-alpine na
+      mosk-net; payload.config usa postgresAdapter. Runtime: pg_isready+redis ping OK.
+  INV-4_zero_build_local:
+    status: verified
+    evidence: >-
+      compose do projeto só serviço app (node:22-bookworm-slim, sem build);
+      payload-env.sh só valida/instala Docker com confirmação explícita.
+  INV-5_grill_so_regra_de_negocio:
+    status: verified_by_contract
+    evidence: >-
+      bench.md/bench-mode.md: pergunta só regra de negócio; bifurcação técnica =>
+      default seguro + aviso (FR-014). Contrato de prompt; não há suite automatizada.
+  INV-6_saida_ptBR_simples:
+    status: verified_by_contract
+    evidence: >-
+      bench.md proíbe jargão/porta/DB/YAML/comando ao leigo; entrega e resumos
+      CONCERNS em pt-BR. Contrato de prompt.
+
+# ---------------------------------------------------------------------------
+# FRs críticos
+# ---------------------------------------------------------------------------
+critical_frs:
+  FR-003_004_env_docker: { status: verified, evidence: "payload-env.sh: ordem --version→info→compose version; instalação guiada com UMA confirmação, sudo, --dry-run/--help. US3 validado sem Docker." }
+  FR-005_006_infra_idempotente: { status: verified, evidence: "payload-infra.sh idempotente (reusa se de pé) + health gate pg_isready/redis-cli ping. Runtime: infra sobe e é reusada." }
+  FR-007_008_provisionamento: { status: verified, evidence: "DB por slug (checa pg_database), Redis 0-15 c/ fallback prefixo, porta bind-test /dev/tcp desde 3000, tudo em registry.yaml. Runtime: 2 projetos com porta/db/redis distintos." }
+  FR-009_scaffold: { status: verified, evidence: "Runtime: starter copiado, git init, .env, .claude/rules/payload.md gerados." }
+  FR-012_021_iteracao_aditiva: { status: verified_by_contract, evidence: "bench-mode.md Fase 6: pula scaffold, spec aditiva N via create-new-feature.sh, reusa registry. Não exercitado em runtime multi-ciclo." }
+  FR-019_testes_local_api: { status: verified, evidence: "smoke.test.ts (Vitest/Local API). Runtime: suíte acumulada 5/5 (smoke 4 + módulo 1)." }
+  FR-020_022_025_faseB_loop_autoescalacao: { status: mostly_verified, evidence: "bench-mode.md define RAPC + seam invoke_phase_agent (Tier 1/2), MAX_FIX_ATTEMPTS=3, decisions-log.md, qa-gate. Smoke pós-gate exercitou o loop-until-green de verdade: regra 'só admin exclui' virou teste, tentativa 1 VERMELHA (comum excluía), tentativa 2 VERDE (access.delete), suíte 6/6, decisions-log.md/build-log.md/gate-smoke.yaml gerados. Resta não-observado: o fan-out po→dev→qa AO VIVO via subagentes reais." }
+  FR-030_paridade_runtime: { status: verified_by_contract, evidence: "ADR-0004: contrato de fases agnóstico + isolamento como capacidade (Tier1 estrutural / Tier2 lógico). Paridade Codex não exercitada em runtime." }
+  FR-034_starter: { status: verified, evidence: "22 arquivos + pnpm-lock.yaml (5642 linhas) versionados; next 15.3.9 + @payloadcms/translations pinados; compose usa pnpm install --frozen-lockfile (validado: 'Lockfile is up to date'). Reprodutibilidade garantida." }
+  FR-037_sync_camadas: { status: verified, evidence: "sync-agents-skills.sh --clean rodado (T023); cross-refs skill↔agente↔task válidas." }
+
+top_issues:
+  - id: FASEB-001
+    severity: low   # high → low após smoke; agora validado ao vivo
+    status: resolved
+    finding: >-
+      O loop-until-green da Fase B com fan-out po→dev→qa era contrato de prompt.
+      Foi (1) provado por smoke manual (red→green + teto) e (2) validado AO VIVO
+      com subagentes reais e headless: um mosk-dev implementou a collection
+      Clientes + 2 regras de negócio (email único; só admin exclui) levando a
+      suíte a 7/7 verde, e um mosk-qa independente deu PASS confirmando as regras
+      no código. Isolamento Tier-1 confirmado (output dos subagentes não vazou ao
+      contexto pai).
+    affects: [FR-020, FR-022, FR-025, FR-026, SC-004]
+    action: >-
+      RESOLVIDO. Monitor residual: fase `po` (plan/tasks) e o galho de
+      auto-escalação dev→architect não foram exercitados neste smoke (só dev→qa).
+  - id: STARTER-002
+    severity: medium
+    status: resolved
+    finding: >-
+      pnpm-lock.yaml não versionado no starter, contrariando FR-034. RESOLVIDO:
+      lock (5642 linhas) versionado e compose migrado para --frozen-lockfile
+      (validado 'Lockfile is up to date').
+    affects: [FR-034, FR-005]
+    action: "RESOLVIDO."
+  - id: DEGIT-003
+    severity: medium
+    status: resolved
+    finding: >-
+      Validado com `npx degit rogerznts/mosk/mosk#002-feature-mosk-payload-mode`
+      REAL: a árvore materializa do GitHub (skill/task/agente/starter/scripts +
+      pnpm-lock.yaml + pins corrigidos), a infra sobe pelo script puxado, o app
+      boota com "Lockfile is up to date" e o smoke passa 4/4. Falta só o merge
+      para master (será o PR) para o degit sem `#branch` refletir o modo.
+    affects: [FR-030, T025]
+    action: "Merge para master via PR; degit da default branch passa a servir o modo."
+  - id: CODEX-004
+    severity: low
+    status: mitigated
+    finding: >-
+      Codex CLI presente (codex-cli 0.144.6). Paridade estrutural validada num
+      consumer: link-codex-skills.sh cria `.codex/skills/mosk-bench` e insere a
+      entrada `/mosk-bench` no AGENTS.md gerado. Não coberto: rodar o modo AO VIVO
+      numa sessão Codex para observar o isolamento Tier-2 (ADR-0004).
+    affects: [FR-030, T024]
+    action: "Monitor: validar o isolamento Tier-2 numa sessão Codex real quando conveniente."
+
+residual_risks:
+  - "MONITOR: fase `po` (plan/tasks) e galho de auto-escalação dev→architect não exercitados no smoke ao vivo (só dev→qa)."
+  - "MONITOR: isolamento Tier-2 do Codex é contrato (ADR-0004), não observado em sessão Codex real."
+  - "MECÂNICO: modo só materializa via degit da default branch após o merge na master."
+
+mitigations_applied:
+  - id: STARTER-002
+    date: "2026-07-20"
+    what: >-
+      pnpm-lock.yaml (5642 linhas) gerado a partir do package.json corrigido e
+      versionado no starter; compose migrado para `pnpm install --frozen-lockfile`;
+      README atualizado. Validado no container: 'Lockfile is up to date'.
+  - id: FASEB-001
+    date: "2026-07-20"
+    what: >-
+      (1) Smoke manual: briefing mínimo (Tarefas + 'só admin exclui'); build-loop
+      tentativa 1 VERMELHA → tentativa 2 VERDE dentro do teto (2/3); 6/6;
+      decisions-log/build-log/gate-smoke gerados. (2) VALIDAÇÃO AO VIVO: fan-out
+      com subagentes REAIS e headless — mosk-dev implementou Clientes + 2 regras
+      (email único; só admin exclui), suíte 7/7 verde na 1ª iteração sem
+      regressão; mosk-qa independente deu PASS confirmando R1/R2 no código e
+      invariantes. Isolamento Tier-1 confirmado (output não vazou ao pai).
+  - id: DEGIT-003
+    date: "2026-07-20"
+    what: >-
+      `npx degit rogerznts/mosk/mosk#002-...` REAL do GitHub: árvore materializa
+      completa (inclui pnpm-lock.yaml + pins), infra sobe pelo script puxado, app
+      boota com "Lockfile is up to date, resolution step is skipped", smoke 4/4.
+  - id: CODEX-004
+    date: "2026-07-20"
+    what: >-
+      Codex CLI presente (0.144.6); link-codex-skills.sh num consumer cria
+      `.codex/skills/mosk-bench` e a entrada `/mosk-bench` no AGENTS.md. Paridade
+      estrutural confirmada.
+
+recommendations:
+  immediate: []   # todos os 4 top_issues endereçados
+  before_merge:
+    - "Abrir PR para master (fecha a parte mecânica de DEGIT-003)."
+  monitor:
+    - "Fase `po` (plan/tasks) e auto-escalação dev→architect ao vivo (FASEB-001 residual)."
+    - "Isolamento Tier-2 numa sessão Codex real (CODEX-004 residual)."
+
+waiver:
+  active: false

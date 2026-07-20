@@ -2,6 +2,10 @@
 
 Spec-driven development toolkit for Claude Code. Nine specialist agents, one pipeline, two mirrored layers of documentation — installable into any repository through `.claude/`.
 
+> 🛠️ **Novo — MOSK Bench:** um modo que deixa pessoas **não técnicas** criarem e
+> testarem suas próprias ferramentas internas só descrevendo o que precisam, em
+> português e sem nenhuma decisão técnica. **[Leia o guia do Bench →](./BENCH.md)**
+
 ## Why MOSK
 
 Every meaningful change in a real codebase deserves an explicit trail: a brief that framed it, a spec that scoped it, a plan that solved it, tasks that delivered it, a gate that validated it, and an archive that preserves it. MOSK turns that trail into a lightweight, convention-driven workflow with low token overhead and no mandatory menus.
@@ -52,6 +56,9 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-sm` (Roberto) | story readiness, sequencing |
 | `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
+| `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
+
+`/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter). **For a non-technical, plain-language walkthrough of everything it does, see [BENCH.md](./BENCH.md).**
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 

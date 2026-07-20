@@ -45,8 +45,9 @@ runtime.
 
 Key layers inside `mosk/.claude/mosk/`:
 
-- `agents/` — 9 persona prompts (analyst, pm, architect, ux-expert,
-  ui-expert, po, sm, dev, qa). Concise, low-menu, low-token.
+- `agents/` — 10 persona prompts (analyst, pm, architect, ux-expert,
+  ui-expert, po, sm, dev, qa, bench). Concise, low-menu, low-token.
+  `bench` (Bento) is the standalone workbench mode, not a pipeline agent.
 - `tasks/` — executable workflows referenced by agents (e.g.
   `specify.md`, `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
   `archive.md`, `boot.md`, `full-spec.md`, `index-docs.md`, plus
