@@ -1,0 +1,43 @@
+{
+  "name": "payload-starter",
+  "version": "0.1.0",
+  "description": "Golden starter Payload+Docker do modo MOSK /mosk-bench (sobe e loga em pt-BR).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "^22"
+  },
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0",
+    "devsafe": "rm -rf .next && next dev -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap",
+    "migrate": "payload migrate",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.37.0",
+    "@payloadcms/next": "3.37.0",
+    "@payloadcms/richtext-lexical": "3.37.0",
+    "@payloadcms/translations": "3.37.0",
+    "@payloadcms/ui": "3.37.0",
+    "graphql": "16.9.0",
+    "ioredis": "5.4.2",
+    "next": "15.3.9",
+    "payload": "3.37.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "sharp": "0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.6",
+    "@types/react": "19.0.7",
+    "@types/react-dom": "19.0.3",
+    "typescript": "5.7.3",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "2.1.8"
+  },
+  "packageManager": "pnpm@9.15.4"
+}

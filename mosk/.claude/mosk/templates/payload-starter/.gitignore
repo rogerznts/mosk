@@ -1,0 +1,20 @@
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# Dependências e build
+node_modules
+dist
+.next
+build
+
+# Payload
+payload-types.ts
+
+# Log verboso de build da Fase B — efêmero, nunca versionado (ADR-0004).
+build-log.md
+
+# SO / editor
+.DS_Store
+*.log

@@ -1,0 +1,50 @@
+# Infra COMPARTILHADA por máquina (ADR-0001, FR-005).
+# Sobe UMA vez; todos os projetos criados pelo modo /mosk-bench reusam.
+# payload-infra.sh copia este arquivo para ~/projects/.mosk-infra/ e sobe com `up -d`.
+#
+# - É esta infra que CRIA a rede `mosk-net` (name: mosk-net).
+# - Postgres e Redis NÃO publicam portas no host: só são acessíveis dentro da
+#   `mosk-net`, pelos containers `app` de cada projeto (por nome de serviço).
+# - Dados persistem em volumes nomeados mesmo derrubando a infra.
+
+name: mosk-infra
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mosk
+      POSTGRES_PASSWORD: mosk
+      POSTGRES_DB: mosk
+    volumes:
+      - mosk-pgdata:/var/lib/postgresql/data
+    networks:
+      - mosk-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosk"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - mosk-redisdata:/data
+    networks:
+      - mosk-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  mosk-pgdata:
+  mosk-redisdata:
+
+networks:
+  mosk-net:
+    name: mosk-net
