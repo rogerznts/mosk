@@ -56,12 +56,15 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-sm` (Roberto) | story readiness, sequencing |
 | `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
+| `/mosk-security` (Heitor) | diff-aware vulnerability review, security audit, findings triage |
 | `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
 | `/mosk-deploy` (Bento) | publishes a `/mosk-bench` tool to a hosting provider (Railway) using the user's own account — remote build, managed DB, public URL, pt-BR |
 
 `/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter). **For a non-technical, plain-language walkthrough of everything it does, see [BENCH.md](./BENCH.md).**
 
 `/mosk-deploy` is an **opt-in, separate** skill that publishes a bench tool to a hosting provider (Railway today) using the user's own account: the build runs **remotely** (so the local "zero build" invariant holds), managed Postgres/Redis are provisioned, and the user gets a public URL — all in pt-BR, deciding only account/token. See [ADR-0005](./docs/architecture/adr/adr-0005-deploy-skill-scoped-outside-local-invariants.md). The stack × provider model leaves room for PHP and other providers (Vercel/Fly) later.
+
+`/mosk-security` is an **on-demand reviewer** (inspired by Anthropic's [`claude-code-security-review`](https://github.com/anthropics/claude-code-security-review)): contextual, diff-aware analysis with a hard confidence threshold and an explicit false-positive exclusion list. It is not a pipeline phase — its report **feeds the `qa-gate`** (a `SECURITY: FAIL`/`CONCERNS` verdict informs the decision). Following the MOSK escalation contract, `implement` and `qa-gate` only **suggest** running it when the diff touches security-sensitive surface, and wait for your confirmation — never auto-invoke.
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 
@@ -86,7 +89,9 @@ flowchart TD
     PRE --> F[/mosk-po<br/>full-spec: specify → plan → tasks/]
     F --> G[/mosk-sm<br/>readiness/]
     G --> H[/mosk-dev implement/]
+    H -. if security-sensitive .-> S[/mosk-security<br/>review/]
     H --> I[/mosk-qa qa-gate/]
+    S --> I
     I -->|CONCERNS or FAIL| H
     I -->|PASS| J[/mosk-dev archive/]
 ```
