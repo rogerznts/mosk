@@ -168,3 +168,8 @@ escalação; o glossário está promovido.
   muda o teto sem alteração de código.
 - **SC-005**: O comportamento do `loop-until-green` do bench permanece
   inalterado (por-tarefa, automático) — verificado intocado.
+
+---
+**Arquivado em:** 2026-07-22
+**Status final:** Concluído
+**Promoções aplicadas:** copy (ADR-0008 → docs/architecture/adr/), append (glossary → docs/architecture/glossary.md)

@@ -67,7 +67,9 @@ Corporativo).
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
   ADR-0003 golden starter versionado, ADR-0004 orquestração agnóstica de
   runtime — promovido no archive da spec 002; ADR-0005 deploy escopado;
-  ADR-0006 grafo de orquestração consultivo — spec 004).
+  ADR-0006 grafo de orquestração consultivo — spec 004;
+  ADR-0008 delivery-loop consultivo — promovido no archive da spec 005) +
+  [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
   - [`guia-atualizacao-plane.md`](./project/guia-atualizacao-plane.md) — como
@@ -92,13 +94,13 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 005 | [feature-delivery-loop](./specs/005-feature-delivery-loop/) (loop de entrega consultivo e limitado) | qa-gate | 005-feature-delivery-loop | 2026-07-22 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 005 | [feature-delivery-loop](./specs/archive/005-feature-delivery-loop/) (delivery-loop consultivo e limitado) | archived | 005-feature-delivery-loop | 2026-07-22 |
 | 002 | [feature-mosk-payload-mode](./specs/archive/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | archived | 002-feature-mosk-payload-mode | 2026-07-20 |
 
 ### Outras
