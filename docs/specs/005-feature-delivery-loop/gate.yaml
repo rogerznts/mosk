@@ -1,0 +1,50 @@
+# Quality gate — spec 005-feature-delivery-loop
+# Gravado no local por-spec (core-config specs.gateFile) — que é o que o
+# delivery-loop (legal_moves._gate_status) e o pipeline por-spec leem.
+
+identifier: "005-feature-delivery-loop"
+gate: PASS
+reviewer: "Joaquim (mosk-qa)"
+updated: "2026-07-22T18:10:00Z"
+
+status_reason: >
+  QA-1 resolvido: qa-gate grava o gate por-spec (specs.gateFile) e
+  legal_moves resolve o gate de forma robusta (per-spec + fallback canônico).
+  Loop valida ponta-a-ponta com gate real; SC-003 fecha. QA-2 (monitor).
+
+top_issues:
+  - id: QA-1
+    severity: high
+    resolved: true
+    finding: >
+      Descasamento de local do gate. legal_moves._gate_status lê
+      "${FEATURE_DIR}/gate.yaml" (specs.gateFile), mas qa-gate.md instrui
+      gravar em "{qa.qaLocation}/gates/" (docs/qa/gates). Num run real,
+      gate_pass/gate_concerns_or_fail ficam sempre falsos → o loop não oferece
+      loopback nem detecta convergência (SC-003 falha).
+    suggested_action: >
+      Reconciliar em um único local. Recomendado: o delivery-loop e o pipeline
+      por-spec usam specs/{id}/gate.yaml; ajustar qa-gate.md (e/ou
+      core-config) para o gate por-spec ser a fonte que o loop lê — ou fazer
+      legal_moves resolver o gate do local canônico de qa.gatesDir.
+  - id: QA-2
+    severity: low
+    finding: >
+      Ambiguidade pré-existente no core-config: dois locais de gate coexistem
+      (specs.gateFile: gate.yaml e qa.gatesDir: docs/qa/gates) sem uma regra
+      única de qual é autoritativo. A spec 005 apenas expôs o problema.
+    suggested_action: >
+      Documentar/unificar qual local é autoritativo para o veredito por-spec
+      (fora do escopo estrito da 005; candidato a spec de correção própria).
+
+nfr_validation:
+  correctness: { status: PASS, notes: "QA-1 resolvido; loop lê o gate real e SC-003 fecha ponta-a-ponta." }
+  maintainability: { status: PASS, notes: "Zero estado novo; contador derivado do log; parser awk simples." }
+  security: { status: PASS, notes: "Shell lê arquivos locais; sem superfície sensível." }
+
+recommendations:
+  must_fix: []
+  monitor:
+    - "QA-2: unificar a política de local de gate no core-config (candidato a spec própria)."
+  resolved:
+    - "QA-1: qa-gate grava o gate por-spec (specs.gateFile) e legal_moves resolve per-spec + fallback canônico."

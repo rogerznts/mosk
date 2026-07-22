@@ -92,7 +92,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 005 | [feature-delivery-loop](./specs/005-feature-delivery-loop/) (loop de entrega consultivo e limitado) | implement | 005-feature-delivery-loop | 2026-07-22 |
+| 005 | [feature-delivery-loop](./specs/005-feature-delivery-loop/) (loop de entrega consultivo e limitado) | qa-gate | 005-feature-delivery-loop | 2026-07-22 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas

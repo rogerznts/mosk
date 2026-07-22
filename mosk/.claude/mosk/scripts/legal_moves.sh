@@ -58,8 +58,16 @@ eval "$(get_feature_paths 2>/dev/null | grep -E '^FEATURE_DIR=')" || true
 # --- fact guard evaluators (mecânicos, verificáveis em disco) ---
 _prd_ready() { [[ -d "$REPO_ROOT/docs/prd" && -n "$(ls -A "$REPO_ROOT/docs/prd" 2>/dev/null)" ]]; }
 _gate_status() {
+    # Resolve o gate de forma robusta (QA-1 da spec 005): local por-spec
+    # (core-config specs.gateFile) primeiro; se ausente, cai no canônico
+    # docs/qa/gates/ (mais recente). Assim o loop enxerga o veredito
+    # independentemente de onde o qa-gate gravou.
     local gf="${FEATURE_DIR:-}/gate.yaml"
-    [[ -f "$gf" ]] || return 0
+    if [[ ! -f "$gf" ]]; then
+        local gd="${REPO_ROOT:-.}/docs/qa/gates"
+        [[ -d "$gd" ]] && gf="$(ls -t "$gd"/*.y*ml 2>/dev/null | head -1)"
+    fi
+    [[ -n "$gf" && -f "$gf" ]] || return 0
     awk '/^[[:space:]]*gate[[:space:]]*:/ { sub(/^[[:space:]]*gate[[:space:]]*:[[:space:]]*/,""); gsub(/["'\'' ]/,""); print; exit }' "$gf"
 }
 eval_fact_guard() {

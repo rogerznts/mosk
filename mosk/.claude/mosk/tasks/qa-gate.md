@@ -8,8 +8,14 @@ Produce a minimal gate artifact that answers one question clearly: can this move
 
 ## Workflow
 
-1. Read `.claude/mosk/core-config.yaml` and resolve `qa.qaLocation`.
-   - Write the gate file under `{qa.qaLocation}/gates/`.
+1. Read `.claude/mosk/core-config.yaml` and resolve the gate location.
+   - **Spec-level gate (default):** write to the per-spec `specs.gateFile`
+     → `docs/specs/{id}/gate.yaml`. **This is the location the per-spec
+     pipeline, `index-docs`, and the delivery-loop (`legal_moves`) read** —
+     writing elsewhere makes the loop blind to the verdict (QA-1, ADR-0008).
+   - **Story-level gate:** for a specific story, `{qa.qaLocation}/gates/`
+     remains valid (BMAD lineage). `legal_moves` falls back to the newest file
+     there when no per-spec `gate.yaml` exists.
 
 2. Gather the review evidence:
    - review findings
