@@ -74,6 +74,10 @@ UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns struc
 
 A single pipeline. An optional **preamble** runs first whenever the base of the project (or the feature) is not yet grounded.
 
+The pipeline is formalized as data in [`mosk/.claude/mosk/pipeline-graph.yaml`](mosk/.claude/mosk/pipeline-graph.yaml) — the **single source of truth** for phases, transitions, and escalations. It is **consultative**: `legal_moves.sh` computes the legal next moves from the current phase and the human decides (`go`/`escalate`/`skip`/override) — nothing auto-executes (see [ADR-0006](docs/architecture/adr/adr-0006-consultative-orchestration-graph.md)).
+
+<!-- Este diagrama é mantido À MÃO — mantenha-o em sincronia com pipeline-graph.yaml (fonte da verdade). A versão renderizada a partir do grafo vive em docs/index.md. -->
+
 ```mermaid
 flowchart TD
     A[Request] -->|base missing/incomplete?| PRE
@@ -92,8 +96,9 @@ flowchart TD
     H -. if security-sensitive .-> S[/mosk-security<br/>review/]
     H --> I[/mosk-qa qa-gate/]
     S --> I
-    I -->|CONCERNS or FAIL| H
-    I -->|PASS| J[/mosk-dev archive/]
+    I -->|CONCERNS or FAIL · attempt < max_retries| H
+    I -->|max_retries reached| K[escalate / waive / stop]
+    I -->|PASS or WAIVED| J[/mosk-dev archive/]
 ```
 
 Defaults:
@@ -105,6 +110,16 @@ Defaults:
 - **Optional helpers:** `clarify`, `analyze`, `checklist`.
 
 `full-spec` stops at `tasks`. Implementation stays with `/mosk-dev`.
+
+### Delivery-loop (bounded, consultative)
+
+The `implement ↔ qa-gate` cycle is a **bounded, consultative delivery-loop** (see [ADR-0008](docs/architecture/adr/adr-0008-consultative-delivery-loop.md)). When the gate returns `CONCERNS`/`FAIL`, `legal_moves.sh qa-gate` presents the correction loopback labeled `tentativa N/max` (default `apply-qa-fixes`) — **you** decide each turn; it never iterates on its own.
+
+- **Termination** is the single gate verdict `PASS`/`WAIVED` (task checkboxes feed the gate, they are not a parallel exit).
+- **Attempt count** is derived from each spec's `phase-history.log` (no new state); the cap `max_retries` defaults to `3` in `core-config.yaml` (`orchestration.max_retries`) and is overridable per-spec in `spec-meta.yaml`.
+- On **exhaustion** the loopback is withdrawn and the loop offers `escalate` / `waive` / `stop` — never a silent give-up, never an auto-retry.
+
+It is distinct from the bench's automated `loop-until-green`: the delivery-loop serves a **technical operator** and pauses for questions; the bench serves a layperson and never does.
 
 ## Document Organization
 

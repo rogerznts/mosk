@@ -201,6 +201,44 @@ bash .claude/mosk/scripts/check-prerequisites.sh \
 
 **Called by:** `plan`, `tasks`, `implement`, `qa-gate` tasks.
 
+### `legal_moves.sh`
+
+Computes the **legal next moves** from a pipeline phase, reading the single
+source of truth `pipeline-graph.yaml` (ADR-0006/0007). **Never takes an
+edge** — evaluates `fact` guards mechanically, flags `judgment` guards for
+the agent, and presents; the human decides.
+
+**Usage:**
+```bash
+bash .claude/mosk/scripts/legal_moves.sh <current_phase> [--json]
+bash .claude/mosk/scripts/legal_moves.sh __start__      # pre-spec routing
+```
+
+**Behavior:**
+- Lists edges leaving `<current_phase>` with the `default` marked; omits moves
+  whose `fact` guard failed; surfaces `judgment` guards with their question.
+- Lists escalations available from the phase (side-trips that return).
+- **Delivery-loop aware at `qa-gate`** (ADR-0008): labels the correction
+  loopback `tentativa N/max` while `N < max`; on the cap, swaps to the
+  exhaustion menu (`escalar`/`waive`/`parar`). The counter is derived from
+  `phase-history.log`; the cap from `resolve_max_retries`.
+
+**Called by:** `mosk-suggestion` skill; `implement`/`qa-gate` tasks.
+
+### `graph_mermaid.sh`
+
+Renders a deterministic Mermaid flowchart **from** `pipeline-graph.yaml` (the
+diagram is derived, not a parallel copy). Embedded into `docs/index.md` by
+`index-docs`. Usage: `bash .claude/mosk/scripts/graph_mermaid.sh`.
+
+### `lint-graph.sh`
+
+Validates the **form** of `pipeline-graph.yaml` (ADR-0007): every record
+(node/edge/escalation/guard) must be one line in flow style, so the `awk`
+projections in `common.sh` stay simple. Usage:
+`bash .claude/mosk/scripts/lint-graph.sh [--quiet]`. Exit 0 = clean;
+exit 1 lists `path:line :: detail`.
+
 ### `common.sh`
 
 Shared library — never executed directly, always `source`'d:
@@ -216,9 +254,18 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
   spec).
 - `spec-meta.yaml` helpers (top-level scalar keys only — no nested
   structures, no arrays): `read_spec_meta <dir> <key>`,
-  `update_spec_phase <dir> <phase>` (also bumps
-  `last_phase_change`), `list_active_specs [<specs_root>]`,
+  `update_spec_phase <dir> <phase>` (also bumps `last_phase_change`,
+  **validates the transition against `pipeline-graph.yaml` and appends to
+  `<dir>/phase-history.log`** — off-graph warns but proceeds, never blocks;
+  ADR-0006), `list_active_specs [<specs_root>]`,
   `write_spec_meta <dir> <number> <id> <type> <branch>`.
+- **Graph projections** (ADR-0007, zero-dep awk): `graph_file`,
+  `graph_edges_from <phase>`, `graph_edge_exists <from> <to>`,
+  `guard_kind <name>`, `guard_question <name>`.
+- **Delivery-loop helpers** (ADR-0008): `attempt_count <dir>` (gate loopbacks
+  derived from `phase-history.log`), `resolve_max_retries <dir>` (spec-meta
+  override → `core-config.yaml orchestration.max_retries` → 3),
+  `core_config_file`.
 
 ---
 

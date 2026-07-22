@@ -34,6 +34,7 @@ flowchart TD
   plan["plan"] -.->|missing_adr| architecture["architecture"]
   tasks["tasks"] -.->|missing_adr| architecture["architecture"]
   implement["implement"] -.->|missing_adr| architecture["architecture"]
+  qa_gate["qa-gate"] -.->|missing_adr| architecture["architecture"]
   specify["specify"] -.->|unspecified_flow| ux["ux"]
   plan["plan"] -.->|unspecified_flow| ux["ux"]
   implement["implement"] -.->|unspecified_flow| ux["ux"]
@@ -44,6 +45,7 @@ flowchart TD
   plan["plan"] -.->|prd_conflict| prd["prd"]
   tasks["tasks"] -.->|prd_conflict| prd["prd"]
   implement["implement"] -.->|prd_conflict| prd["prd"]
+  qa_gate["qa-gate"] -.->|prd_conflict| prd["prd"]
 ```
 <!-- graph:end -->
 
@@ -90,6 +92,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
+| 005 | [feature-delivery-loop](./specs/005-feature-delivery-loop/) (loop de entrega consultivo e limitado) | qa-gate | 005-feature-delivery-loop | 2026-07-22 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas

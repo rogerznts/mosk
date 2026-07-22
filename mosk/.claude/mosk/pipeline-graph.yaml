@@ -66,10 +66,10 @@ edges:
 # blocos "Escalation suggested" formalizados. Semântica de ida-e-volta,
 # diferente das arestas (ida só) — por isso ficam à parte.
 escalations:
-  - { signal: missing_adr,      from: [plan, tasks, implement],          to: architecture, return_to: origin, scope: spec }
-  - { signal: unspecified_flow, from: [specify, plan, implement],        to: ux,           return_to: origin, scope: spec }
-  - { signal: design_gap,       from: [specify, plan, implement],        to: ui,           return_to: origin, scope: spec }
-  - { signal: prd_conflict,     from: [specify, plan, tasks, implement], to: prd,          return_to: origin, scope: spec }
+  - { signal: missing_adr,      from: [plan, tasks, implement, qa-gate],          to: architecture, return_to: origin, scope: spec }
+  - { signal: unspecified_flow, from: [specify, plan, implement],                 to: ux,           return_to: origin, scope: spec }
+  - { signal: design_gap,       from: [specify, plan, implement],                 to: ui,           return_to: origin, scope: spec }
+  - { signal: prd_conflict,     from: [specify, plan, tasks, implement, qa-gate], to: prd,          return_to: origin, scope: spec }
 
 # ── Guards ─────────────────────────────────────────────────────────────
 # kind: fact     → avaliado mecanicamente pelo shell (verificável em disco).

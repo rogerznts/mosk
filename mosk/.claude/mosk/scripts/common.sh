@@ -375,3 +375,65 @@ guard_kind() { _graph_guard_field "$1" "kind"; }
 # Guard human-readable question. Usage: guard_question <name>
 guard_question() { _graph_guard_field "$1" "question"; }
 
+# ---------- delivery-loop helpers (ADR-0008) ----------
+# The delivery-loop counts gate cycles per-spec, derived from phase-history.log
+# (no new persisted state). The retry cap is a policy: per-spec override in
+# spec-meta.yaml, else global default in core-config.yaml, else 3.
+
+# Resolve core-config.yaml relative to this script (template & consumer),
+# overridable via MOSK_CORE_CONFIG for tests.
+core_config_file() {
+    if [[ -n "${MOSK_CORE_CONFIG:-}" ]]; then
+        echo "$MOSK_CORE_CONFIG"
+        return
+    fi
+    local d
+    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    echo "$d/../core-config.yaml"
+}
+
+# Count delivery-loop attempts for a spec = number of `qa-gate -> implement`
+# loopbacks recorded in phase-history.log. Usage: attempt_count <spec_dir>
+# Echoes an integer (0 when the log is absent).
+attempt_count() {
+    local spec_dir="$1"
+    local log="$spec_dir/phase-history.log"
+    if [[ ! -f "$log" ]]; then
+        echo "warn: phase-history.log ausente em $spec_dir (contagem = 0)" >&2
+        echo 0
+        return 0
+    fi
+    local n
+    n=$(grep -cE 'qa-gate[[:space:]]*->[[:space:]]*implement' "$log" 2>/dev/null || true)
+    echo "${n:-0}"
+}
+
+# Read orchestration.max_retries from core-config.yaml (nested 2-level key).
+_core_config_max_retries() {
+    local cc
+    cc="$(core_config_file)"
+    [[ -f "$cc" ]] || return 0
+    awk '
+        /^[^[:space:]#]/ { in_orch = ($0 ~ /^orchestration:/) }
+        in_orch && /^[[:space:]]+max_retries[[:space:]]*:/ {
+            sub(/^[[:space:]]+max_retries[[:space:]]*:[[:space:]]*/, "")
+            gsub(/["'\'' ]/, "")
+            print; exit
+        }
+    ' "$cc"
+}
+
+# Resolve max_retries for a spec: spec-meta override -> core-config default -> 3.
+# Non-numeric values fall back to 3 with a warning. Usage: resolve_max_retries <spec_dir>
+resolve_max_retries() {
+    local spec_dir="$1"
+    local v
+    v="$(read_spec_meta "$spec_dir" "max_retries")"
+    [[ -z "$v" ]] && v="$(_core_config_max_retries)"
+    if ! [[ "$v" =~ ^[0-9]+$ ]]; then
+        [[ -n "$v" ]] && echo "warn: max_retries inválido ('$v'); usando default 3" >&2
+        v=3
+    fi
+    echo "$v"
+}
+

@@ -19,3 +19,5 @@ current_phase: specify             # specify | plan | tasks | implement | qa-gat
 # archived_at: "2026-05-15T10:00:00Z"
 # last_phase_change: "2026-04-25T14:20:00Z"
 # owners: ["alice@…", "bob@…"]
+# max_retries: 5   # delivery-loop: override do teto de voltas do gate desta spec
+#                  # (default global em core-config.yaml orchestration.max_retries; ADR-0008)

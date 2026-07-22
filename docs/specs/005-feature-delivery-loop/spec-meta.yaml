@@ -1,0 +1,9 @@
+spec_number: "005"
+spec_id: "005-feature-delivery-loop"
+type: "feature"
+branch: "005-feature-delivery-loop"
+created_at: "2026-07-22T17:09:10Z"
+created_by: "Roger Santos <rogerznts@gmail.com>"
+status: active
+current_phase: qa-gate
+last_phase_change: "2026-07-22T19:37:52Z"

@@ -58,8 +58,16 @@ eval "$(get_feature_paths 2>/dev/null | grep -E '^FEATURE_DIR=')" || true
 # --- fact guard evaluators (mecânicos, verificáveis em disco) ---
 _prd_ready() { [[ -d "$REPO_ROOT/docs/prd" && -n "$(ls -A "$REPO_ROOT/docs/prd" 2>/dev/null)" ]]; }
 _gate_status() {
+    # Resolve o gate de forma robusta (QA-1 da spec 005): local por-spec
+    # (core-config specs.gateFile) primeiro; se ausente, cai no canônico
+    # docs/qa/gates/ (mais recente). Assim o loop enxerga o veredito
+    # independentemente de onde o qa-gate gravou.
     local gf="${FEATURE_DIR:-}/gate.yaml"
-    [[ -f "$gf" ]] || return 0
+    if [[ ! -f "$gf" ]]; then
+        local gd="${REPO_ROOT:-.}/docs/qa/gates"
+        [[ -d "$gd" ]] && gf="$(ls -t "$gd"/*.y*ml 2>/dev/null | head -1)"
+    fi
+    [[ -n "$gf" && -f "$gf" ]] || return 0
     awk '/^[[:space:]]*gate[[:space:]]*:/ { sub(/^[[:space:]]*gate[[:space:]]*:[[:space:]]*/,""); gsub(/["'\'' ]/,""); print; exit }' "$gf"
 }
 eval_fact_guard() {
@@ -94,6 +102,13 @@ escalations_from() {
     ' "$gf"
 }
 
+# --- delivery-loop counter (only meaningful at qa-gate; ADR-0008) ---
+LOOP_CNT=""; LOOP_MAX=""; LOOP_EXHAUSTED=0
+if [[ "$PHASE" == "qa-gate" ]]; then
+    LOOP_CNT="$(attempt_count "${FEATURE_DIR:-}" 2>/dev/null || echo 0)"
+    LOOP_MAX="$(resolve_max_retries "${FEATURE_DIR:-}" 2>/dev/null || echo 3)"
+fi
+
 # --- collect moves ---
 moves_json="["
 first=1
@@ -115,6 +130,17 @@ while IFS='|' read -r to guard def; do
                 note="[guard: $guard (?)]"
                 ;;
         esac
+    fi
+    # delivery-loop: annotate the gate loopback with the attempt counter.
+    # Ao atingir o teto, suprime o loopback (o menu de esgotamento é da Fase 2).
+    if [[ "$PHASE" == "qa-gate" && "$to" == "implement" && "$offered" -eq 1 ]]; then
+        if [[ "$LOOP_CNT" -ge "$LOOP_MAX" ]]; then
+            offered=0
+            LOOP_EXHAUSTED=1
+        else
+            note="[tentativa $((LOOP_CNT + 1))/$LOOP_MAX · loopback de correção]"
+            def="true"
+        fi
     fi
     [[ "$offered" -eq 1 ]] || continue
     tag=""; [[ "$def" == "true" ]] && tag=" (default)"
@@ -138,7 +164,14 @@ done < <(escalations_from)
 esc_json+="]"
 
 if [[ "$JSON" -eq 1 ]]; then
-    printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
+    if [[ "$PHASE" == "qa-gate" ]]; then
+        exm="[]"
+        [[ "$LOOP_EXHAUSTED" -eq 1 ]] && exm='["escalate","waive","stop"]'
+        printf '{"phase":"%s","loop":{"attempt":%s,"max":%s,"exhausted":%s,"exhausted_moves":%s},"moves":%s,"escalations":%s}\n' \
+            "$PHASE" "${LOOP_CNT:-0}" "${LOOP_MAX:-0}" "$([[ "$LOOP_EXHAUSTED" -eq 1 ]] && echo true || echo false)" "$exm" "$moves_json" "$esc_json"
+    else
+        printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
+    fi
     exit 0
 fi
 
@@ -148,6 +181,13 @@ if [[ -n "$human_moves" ]]; then
     printf '%s' "$human_moves"
 else
     echo "jogadas legais: (nenhuma aresta satisfeita)"
+fi
+if [[ "$LOOP_EXHAUSTED" -eq 1 ]]; then
+    echo "⚠ limite de tentativas atingido ($LOOP_CNT/$LOOP_MAX) — convergência não alcançada."
+    echo "jogadas de esgotamento (o loop NÃO continua sozinho — você decide):"
+    echo "  ↳ escalar → ataque a causa raiz via uma escalação abaixo (architecture/prd/…)"
+    echo "  ↳ waive   → /mosk-qa qa-gate: aceitar com WAIVED + justificativa → archived"
+    echo "  ↳ parar   → assumir manual; encerrar o loop"
 fi
 if [[ -n "$human_esc" ]]; then
     echo "escalações disponíveis:"
