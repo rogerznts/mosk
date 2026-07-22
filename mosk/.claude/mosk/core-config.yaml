@@ -32,6 +32,7 @@ index:
   template: .claude/mosk/templates/docs-index-tmpl.md
 orchestration:
   graph: .claude/mosk/pipeline-graph.yaml
+  max_retries: 3
 promotion:
   defaults:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }

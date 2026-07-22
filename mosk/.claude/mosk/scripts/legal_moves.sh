@@ -94,6 +94,13 @@ escalations_from() {
     ' "$gf"
 }
 
+# --- delivery-loop counter (only meaningful at qa-gate; ADR-0008) ---
+LOOP_CNT=""; LOOP_MAX=""; LOOP_EXHAUSTED=0
+if [[ "$PHASE" == "qa-gate" ]]; then
+    LOOP_CNT="$(attempt_count "${FEATURE_DIR:-}" 2>/dev/null || echo 0)"
+    LOOP_MAX="$(resolve_max_retries "${FEATURE_DIR:-}" 2>/dev/null || echo 3)"
+fi
+
 # --- collect moves ---
 moves_json="["
 first=1
@@ -115,6 +122,17 @@ while IFS='|' read -r to guard def; do
                 note="[guard: $guard (?)]"
                 ;;
         esac
+    fi
+    # delivery-loop: annotate the gate loopback with the attempt counter.
+    # Ao atingir o teto, suprime o loopback (o menu de esgotamento é da Fase 2).
+    if [[ "$PHASE" == "qa-gate" && "$to" == "implement" && "$offered" -eq 1 ]]; then
+        if [[ "$LOOP_CNT" -ge "$LOOP_MAX" ]]; then
+            offered=0
+            LOOP_EXHAUSTED=1
+        else
+            note="[tentativa $((LOOP_CNT + 1))/$LOOP_MAX · loopback de correção]"
+            def="true"
+        fi
     fi
     [[ "$offered" -eq 1 ]] || continue
     tag=""; [[ "$def" == "true" ]] && tag=" (default)"
@@ -138,7 +156,12 @@ done < <(escalations_from)
 esc_json+="]"
 
 if [[ "$JSON" -eq 1 ]]; then
-    printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
+    if [[ "$PHASE" == "qa-gate" ]]; then
+        printf '{"phase":"%s","loop":{"attempt":%s,"max":%s,"exhausted":%s},"moves":%s,"escalations":%s}\n' \
+            "$PHASE" "${LOOP_CNT:-0}" "${LOOP_MAX:-0}" "$([[ "$LOOP_EXHAUSTED" -eq 1 ]] && echo true || echo false)" "$moves_json" "$esc_json"
+    else
+        printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
+    fi
     exit 0
 fi
 
@@ -148,6 +171,9 @@ if [[ -n "$human_moves" ]]; then
     printf '%s' "$human_moves"
 else
     echo "jogadas legais: (nenhuma aresta satisfeita)"
+fi
+if [[ "$LOOP_EXHAUSTED" -eq 1 ]]; then
+    echo "  ⚠ limite de tentativas atingido ($LOOP_CNT/$LOOP_MAX) — jogadas de esgotamento (escalar/waive/parar) chegam na Fase 2 (ADR-0008)"
 fi
 if [[ -n "$human_esc" ]]; then
     echo "escalações disponíveis:"

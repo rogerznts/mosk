@@ -9,32 +9,32 @@ Base reutilizada do `004` (já no `master`): `phase-history.log`,
 
 ## Phase 1 — Contador + apresentação consultiva (US1, P1 · MVP)
 
-- [ ] **T001** [US1] Decidir o **dono do loopback** (open item): confirmar que
+- [x] **T001** [US1] Decidir o **dono do loopback** (open item): confirmar que
   `apply-qa-fixes.md` grava a volta com `update_spec_phase "$FEATURE_DIR"
   implement` antes de corrigir — é o que torna a volta `qa-gate → implement`
   contável no log. Registrar a decisão. (FR-004)
-- [ ] **T002** [US1] `common.sh`: `attempt_count <spec_dir>` — conta as
+- [x] **T002** [US1] `common.sh`: `attempt_count <spec_dir>` — conta as
   transições `qa-gate -> implement` no `phase-history.log` da spec; sem log →
   `0` (aviso em stderr). (FR-004)
-- [ ] **T003** [US1] `legal_moves.sh` loop-aware na fase `qa-gate` [dep: T002]:
+- [x] **T003** [US1] `legal_moves.sh` loop-aware na fase `qa-gate` [dep: T002]:
   ler `_gate_status` + `attempt_count`; `PASS`/`WAIVED` → oferecer `archived`;
   `FAIL`/`CONCERNS` e `count < max` → oferecer o loopback rotulado
   `tentativa {count+1}/{max}` como default; nunca executar. (FR-001, FR-006)
-- [ ] **T004** [P] [US1] `apply-qa-fixes.md` [dep: T001]: acrescentar o passo
+- [x] **T004** [P] [US1] `apply-qa-fixes.md` [dep: T001]: acrescentar o passo
   que chama `update_spec_phase ... implement` ao iniciar a correção, para a
   volta ser registrada. (FR-004)
-- [ ] **T005** [US1] Validação Fase 1: com `phase-history.log` sintético (K
+- [x] **T005** [US1] Validação Fase 1: com `phase-history.log` sintético (K
   voltas) + `gate.yaml` FAIL, `legal_moves.sh qa-gate` mostra `tentativa
   K+1/max` e loopback default; `gate.yaml` PASS → oferece `archived`; nada
   auto-executa. (SC-001, SC-003)
 
 ## Phase 2 — Teto configurável + esgotamento (US2, P2)
 
-- [ ] **T006** [P] [US2] `core-config.yaml` (template + mirror da raiz): +
+- [x] **T006** [P] [US2] `core-config.yaml` (template + mirror da raiz): +
   `orchestration.max_retries: 3` (ao lado de `orchestration.graph`). (FR-005)
-- [ ] **T007** [P] [US2] `spec-meta-tmpl.yaml`: documentar o campo opcional
+- [x] **T007** [P] [US2] `spec-meta-tmpl.yaml`: documentar o campo opcional
   `max_retries:` como override por-spec. (FR-005)
-- [ ] **T008** [US2] `common.sh`: `resolve_max_retries <spec_dir>` — override
+- [x] **T008** [US2] `common.sh`: `resolve_max_retries <spec_dir>` — override
   do `spec-meta.yaml` → fallback `core-config.yaml` → default `3`; valor não
   numérico → default + aviso. (FR-005, Edge Cases)
 - [ ] **T009** [US2] `legal_moves.sh` esgotamento [dep: T003, T008]: quando

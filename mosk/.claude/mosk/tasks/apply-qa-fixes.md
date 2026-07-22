@@ -47,6 +47,22 @@ optional:
 - Locate story file in `{story_root}/{epic}.{story}.*.md`
   - HALT if missing and ask for correct story id/path
 
+### 0.5) Register the delivery-loop return (ADR-0008)
+
+Applying QA fixes is a **return leg of the delivery-loop** (`qa-gate →
+implement`). Record it so the attempt counter — derived from
+`phase-history.log` — can see this turn:
+
+```bash
+source .claude/mosk/scripts/common.sh
+update_spec_phase "$FEATURE_DIR" implement
+```
+
+This is what makes `attempt_count` / `legal_moves.sh qa-gate` show the right
+`tentativa N/max`. The reducer validates against the graph and appends to the
+history log (never blocks). It does **not** auto-iterate — you were routed
+here by a human decision.
+
 ### 1) Collect QA Findings
 
 - Parse the latest gate YAML:
