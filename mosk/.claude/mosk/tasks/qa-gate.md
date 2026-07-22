@@ -21,18 +21,15 @@ Produce a minimal gate artifact that answers one question clearly: can this move
      justifies `FAIL`; a `SECURITY: CONCERNS` justifies at least `CONCERNS`.
    - **If no security report exists and the change touched security-sensitive
      surface** (auth/authz, user input, queries, secrets/config, external
-     endpoints, deserialization, crypto, file/path handling), emit the block
-     below and **wait** before deciding the gate. Do not auto-invoke another
-     agent (MOSK contract). Skip silently for clearly non-sensitive changes.
-
-     > **Security review suggested**
-     > - Signal: <one line — which sensitive surface the change touched, no report on disk>
-     > - Recommended agent: `/mosk-security`
-     > - Suggested prompt: `/mosk-security review the pending changes`
-     > - Why now: the gate should read a `SECURITY:` verdict before deciding.
-     > - On return: resume this gate with the report as evidence.
-
-     Do not proceed until the user confirms `go`/`skip`/alternative.
+     endpoints, deserialization, crypto, file/path handling), emit the
+     **Security review suggested** block and **wait** before deciding the gate.
+     Derive it from the graph — `bash .claude/mosk/scripts/legal_moves.sh
+     implement` surfaces the `security-review` side-trip — using the single
+     format in `../templates/escalation-block-tmpl.md` (fill `Why now:` = "o
+     gate deve ler um verdicto `SECURITY:` antes de decidir"). Do not
+     auto-invoke another agent (MOSK contract). Skip silently for clearly
+     non-sensitive changes. Do not proceed until the user confirms
+     `go`/`skip`/alternative.
 
 3. Decide one status:
    - `PASS`
@@ -56,10 +53,16 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - gate file path
    - top issues only
 
-7. **Update spec metadata and refresh index.** Update the current spec's
-   `spec-meta.yaml`: set `current_phase: qa-gate` and bump
-   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
-   `docs/index.md`. Automatic — no extra prompt.
+7. **Update spec metadata and refresh index.** Move the phase through the
+   reducer so it is validated against the graph and audited:
+   ```bash
+   source .claude/mosk/scripts/common.sh
+   update_spec_phase "$FEATURE_DIR" qa-gate
+   ```
+   It bumps `last_phase_change`, appends to the spec's `phase-history.log`,
+   and warns-but-proceeds on an off-graph transition (never blocks; ADR-0006).
+   Then execute `../tasks/index-docs.md` to refresh `docs/index.md`.
+   Automatic — no extra prompt.
 
 ## Rules
 

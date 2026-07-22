@@ -30,6 +30,8 @@ project:
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md
+orchestration:
+  graph: .claude/mosk/pipeline-graph.yaml
 promotion:
   defaults:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }

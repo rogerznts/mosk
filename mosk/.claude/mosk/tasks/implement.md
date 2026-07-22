@@ -53,28 +53,33 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - validations run
    - blockers or follow-up work
 
-9. **Update spec metadata and refresh index.** Update the current spec's
-   `spec-meta.yaml`: set `current_phase: implement` and bump
-   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
-   `docs/index.md`. Automatic — no extra prompt.
+9. **Update spec metadata and refresh index.** Move the phase through the
+   reducer so it is validated against the graph and audited:
+   ```bash
+   source .claude/mosk/scripts/common.sh
+   update_spec_phase "$FEATURE_DIR" implement
+   ```
+   `update_spec_phase` bumps `last_phase_change`, appends to the spec's
+   `phase-history.log`, and — if the transition is off-graph — **warns but
+   proceeds** (never blocks; ADR-0006). Then execute `../tasks/index-docs.md`
+   to refresh `docs/index.md`. Automatic — no extra prompt.
 
-10. **Security review suggestion (conditional).** Inspect the diff you just
-    implemented. If it touches security-sensitive surface — authentication or
-    authorization, user-controlled input, database/queries, secrets or config,
-    external/inbound endpoints, deserialization, crypto, or file/path handling —
-    emit the suggestion block below and **wait**. Do not auto-invoke another
-    agent (MOSK contract). Skip silently when the change is clearly non-sensitive
-    (docs, pure refactor, tests). Recommended order: security **before** the gate,
-    so `/mosk-qa qa-gate` can read the `SECURITY:` verdict.
-
-    > **Security review suggested**
-    > - Signal: <one line — which sensitive surface the diff touched>
-    > - Recommended agent: `/mosk-security`
-    > - Suggested prompt: `/mosk-security review the pending changes`
-    > - Why now: diff is fresh; the verdict feeds `/mosk-qa qa-gate`.
-    > - On return: resume toward the quality gate.
-
-    Do not proceed until the user confirms `go`/`skip`/alternative.
+10. **Side-trip / security-review suggestion (conditional, graph-derived).**
+    Inspect the diff you just implemented, then ask the graph what side-trips
+    leave `implement`:
+    ```bash
+    bash .claude/mosk/scripts/legal_moves.sh implement
+    ```
+    If the `diff_security_sensitive` judgment guard holds (auth/authz,
+    user input, queries, secrets/config, external endpoints, deserialization,
+    crypto, file/path), emit the **Security review suggested** block using the
+    single format in `../templates/escalation-block-tmpl.md`, filled from the
+    graph (`security-review` → `mosk-security`). Same for any escalation the
+    graph lists for this phase (e.g. `missing_adr → architecture`). Skip
+    silently when clearly non-sensitive (docs, pure refactor, tests).
+    Recommended order: security **before** the gate, so `/mosk-qa qa-gate`
+    reads the `SECURITY:` verdict. Do not auto-invoke — wait for the user's
+    `go`/`skip`/alternative (MOSK contract).
 
 ## Rules
 
