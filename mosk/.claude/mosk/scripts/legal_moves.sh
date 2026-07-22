@@ -157,8 +157,10 @@ esc_json+="]"
 
 if [[ "$JSON" -eq 1 ]]; then
     if [[ "$PHASE" == "qa-gate" ]]; then
-        printf '{"phase":"%s","loop":{"attempt":%s,"max":%s,"exhausted":%s},"moves":%s,"escalations":%s}\n' \
-            "$PHASE" "${LOOP_CNT:-0}" "${LOOP_MAX:-0}" "$([[ "$LOOP_EXHAUSTED" -eq 1 ]] && echo true || echo false)" "$moves_json" "$esc_json"
+        exm="[]"
+        [[ "$LOOP_EXHAUSTED" -eq 1 ]] && exm='["escalate","waive","stop"]'
+        printf '{"phase":"%s","loop":{"attempt":%s,"max":%s,"exhausted":%s,"exhausted_moves":%s},"moves":%s,"escalations":%s}\n' \
+            "$PHASE" "${LOOP_CNT:-0}" "${LOOP_MAX:-0}" "$([[ "$LOOP_EXHAUSTED" -eq 1 ]] && echo true || echo false)" "$exm" "$moves_json" "$esc_json"
     else
         printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
     fi
@@ -173,7 +175,11 @@ else
     echo "jogadas legais: (nenhuma aresta satisfeita)"
 fi
 if [[ "$LOOP_EXHAUSTED" -eq 1 ]]; then
-    echo "  ⚠ limite de tentativas atingido ($LOOP_CNT/$LOOP_MAX) — jogadas de esgotamento (escalar/waive/parar) chegam na Fase 2 (ADR-0008)"
+    echo "⚠ limite de tentativas atingido ($LOOP_CNT/$LOOP_MAX) — convergência não alcançada."
+    echo "jogadas de esgotamento (o loop NÃO continua sozinho — você decide):"
+    echo "  ↳ escalar → ataque a causa raiz via uma escalação abaixo (architecture/prd/…)"
+    echo "  ↳ waive   → /mosk-qa qa-gate: aceitar com WAIVED + justificativa → archived"
+    echo "  ↳ parar   → assumir manual; encerrar o loop"
 fi
 if [[ -n "$human_esc" ]]; then
     echo "escalações disponíveis:"

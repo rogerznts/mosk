@@ -37,12 +37,12 @@ Base reutilizada do `004` (já no `master`): `phase-history.log`,
 - [x] **T008** [US2] `common.sh`: `resolve_max_retries <spec_dir>` — override
   do `spec-meta.yaml` → fallback `core-config.yaml` → default `3`; valor não
   numérico → default + aviso. (FR-005, Edge Cases)
-- [ ] **T009** [US2] `legal_moves.sh` esgotamento [dep: T003, T008]: quando
+- [x] **T009** [US2] `legal_moves.sh` esgotamento [dep: T003, T008]: quando
   `count >= max` e gate `FAIL`/`CONCERNS`, **não** oferecer loopback;
   apresentar `escalar` (escalações já derivadas) · `waive` (dica: `qa-gate` →
   `WAIVED` → `archived`) · `parar` (no-op) — como **anotações**, sem nós/arestas
   novos. Nunca auto-continua. (FR-007)
-- [ ] **T010** [US2] Validação Fase 2: `count >= max` → jogadas viram
+- [x] **T010** [US2] Validação Fase 2: `count >= max` → jogadas viram
   `escalar/waive/parar` sem loopback; alterar `max_retries` (config e override
   no `spec-meta`) muda o teto sem código; override inválido → default + aviso.
   (SC-002, SC-004)
