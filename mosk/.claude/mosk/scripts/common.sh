@@ -265,3 +265,95 @@ last_phase_change: "$now"
 EOF
 }
 
+# ---------- pipeline-graph.yaml helpers (ADR-0007) ----------
+# The graph uses a "shell-legible" schema: one record per line in YAML flow
+# style. These projections read it with awk/grep only (zero external dep).
+# The shell never needs to deserialize arbitrary YAML — only cheap, fixed
+# projections. Rich consumers (agents) read the YAML natively.
+
+# Resolve the graph path relative to this script (works in template & consumer),
+# with an env override for tests: MOSK_GRAPH_FILE.
+graph_file() {
+    if [[ -n "${MOSK_GRAPH_FILE:-}" ]]; then
+        echo "$MOSK_GRAPH_FILE"
+        return
+    fi
+    local d
+    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    echo "$d/../pipeline-graph.yaml"
+}
+
+# List edges whose `from` matches <phase>. Usage: graph_edges_from <phase>
+# Emits one TAB-separated record per edge: <to>\t<guard>\t<default>
+# (guard/default empty when absent). Degrades to empty output if the graph
+# file is missing/unreadable (caller decides how to warn).
+graph_edges_from() {
+    local phase="$1"
+    local gf
+    gf="$(graph_file)"
+    [[ -f "$gf" ]] || { echo "warn: pipeline-graph.yaml not found at $gf" >&2; return 0; }
+    awk -v want="$phase" '
+        function field(s, name,   re, v) {
+            re = name ":[[:space:]]*"
+            if (match(s, re)) {
+                v = substr(s, RSTART + RLENGTH)
+                if (substr(v, 1, 1) == "\"") {        # quoted value (may contain commas)
+                    v = substr(v, 2); sub(/".*/, "", v)
+                } else {                               # bareword: cut at , or }
+                    sub(/[,}].*/, "", v)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+                }
+                return v
+            }
+            return ""
+        }
+        /^[^[:space:]#]/ { in_edges = ($0 ~ /^edges:/) }
+        in_edges && /^[[:space:]]*-[[:space:]]*\{/ {
+            if (field($0, "from") != want) next
+            # separador "|" (nao-whitespace) para preservar campos vazios no read
+            printf "%s|%s|%s\n", field($0, "to"), field($0, "guard"), field($0, "default")
+        }
+    ' "$gf"
+}
+
+# Legality test: does an edge <from> -> <to> exist? Usage: graph_edge_exists <from> <to>
+# Returns 0 if legal, 1 otherwise. Used by update_spec_phase (warn-and-proceed).
+graph_edge_exists() {
+    local from="$1" to="$2"
+    graph_edges_from "$from" | awk -v t="$to" -F'|' '$1 == t { found = 1 } END { exit found ? 0 : 1 }'
+}
+
+# Read a field from a guard entry. Internal. Usage: _graph_guard_field <name> <field>
+_graph_guard_field() {
+    local name="$1" fld="$2" gf
+    gf="$(graph_file)"
+    [[ -f "$gf" ]] || return 0
+    awk -v want="$name" -v fld="$fld" '
+        function field(s, name,   re, v) {
+            re = name ":[[:space:]]*"
+            if (match(s, re)) {
+                v = substr(s, RSTART + RLENGTH)
+                if (substr(v, 1, 1) == "\"") {        # quoted value (may contain commas)
+                    v = substr(v, 2); sub(/".*/, "", v)
+                } else {                               # bareword: cut at , or }
+                    sub(/[,}].*/, "", v)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+                }
+                return v
+            }
+            return ""
+        }
+        /^[^[:space:]#]/ { in_guards = ($0 ~ /^guards:/) }
+        in_guards && $0 ~ ("^[[:space:]]+" want "[[:space:]]*:[[:space:]]*\\{") {
+            print field($0, fld)
+            exit
+        }
+    ' "$gf"
+}
+
+# Guard kind: fact | judgment (empty if unknown). Usage: guard_kind <name>
+guard_kind() { _graph_guard_field "$1" "kind"; }
+
+# Guard human-readable question. Usage: guard_question <name>
+guard_question() { _graph_guard_field "$1" "question"; }
+

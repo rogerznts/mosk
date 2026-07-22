@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-07-20
+Last updated: 2026-07-22
 
 ## Visão geral
 
@@ -22,7 +22,8 @@ Corporativo).
   (design do modo `/mosk-bench`) + [`adr/`](./architecture/adr/)
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
   ADR-0003 golden starter versionado, ADR-0004 orquestração agnóstica de
-  runtime — promovido no archive da spec 002).
+  runtime — promovido no archive da spec 002; ADR-0005 deploy escopado;
+  ADR-0006 grafo de orquestração consultivo — spec 004).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
   - [`guia-atualizacao-plane.md`](./project/guia-atualizacao-plane.md) — como
@@ -45,7 +46,9 @@ Corporativo).
 
 ### Ativas
 
-_Nenhuma spec ativa no momento._
+| # | Spec | Fase | Branch | Criada |
+|---|---|---|---|---|
+| 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas
 
