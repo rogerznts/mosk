@@ -81,6 +81,19 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
     reads the `SECURITY:` verdict. Do not auto-invoke — wait for the user's
     `go`/`skip`/alternative (MOSK contract).
 
+11. **Delivery-loop: fronteira do ciclo (ADR-0008).** `implement` faz parte
+    de um loop de convergência **consultivo e limitado**:
+    - **1ª volta:** `implement` (este passo). **Voltas seguintes:** você chega
+      aqui via `apply-qa-fixes` (que registra o loopback `qa-gate → implement`
+      no `phase-history.log` — é o que alimenta o contador `tentativa N/max`).
+    - `security-review` roda **entre** implement e gate, só se o diff tocar
+      superfície sensível (passo 10).
+    - `readiness` é **porta de entrada** (antes da 1ª volta), **não** se repete
+      a cada volta. Só volte a `readiness` como **escalação**, quando um FAIL
+      revelar que a *story* estava ambígua (não como parte do ciclo).
+    - O loop **nunca itera sozinho**: quem decide cada volta (corrigir /
+      escalar / waive / parar) é o humano, guiado pelo `qa-gate`.
+
 ## Rules
 
 - Do not read the entire project when the active tasks point to a narrow slice.

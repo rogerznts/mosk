@@ -49,26 +49,26 @@ Base reutilizada do `004` (já no `master`): `phase-history.log`,
 
 ## Phase 3 — Enquadramento nos prompts (US3, P3)
 
-- [ ] **T011** [P] [US3] `qa-gate.md` [dep: T003, T009]: ao reprovar,
+- [x] **T011** [P] [US3] `qa-gate.md` [dep: T003, T009]: ao reprovar,
   apresentar `tentativa N/max` + jogadas do loop via `legal_moves.sh qa-gate`,
   sem auto-invocar. (FR-011)
-- [ ] **T012** [P] [US3] `implement.md`: descrever a fronteira do ciclo (1ª
+- [x] **T012** [P] [US3] `implement.md`: descrever a fronteira do ciclo (1ª
   volta `implement`, seguintes `apply-qa-fixes`; `security-review` condicional;
   `readiness` só na entrada). (FR-002)
-- [ ] **T013** [P] [US3] `implement.md`/`qa-gate.md`: registrar que
+- [x] **T013** [P] [US3] `implement.md`/`qa-gate.md`: registrar que
   re-`readiness` só aparece como **escalação** por ambiguidade de story, não a
   cada volta. (FR-008)
-- [ ] **T014** [US3] Confirmar `promote: append` no `glossary.md` da spec
+- [x] **T014** [US3] Confirmar `promote: append` no `glossary.md` da spec
   (já escrito no specify). (FR-012)
 
 ## Cross-cutting / fechamento
 
-- [ ] **T015** [P] Regressão do bench: `bench-mode.md` inalterado (grep/diff)
+- [x] **T015** [P] Regressão do bench: `bench-mode.md` inalterado (grep/diff)
   — decisão 5 do ADR-0008. (SC-005, FR-010)
-- [ ] **T016** Auditorias: `lint-graph.sh` clean, `bash -n` nos scripts,
+- [x] **T016** Auditorias: `lint-graph.sh` clean, `bash -n` nos scripts,
   `audit-docs-paths.sh --quiet`; smoke-check da saída do `legal_moves.sh` nas
   fases do loop.
-- [ ] **T017** [P] Docs do produto: `.claude/rules/scripts.md` (novos helpers
+- [x] **T017** [P] Docs do produto: `.claude/rules/scripts.md` (novos helpers
   `attempt_count`/`resolve_max_retries` e o comportamento loop-aware do
   `legal_moves.sh`); `README` se o fluxo mencionar o teto.
 
