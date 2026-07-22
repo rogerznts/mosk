@@ -5,6 +5,48 @@
 
 Last updated: 2026-07-22
 
+## Fluxo do Pipeline
+
+<!-- graph:begin -->
+```mermaid
+flowchart TD
+  __start__["__start__"] -->|base_ready| specify["specify"]
+  __start__["__start__"] -->|base_missing| discovery["discovery"]
+  discovery["discovery"] -->|request_vague| prd["prd"]
+  discovery["discovery"] --> specify["specify"]
+  prd["prd"] -->|architecture_heavy| architecture["architecture"]
+  prd["prd"] -->|ux_heavy| ux["ux"]
+  prd["prd"] -->|design_heavy| ui["ui"]
+  prd["prd"] --> specify["specify"]
+  architecture["architecture"] --> specify["specify"]
+  ux["ux"] --> specify["specify"]
+  ui["ui"] --> specify["specify"]
+  specify["specify"] --> plan["plan"]
+  plan["plan"] --> tasks["tasks"]
+  tasks["tasks"] -->|stories_need_review| readiness["readiness"]
+  tasks["tasks"] --> implement["implement"]
+  readiness["readiness"] --> implement["implement"]
+  implement["implement"] -->|diff_security_sensitive| security_review["security-review"]
+  security_review["security-review"] --> qa_gate["qa-gate"]
+  implement["implement"] --> qa_gate["qa-gate"]
+  qa_gate["qa-gate"] -->|gate_concerns_or_fail| implement["implement"]
+  qa_gate["qa-gate"] -->|gate_pass| archived["archived"]
+  plan["plan"] -.->|missing_adr| architecture["architecture"]
+  tasks["tasks"] -.->|missing_adr| architecture["architecture"]
+  implement["implement"] -.->|missing_adr| architecture["architecture"]
+  specify["specify"] -.->|unspecified_flow| ux["ux"]
+  plan["plan"] -.->|unspecified_flow| ux["ux"]
+  implement["implement"] -.->|unspecified_flow| ux["ux"]
+  specify["specify"] -.->|design_gap| ui["ui"]
+  plan["plan"] -.->|design_gap| ui["ui"]
+  implement["implement"] -.->|design_gap| ui["ui"]
+  specify["specify"] -.->|prd_conflict| prd["prd"]
+  plan["plan"] -.->|prd_conflict| prd["prd"]
+  tasks["tasks"] -.->|prd_conflict| prd["prd"]
+  implement["implement"] -.->|prd_conflict| prd["prd"]
+```
+<!-- graph:end -->
+
 ## Visão geral
 
 MOSK é a toolkit própria de **Spec-Driven Development (SDD)** que padroniza a

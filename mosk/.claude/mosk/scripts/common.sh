@@ -181,6 +181,11 @@ read_spec_meta() {
 
 # Update current_phase in spec-meta.yaml. Usage: update_spec_phase <spec_dir> <phase>
 # Also bumps last_phase_change to current ISO 8601 UTC.
+#
+# Reducer (ADR-0006 #7): validates the transition against pipeline-graph.yaml
+# and appends an audit entry to <spec_dir>/phase-history.log. An off-graph
+# transition is WARNED but NEVER blocked — the human is the authority, the
+# graph is only an advisor.
 update_spec_phase() {
     local spec_dir="$1"
     local new_phase="$2"
@@ -191,6 +196,19 @@ update_spec_phase() {
     fi
     local now
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # --- graph validation + audit trail (advisory, never blocking) ---
+    local old_phase legality="legal"
+    old_phase="$(read_spec_meta "$spec_dir" "current_phase")"
+    if [[ -n "$old_phase" && "$old_phase" != "$new_phase" ]]; then
+        if ! graph_edge_exists "$old_phase" "$new_phase" 2>/dev/null; then
+            legality="off-graph"
+            echo "warn: transição fora do grafo: ${old_phase} → ${new_phase} (prosseguindo; ver pipeline-graph.yaml)" >&2
+        fi
+    fi
+    printf '%s\t%s\t%s -> %s\n' "$now" "$legality" "${old_phase:-<none>}" "$new_phase" \
+        >> "$spec_dir/phase-history.log"
+
     local tmp
     tmp=$(mktemp)
     awk -v phase="$new_phase" -v now="$now" '

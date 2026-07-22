@@ -41,21 +41,21 @@ independentes). Todo caminho sob `mosk/` (embarca); a nota do README é o
 
 ## Phase 2 — Representações derivadas + auditoria (US2, P2)
 
-- [ ] **T009** [US2] Definir o **formato único** do bloco "Escalation
+- [x] **T009** [US2] Definir o **formato único** do bloco "Escalation
   suggested"/"Security review suggested" num só lugar (snippet dedicado ou
   seção do `project-rule-tmpl.md`). (FR-007)
-- [ ] **T010** [P] [US2] `qa-gate.md` [dep: T009]: trocar o texto fixo do
+- [x] **T010** [P] [US2] `qa-gate.md` [dep: T009]: trocar o texto fixo do
   bloco por instrução de consultar `escalations:` do grafo + o formato único.
   (FR-007)
-- [ ] **T011** [P] [US2] `implement.md` [dep: T009]: idem T010. (FR-007)
-- [ ] **T012** [US2] `index-docs.md` [dep: T001-T003]: acrescentar passo que
+- [x] **T011** [P] [US2] `implement.md` [dep: T009]: idem T010. (FR-007)
+- [x] **T012** [US2] `index-docs.md` [dep: T001-T003]: acrescentar passo que
   renderiza o mermaid do fluxo em `docs/index.md` a partir do grafo,
   determinístico/idempotente. (FR-008)
-- [ ] **T013** [US2] `common.sh` / `update_spec_phase` [dep: T001-T002]:
+- [x] **T013** [US2] `common.sh` / `update_spec_phase` [dep: T001-T002]:
   validar transição contra `edges`; se ilegal → warning + append em
   `phase-history.log` da spec + prosseguir; legal também loga. Nunca bloquear.
   (FR-009, SC-004)
-- [ ] **T014** [US2] Validação Fase 2: alterar um guard/escala e ver bloco +
+- [x] **T014** [US2] Validação Fase 2: alterar um guard/escala e ver bloco +
   mermaid refletirem sem edição de prosa; forçar `tasks → archived` e conferir
   warning + entrada de log + prosseguimento. (SC-001, SC-004)
 
