@@ -33,6 +33,14 @@ index:
 orchestration:
   graph: .claude/mosk/pipeline-graph.yaml
   max_retries: 3
+  # /mosk-orq — orquestrador multi-pane sobre Herdr (dependência externa opcional; ADR-0009)
+  herdr:
+    enabled: auto                 # auto | on | off
+    context_token_ceiling: 800000 # gatilho de handoff por contexto (~80% de 1M)
+    autonomy_default: semi-auto   # semi-auto | full-auto (quando o modo não é passado)
+    handoff_on_agent_change: true # handoff quando a próxima fase muda de agente
+    handoff_on_context_ceiling: true # handoff (refresh) quando tokens ≥ ceiling
+    wait_status: idle             # idle | done — estado esperado antes do handoff
 promotion:
   defaults:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }

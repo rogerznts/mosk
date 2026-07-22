@@ -225,6 +225,8 @@ Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble
 
 Agents never invoke each other automatically. The user decides: `go`, `escalate`, `skip`, or an alternative. Preamble agents invoked via escalation write inside the active spec and end by suggesting the user return to the originating agent.
 
+**Opt-in exception — `/mosk-orq` (orchestrator over Herdr).** For users running the [Herdr](https://herdr.dev/) agent multiplexer (an **optional external dependency**), `/mosk-orq` drives one project's pipeline across Herdr panes, handing off automatically when the phase changes agent or when an agent hits its token ceiling (transporting context via `/mosk-handoff`). It automates only **transport** (spawn/handoff/close) and the graph's **happy path**; every **human decision** — judgment guards, `qa-gate` verdicts, and (in `semi-auto`) any phase/agent change — still pauses and returns to you. Without `herdr` on the PATH it degrades to the normal single-pane flow. See [ADR-0009](./docs/architecture/adr/adr-0009-herdr-orchestration.md).
+
 ## Skills vs Agents
 
 MOSK agents can be invoked two ways inside Claude Code:
