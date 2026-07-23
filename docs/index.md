@@ -100,6 +100,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 006 | [feature-mosk-orq](./specs/archive/006-feature-mosk-orq/) (orquestrador `/mosk-orq` — Mauro — sobre Herdr) | archived | 006-feature-mosk-orq | 2026-07-23 |
 | 005 | [feature-delivery-loop](./specs/archive/005-feature-delivery-loop/) (delivery-loop consultivo e limitado) | archived | 005-feature-delivery-loop | 2026-07-22 |
 | 002 | [feature-mosk-payload-mode](./specs/archive/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | archived | 002-feature-mosk-payload-mode | 2026-07-20 |
 

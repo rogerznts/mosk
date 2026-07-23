@@ -149,3 +149,8 @@ verificar mensagem clara + exit ≠ 0; a skill cai no fallback.
 
 Multi-projeto (N workspaces em paralelo, prioridade, concorrência de panes);
 sensor de tokens via hook/statusline gravando em arquivo.
+
+---
+**Arquivado em:** 2026-07-23
+**Status final:** Concluído (PR #10)
+**Promoções aplicadas:** ADR-0009 → docs/architecture/adr/ (copy). 1 copy, 0 append, 0 manual.
