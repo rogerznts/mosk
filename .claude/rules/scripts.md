@@ -239,6 +239,26 @@ projections in `common.sh` stay simple. Usage:
 `bash .claude/mosk/scripts/lint-graph.sh [--quiet]`. Exit 0 = clean;
 exit 1 lists `path:line :: detail`.
 
+### `herdr.sh`
+
+Wrapper mecânico da control API do [Herdr](https://herdr.dev/) para o
+orquestrador `/mosk-orq` (Mauro). Atuador: spawna/injeta/espera/lê/fecha panes e
+mede tokens. Subcomandos: `check | tokens | spawn | send | wait-idle | read |
+close | managed`. Degrada graciosamente sem o binário `herdr` (`check` falha com
+dica de instalação). O `spawn` fixa a pane no space do orquestrador (env
+`HERDR_*`). Usage: `bash .claude/mosk/scripts/herdr.sh <subcomando> ...`.
+
+### `check-ship-ready.sh`
+
+**Guardrail de merge (fonte única de "spec fechada").** Valida se a spec ativa do
+branch está pronta pra abrir/mergear PR: `current_phase == archived`, nenhum
+artefato `promote:` (copy/append) com alvo faltando, `lint-graph` limpo, working
+tree limpo. Branch sem spec ativa passa. Exit 0 = pronta; 1 = pontas soltas
+(lista os motivos). Usage:
+`bash .claude/mosk/scripts/check-ship-ready.sh [--json]`.
+**Consumido por** camadas de guardrail (hook do Claude Code em `gh pr merge`,
+CI/branch protection, `/tea-open-pr`).
+
 ### `common.sh`
 
 Shared library — never executed directly, always `source`'d:
@@ -298,3 +318,5 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 | Validate a feature branch can plan | `setup-plan.sh` (via `plan` task) |
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
+| Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
+| Orchestrate agents over Herdr panes | `herdr.sh` (via `/mosk-orq`) |
