@@ -290,7 +290,7 @@ clean_orphans() {
     # Keep in sync when adding a standalone (non-persona) skill.
     local -a standalone_skills=(
         mosk-boot mosk-deploy mosk-handoff mosk-help
-        mosk-suggestion mosk-update mosk-write-skill mosk-orq
+        mosk-suggestion mosk-update mosk-write-skill
     )
     is_standalone() {
         local name="$1"

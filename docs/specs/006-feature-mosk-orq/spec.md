@@ -101,7 +101,8 @@ verificar mensagem clara + exit ≠ 0; a skill cai no fallback.
 
 ### Functional Requirements
 
-- **FR-001**: A skill MUST ser **opt-in** e skill-only (sem persona de agente).
+- **FR-001**: A skill MUST ser **opt-in** e encarnada na persona **Mauro** (o
+  maestro): prompt em `mosk/agents/orq.md` + wrapper fino em `skills/mosk-orq/`.
 - **FR-002**: A skill MUST aceitar o modo de autonomia como argumento
   (`full-auto` | `semi-auto`); default configurável em `core-config.yaml`.
 - **FR-003**: Sem comando direto, a skill MUST exibir um menu de ativação

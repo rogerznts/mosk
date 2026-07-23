@@ -38,10 +38,14 @@ Dois fatos moldam a decisão e são difíceis de reverter:
 
 ## Decisão
 
-**1. `/mosk-orq` é o executor opt-in do grafo sobre o Herdr.** Uma skill-only
-(sem persona), invocada de propósito. O **cérebro** continua sendo o grafo
-(`legal_moves.sh` / `pipeline-graph.yaml`); o **atuador** é o Herdr, encapsulado
-em `scripts/herdr.sh`. O orquestrador nunca inventa jogadas — só as executa.
+**1. `/mosk-orq` é o executor opt-in do grafo sobre o Herdr.** Encarnado na
+persona **Mauro** (o maestro): prompt em `mosk/agents/orq.md` + wrapper fino em
+`skills/mosk-orq/`, para o usuário tratar diretamente com o coordenador. É um
+papel meta (rege os outros agentes), fora do pipeline — como Bento (`bench`) e
+Heitor (`security`) já são personas não-pipeline. O **cérebro** continua sendo o
+grafo (`legal_moves.sh` / `pipeline-graph.yaml`); o **atuador** é o Herdr,
+encapsulado em `scripts/herdr.sh`. O orquestrador nunca inventa jogadas — só as
+executa.
 
 **2. Automatiza transporte e caminho feliz; nunca cruza decisão humana.** Ele
 automatiza spawn/handoff/close e o move `default` do grafo. Mas **pausa e devolve
