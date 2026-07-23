@@ -140,14 +140,21 @@ link_agent_file() {
     created=$((created + 1))
 }
 
-# --- Phase 0: Clean orphan symlinks in .codex/skills ---
-# Legacy ctx-* skills may have been removed (e.g., by migrate-ctx-skills-to-rules.sh).
-# Any symlink in TARGET_DIR whose target no longer exists is removed.
+# --- Phase 0: Clean orphan entries in .codex/skills ---
+# Legacy ctx-* skills may have been removed (e.g., by migrate-ctx-skills-to-rules.sh);
+# agent-wrapped skills leave a DIRECTORY containing a SKILL.md symlink whose target
+# (a CC agent or a skill's SKILL.md) may no longer exist. Remove both shapes:
+#   1) a top-level symlink entry whose target is gone;
+#   2) a directory entry whose SKILL.md symlink dangles (agent wrappers — this is
+#      the case Phase 0 previously missed, leaving dead codex skills behind).
 if [[ -d "$TARGET_DIR" ]]; then
     for entry in "$TARGET_DIR"/*; do
         if [[ -L "$entry" && ! -e "$entry" ]]; then
             rm "$entry"
             echo "remove  orphan symlink $(basename "$entry")"
+        elif [[ -d "$entry" && -L "$entry/SKILL.md" && ! -e "$entry/SKILL.md" ]]; then
+            rm -rf "$entry"
+            echo "remove  orphan skill dir (dangling SKILL.md) $(basename "$entry")"
         fi
     done
 fi

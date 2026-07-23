@@ -59,6 +59,7 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-security` (Heitor) | diff-aware vulnerability review, security audit, findings triage |
 | `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
 | `/mosk-deploy` (Bento) | publishes a `/mosk-bench` tool to a hosting provider (Railway) using the user's own account — remote build, managed DB, public URL, pt-BR |
+| `/mosk-orq` (Mauro) | orchestrator over Herdr: drives one project's pipeline across panes with auto-handoff (opt-in; external dependency) |
 
 `/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter). **For a non-technical, plain-language walkthrough of everything it does, see [BENCH.md](./BENCH.md).**
 
@@ -224,6 +225,8 @@ Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble
 > - On return: resume `implement` from where it paused.
 
 Agents never invoke each other automatically. The user decides: `go`, `escalate`, `skip`, or an alternative. Preamble agents invoked via escalation write inside the active spec and end by suggesting the user return to the originating agent.
+
+**Opt-in exception — `/mosk-orq` (Mauro, the maestro).** For users running the [Herdr](https://herdr.dev/) agent multiplexer (an **optional external dependency**), Mauro drives one project's pipeline across Herdr panes, handing off automatically when the phase changes agent or when an agent hits its token ceiling (transporting context via `/mosk-handoff`). It automates only **transport** (spawn/handoff/close) and the graph's **happy path**; every **human decision** — judgment guards, `qa-gate` verdicts, and (in `semi-auto`) any phase/agent change — still pauses and returns to you. Without `herdr` on the PATH it degrades to the normal single-pane flow. See [ADR-0009](./docs/architecture/adr/adr-0009-herdr-orchestration.md).
 
 ## Skills vs Agents
 

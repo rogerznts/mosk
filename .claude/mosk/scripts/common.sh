@@ -181,6 +181,11 @@ read_spec_meta() {
 
 # Update current_phase in spec-meta.yaml. Usage: update_spec_phase <spec_dir> <phase>
 # Also bumps last_phase_change to current ISO 8601 UTC.
+#
+# Reducer (ADR-0006 #7): validates the transition against pipeline-graph.yaml
+# and appends an audit entry to <spec_dir>/phase-history.log. An off-graph
+# transition is WARNED but NEVER blocked — the human is the authority, the
+# graph is only an advisor.
 update_spec_phase() {
     local spec_dir="$1"
     local new_phase="$2"
@@ -191,6 +196,19 @@ update_spec_phase() {
     fi
     local now
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # --- graph validation + audit trail (advisory, never blocking) ---
+    local old_phase legality="legal"
+    old_phase="$(read_spec_meta "$spec_dir" "current_phase")"
+    if [[ -n "$old_phase" && "$old_phase" != "$new_phase" ]]; then
+        if ! graph_edge_exists "$old_phase" "$new_phase" 2>/dev/null; then
+            legality="off-graph"
+            echo "warn: transição fora do grafo: ${old_phase} → ${new_phase} (prosseguindo; ver pipeline-graph.yaml)" >&2
+        fi
+    fi
+    printf '%s\t%s\t%s -> %s\n' "$now" "$legality" "${old_phase:-<none>}" "$new_phase" \
+        >> "$spec_dir/phase-history.log"
+
     local tmp
     tmp=$(mktemp)
     awk -v phase="$new_phase" -v now="$now" '
@@ -263,5 +281,159 @@ status: active
 current_phase: specify
 last_phase_change: "$now"
 EOF
+}
+
+# ---------- pipeline-graph.yaml helpers (ADR-0007) ----------
+# The graph uses a "shell-legible" schema: one record per line in YAML flow
+# style. These projections read it with awk/grep only (zero external dep).
+# The shell never needs to deserialize arbitrary YAML — only cheap, fixed
+# projections. Rich consumers (agents) read the YAML natively.
+
+# Resolve the graph path relative to this script (works in template & consumer),
+# with an env override for tests: MOSK_GRAPH_FILE.
+graph_file() {
+    if [[ -n "${MOSK_GRAPH_FILE:-}" ]]; then
+        echo "$MOSK_GRAPH_FILE"
+        return
+    fi
+    local d
+    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    echo "$d/../pipeline-graph.yaml"
+}
+
+# List edges whose `from` matches <phase>. Usage: graph_edges_from <phase>
+# Emits one TAB-separated record per edge: <to>\t<guard>\t<default>
+# (guard/default empty when absent). Degrades to empty output if the graph
+# file is missing/unreadable (caller decides how to warn).
+graph_edges_from() {
+    local phase="$1"
+    local gf
+    gf="$(graph_file)"
+    [[ -f "$gf" ]] || { echo "warn: pipeline-graph.yaml not found at $gf" >&2; return 0; }
+    awk -v want="$phase" '
+        function field(s, name,   re, v) {
+            re = name ":[[:space:]]*"
+            if (match(s, re)) {
+                v = substr(s, RSTART + RLENGTH)
+                if (substr(v, 1, 1) == "\"") {        # quoted value (may contain commas)
+                    v = substr(v, 2); sub(/".*/, "", v)
+                } else {                               # bareword: cut at , or }
+                    sub(/[,}].*/, "", v)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+                }
+                return v
+            }
+            return ""
+        }
+        /^[^[:space:]#]/ { in_edges = ($0 ~ /^edges:/) }
+        in_edges && /^[[:space:]]*-[[:space:]]*\{/ {
+            if (field($0, "from") != want) next
+            # separador "|" (nao-whitespace) para preservar campos vazios no read
+            printf "%s|%s|%s\n", field($0, "to"), field($0, "guard"), field($0, "default")
+        }
+    ' "$gf"
+}
+
+# Legality test: does an edge <from> -> <to> exist? Usage: graph_edge_exists <from> <to>
+# Returns 0 if legal, 1 otherwise. Used by update_spec_phase (warn-and-proceed).
+graph_edge_exists() {
+    local from="$1" to="$2"
+    graph_edges_from "$from" | awk -v t="$to" -F'|' '$1 == t { found = 1 } END { exit found ? 0 : 1 }'
+}
+
+# Read a field from a guard entry. Internal. Usage: _graph_guard_field <name> <field>
+_graph_guard_field() {
+    local name="$1" fld="$2" gf
+    gf="$(graph_file)"
+    [[ -f "$gf" ]] || return 0
+    awk -v want="$name" -v fld="$fld" '
+        function field(s, name,   re, v) {
+            re = name ":[[:space:]]*"
+            if (match(s, re)) {
+                v = substr(s, RSTART + RLENGTH)
+                if (substr(v, 1, 1) == "\"") {        # quoted value (may contain commas)
+                    v = substr(v, 2); sub(/".*/, "", v)
+                } else {                               # bareword: cut at , or }
+                    sub(/[,}].*/, "", v)
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+                }
+                return v
+            }
+            return ""
+        }
+        /^[^[:space:]#]/ { in_guards = ($0 ~ /^guards:/) }
+        in_guards && $0 ~ ("^[[:space:]]+" want "[[:space:]]*:[[:space:]]*\\{") {
+            print field($0, fld)
+            exit
+        }
+    ' "$gf"
+}
+
+# Guard kind: fact | judgment (empty if unknown). Usage: guard_kind <name>
+guard_kind() { _graph_guard_field "$1" "kind"; }
+
+# Guard human-readable question. Usage: guard_question <name>
+guard_question() { _graph_guard_field "$1" "question"; }
+
+# ---------- delivery-loop helpers (ADR-0008) ----------
+# The delivery-loop counts gate cycles per-spec, derived from phase-history.log
+# (no new persisted state). The retry cap is a policy: per-spec override in
+# spec-meta.yaml, else global default in core-config.yaml, else 3.
+
+# Resolve core-config.yaml relative to this script (template & consumer),
+# overridable via MOSK_CORE_CONFIG for tests.
+core_config_file() {
+    if [[ -n "${MOSK_CORE_CONFIG:-}" ]]; then
+        echo "$MOSK_CORE_CONFIG"
+        return
+    fi
+    local d
+    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    echo "$d/../core-config.yaml"
+}
+
+# Count delivery-loop attempts for a spec = number of `qa-gate -> implement`
+# loopbacks recorded in phase-history.log. Usage: attempt_count <spec_dir>
+# Echoes an integer (0 when the log is absent).
+attempt_count() {
+    local spec_dir="$1"
+    local log="$spec_dir/phase-history.log"
+    if [[ ! -f "$log" ]]; then
+        echo "warn: phase-history.log ausente em $spec_dir (contagem = 0)" >&2
+        echo 0
+        return 0
+    fi
+    local n
+    n=$(grep -cE 'qa-gate[[:space:]]*->[[:space:]]*implement' "$log" 2>/dev/null || true)
+    echo "${n:-0}"
+}
+
+# Read orchestration.max_retries from core-config.yaml (nested 2-level key).
+_core_config_max_retries() {
+    local cc
+    cc="$(core_config_file)"
+    [[ -f "$cc" ]] || return 0
+    awk '
+        /^[^[:space:]#]/ { in_orch = ($0 ~ /^orchestration:/) }
+        in_orch && /^[[:space:]]+max_retries[[:space:]]*:/ {
+            sub(/^[[:space:]]+max_retries[[:space:]]*:[[:space:]]*/, "")
+            gsub(/["'\'' ]/, "")
+            print; exit
+        }
+    ' "$cc"
+}
+
+# Resolve max_retries for a spec: spec-meta override -> core-config default -> 3.
+# Non-numeric values fall back to 3 with a warning. Usage: resolve_max_retries <spec_dir>
+resolve_max_retries() {
+    local spec_dir="$1"
+    local v
+    v="$(read_spec_meta "$spec_dir" "max_retries")"
+    [[ -z "$v" ]] && v="$(_core_config_max_retries)"
+    if ! [[ "$v" =~ ^[0-9]+$ ]]; then
+        [[ -n "$v" ]] && echo "warn: max_retries inválido ('$v'); usando default 3" >&2
+        v=3
+    fi
+    echo "$v"
 }
 

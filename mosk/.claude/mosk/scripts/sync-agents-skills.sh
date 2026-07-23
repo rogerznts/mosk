@@ -283,6 +283,23 @@ clean_orphans() {
         return 1
     }
 
+    # Allowlist: standalone skills (no backing persona) that --clean must NEVER
+    # treat as orphan wrappers. Needed because the "agent definition" substring
+    # test below matches legitimate skills that merely *document* wrapper
+    # authoring (e.g. mosk-write-skill), which would otherwise be rm -rf'd.
+    # Keep in sync when adding a standalone (non-persona) skill.
+    local -a standalone_skills=(
+        mosk-boot mosk-deploy mosk-handoff mosk-help
+        mosk-suggestion mosk-update mosk-write-skill
+    )
+    is_standalone() {
+        local name="$1"
+        for s in "${standalone_skills[@]}"; do
+            [[ "$s" == "$name" ]] && return 0
+        done
+        return 1
+    }
+
     # Helper: remove a file or directory
     do_remove() {
         local path="$1"
@@ -304,6 +321,9 @@ clean_orphans() {
             skill_name="$(basename "$skill_dir")"
             base_name="${skill_name#mosk-}"
             skill_file="$skill_dir/SKILL.md"
+
+            # Never remove an allowlisted standalone skill.
+            is_standalone "$skill_name" && continue
 
             # Only target agent wrappers (contain "agent definition")
             if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
@@ -354,6 +374,7 @@ clean_orphans() {
                 skill_name="$(basename "$skill_dir")"
                 base_name="${skill_name#mosk-}"
                 skill_file="$skill_dir/SKILL.md"
+                is_standalone "$skill_name" && continue
                 if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
                     if ! in_roster "$base_name"; then
                         do_remove "$skill_dir" "$skill_name/ (orphan skill, parent)"
