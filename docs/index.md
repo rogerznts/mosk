@@ -68,7 +68,9 @@ Corporativo).
   ADR-0003 golden starter versionado, ADR-0004 orquestração agnóstica de
   runtime — promovido no archive da spec 002; ADR-0005 deploy escopado;
   ADR-0006 grafo de orquestração consultivo — spec 004;
-  ADR-0008 delivery-loop consultivo — promovido no archive da spec 005) +
+  ADR-0008 delivery-loop consultivo — promovido no archive da spec 005;
+  ADR-0009 orquestração multi-pane sobre Herdr — promovido no archive da spec 006;
+  ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -100,6 +102,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 007 | [feature-mosk-orca](./specs/archive/007-feature-mosk-orca/) (Orca como segundo backend do `/mosk-orq`; atuador plugável) | archived | 007-feature-mosk-orca | 2026-07-25 |
 | 006 | [feature-mosk-orq](./specs/archive/006-feature-mosk-orq/) (orquestrador `/mosk-orq` — Mauro — sobre Herdr) | archived | 006-feature-mosk-orq | 2026-07-23 |
 | 005 | [feature-delivery-loop](./specs/archive/005-feature-delivery-loop/) (delivery-loop consultivo e limitado) | archived | 005-feature-delivery-loop | 2026-07-22 |
 | 002 | [feature-mosk-payload-mode](./specs/archive/002-feature-mosk-payload-mode/) (modo `/mosk-bench`) | archived | 002-feature-mosk-payload-mode | 2026-07-20 |

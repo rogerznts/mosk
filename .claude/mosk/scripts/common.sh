@@ -437,3 +437,55 @@ resolve_max_retries() {
     echo "$v"
 }
 
+# ---------- atuador de panes: helpers compartilhados (ADR-0010) ----------
+# Os drivers de orquestração (herdr.sh, orca.sh) implementam o MESMO contrato de
+# subcomandos sobre multiplexers diferentes. Estas duas peças são idênticas nos
+# dois — moram aqui para existir em uma cópia só.
+
+MOSK_DEFAULT_TOKEN_CEILING=800000
+
+# Teto de tokens para o gatilho de handoff por contexto.
+# Precedência: env MOSK_CONTEXT_TOKEN_CEILING > core-config > default.
+# No core-config aceita tanto a chave comum (orchestration.context_token_ceiling)
+# quanto a legada de antes do driver plugável (orchestration.herdr.…).
+context_token_ceiling() {
+    if [[ -n "${MOSK_CONTEXT_TOKEN_CEILING:-}" ]]; then
+        echo "$MOSK_CONTEXT_TOKEN_CEILING"
+        return 0
+    fi
+    local cfg val
+    cfg="$(core_config_file 2>/dev/null || true)"
+    if [[ -n "$cfg" && -f "$cfg" ]]; then
+        val="$(grep -E '^[[:space:]]*context_token_ceiling:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[^0-9].*//')"
+        [[ -n "$val" ]] && { echo "$val"; return 0; }
+    fi
+    echo "$MOSK_DEFAULT_TOKEN_CEILING"
+}
+
+# Extrai a contagem de tokens do texto de um pane (lê stdin).
+# Regra: ignora linhas de dica ("save"/"/clear"/"ctx left") e pega a ÚLTIMA
+# ocorrência de "<n>[k] tokens" — o contador de contexto nativo do Claude Code.
+# Se nada casar, não imprime nada (o chamador trata como desconhecido).
+extract_tokens() {
+    awk '
+        function tonum(s,   k){
+            k=0
+            if (s ~ /[kK]/) { k=1; sub(/[kK]/,"",s) }
+            sub(/,/,".",s)
+            if (k) return int((s+0)*1000)
+            return int(s+0)
+        }
+        {
+            l=$0; low=tolower(l)
+            if (low ~ /save|clear|ctx left|context left/) next
+            while (match(l, /[0-9][0-9.,]*[ ]*[kK]?[ ]*tokens/)) {
+                m=substr(l,RSTART,RLENGTH)
+                num=m; sub(/[ ]*tokens.*/,"",num); gsub(/ /,"",num)
+                found=tonum(num)
+                l=substr(l,RSTART+RLENGTH)
+            }
+        }
+        END { if (found != "") print found }
+    '
+}
+

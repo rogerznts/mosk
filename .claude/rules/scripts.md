@@ -45,8 +45,13 @@ bash .claude/mosk/scripts/create-new-feature.sh \
   `--no-push` / non-git installs skip reservation (local numbering only).
 - `--number N` is honored strictly: if that number is already reserved
   or in use it **fails loudly** instead of silently duplicating.
-- Refuses to create from environment/release/feature branches. Only
-  base branches allowed: `main master develop dev`.
+- Refuses to create from environment/release/feature branches. Base
+  branches allowed: `main master develop dev` — **or** any branch pointing
+  at the *same commit* as one of them. That second rule is what makes it
+  work from an Orca/agent worktree whose branch is personal (e.g.
+  `rogerznts/master`) while the base itself is checked out elsewhere. The
+  blocked-pattern list and the `^[0-9]{3}-` spec-branch rule still apply
+  on top.
 - Branch format: `{###}-{type}-{short-name}` (or `{###}-{short-name}`
   for backward compat). Truncates to 244 bytes (GitHub limit).
 - Generates `spec-meta.yaml` with `status: active`,
@@ -239,14 +244,61 @@ projections in `common.sh` stay simple. Usage:
 `bash .claude/mosk/scripts/lint-graph.sh [--quiet]`. Exit 0 = clean;
 exit 1 lists `path:line :: detail`.
 
+### `panes.sh`
+
+**Fachada única do atuador de panes do `/mosk-orq`** (ADR-0010). Resolve qual
+backend está ativo (`herdr | orca | none`) e delega o argv inalterado ao driver.
+É o único script que o agente chama — trocar de backend não muda o prompt.
+
+**Usage:**
+```bash
+bash .claude/mosk/scripts/panes.sh driver [--json]   # backend ativo + motivo
+bash .claude/mosk/scripts/panes.sh <subcomando> ...  # delega
+```
+
+**Precedência da escolha:** env `MOSK_ORQ_DRIVER` → `orchestration.driver` no
+`core-config.yaml` (`auto|herdr|orca|none`) → em `auto`, o ambiente da sessão
+(`ORCA_*` vs `HERDR_*`) → em `auto`, o primeiro backend cujo `check` passar →
+`none` (degradação single-pane, com dica de instalação dos dois).
+
+Subcomandos exclusivos do backend Orca (camada nativa) respondem `unsupported`
+com **exit 3** nos demais — código próprio, para distinguir "este backend não
+faz isso" de "isto falhou".
+
 ### `herdr.sh`
 
-Wrapper mecânico da control API do [Herdr](https://herdr.dev/) para o
-orquestrador `/mosk-orq` (Mauro). Atuador: spawna/injeta/espera/lê/fecha panes e
-mede tokens. Subcomandos: `check | tokens | spawn | send | wait-idle | read |
-close | managed`. Degrada graciosamente sem o binário `herdr` (`check` falha com
-dica de instalação). O `spawn` fixa a pane no space do orquestrador (env
-`HERDR_*`). Usage: `bash .claude/mosk/scripts/herdr.sh <subcomando> ...`.
+**Backend Herdr** do atuador. Wrapper mecânico da control API do
+[Herdr](https://herdr.dev/): spawna/injeta/espera/lê/fecha panes e mede tokens.
+Subcomandos: `check | tokens | spawn | send | wait-idle | read | close |
+managed`. Degrada graciosamente sem o binário `herdr` (`check` falha com dica de
+instalação). O `spawn` fixa a pane no space do orquestrador (env `HERDR_*`).
+Prefira chamar via `panes.sh`. Usage:
+`bash .claude/mosk/scripts/herdr.sh <subcomando> ...`.
+
+### `orca.sh`
+
+**Backend Orca** do atuador ([onorca.dev](https://www.onorca.dev/)). Implementa
+o **mesmo contrato** do `herdr.sh` sobre `orca terminal …` — mesmos subcomandos,
+mesmos flags, mesmo formato de saída; o "pane" é o handle de terminal do Orca.
+
+**Resolução do executável (crítica):** `$ORCA_CLI_COMMAND` → `orca-dev` (quando
+`$ORCA_DEV_REPO_ROOT`) → `orca-ide` → `orca`, e **recusa** `/usr/bin/orca` ou
+`/bin/orca` — no Linux esse nome é o **leitor de tela do GNOME**, e executá-lo
+inicia síntese de voz na máquina do usuário. Nunca invoque `orca` cru.
+
+Diferenças absorvidas no wrapper: `--cwd` vira `--worktree path:<p>` (com
+fallback para `active`); `send` usa o `--enter` atômico (sem o respiro que o
+Herdr exige); `--split`/`--workspace`/`--tab` não têm equivalente e são
+reportados em stderr; sem contador nativo de tokens, `tokens` faz o mesmo parse
+da TUI (`over=unknown` quando não casa).
+
+**Camada nativa (opt-in, `orchestration.orca.native_tasks: true`):**
+`native | task-create | task-list | dispatch | await | gate-create |
+gate-resolve` — mapeiam `orca orchestration …` (task DAG, dispatch com preâmbulo
+de lifecycle, espera por `worker_done`, decision gates). Desligada por padrão; os
+subcomandos falham com mensagem clara enquanto ela estiver off. A invariante do
+ADR-0006 vale: o orquestrador **cria** o gate, o humano **resolve**, e
+`orchestration run` (coordinator loop autônomo do Orca) nunca é usado.
 
 ### `check-ship-ready.sh`
 
@@ -319,4 +371,5 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
-| Orchestrate agents over Herdr panes | `herdr.sh` (via `/mosk-orq`) |
+| Orchestrate agents over panes | `panes.sh` (via `/mosk-orq`) |
+| Descobrir qual backend de panes está ativo | `panes.sh driver --json` |
