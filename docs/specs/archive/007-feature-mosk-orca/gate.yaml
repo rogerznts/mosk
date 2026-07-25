@@ -1,0 +1,69 @@
+# Quality gate — spec 007-feature-mosk-orca
+# Gravado no local por-spec (core-config specs.gateFile) — que é o que o
+# delivery-loop (legal_moves._gate_status) e o pipeline por-spec leem.
+
+identifier: "007-feature-mosk-orca"
+gate: CONCERNS
+reviewer: "Joaquim (mosk-qa)"
+updated: "2026-07-25T03:35:00Z"
+
+status_reason: >
+  Implementação completa e verificada em tudo que não depende do runtime do
+  Orca: sintaxe, paridade de subcomandos entre os drivers, resolução de binário
+  em todos os cenários (nunca toca /usr/bin/orca), parsing de JSON contra
+  fixtures nos dois caminhos (com e sem python3), degradação sem atuador,
+  `unsupported` com exit 3, não-regressão do Herdr contra o servidor real, lint
+  do grafo e auditoria de paths. CONCERNS porque a validação contra o runtime
+  do Orca (QA-1) está bloqueada por um bug do próprio Orca 1.4.155, externo a
+  esta spec.
+
+# Waiver ativo: o humano decidiu arquivar e mergear com QA-1 em aberto,
+# ciente de que a pendência é ambiental e não regride nada em produção.
+waiver:
+  active: true
+  reason: >
+    QA-1 depende de um runtime do Orca acessível, indisponível neste ambiente
+    por bug de terceiro (relato reproduzível levantado nesta sessão). O risco de
+    mergear é assimétrico e baixo: com o backend Orca inacessível o `panes.sh`
+    degrada sozinho para o Herdr (verificado), e nada no caminho do Herdr
+    regrediu. Segurar o merge não aproxima a validação — ela depende de correção
+    upstream.
+  approved_by: "Roger Santos (decisão humana explícita)"
+
+top_issues:
+  - id: QA-1
+    severity: medium
+    resolved: false
+    finding: >
+      O contrato do driver Orca nunca foi exercitado contra um runtime vivo
+      (tasks T17–T20). Em especial T20: as chaves reais do envelope JSON de
+      `terminal create` e `terminal read` não foram confirmadas — o parsing do
+      orca.sh foi escrito contra fixtures.
+    suggested_action: >
+      Assim que o runtime do Orca conectar, rodar o smoke test do contrato
+      (spawn → send → read → tokens → managed → wait-idle → close) e conferir o
+      envelope real. Se as chaves divergirem, o ajuste é localizado em
+      _handle_from_json / _text_from_json; a busca por chave é defensiva e
+      cobre text/output/content/lines/rows.
+    mitigation: >
+      `_text_from_json` e `_handle_from_json` procuram por chave em vez de
+      caminho fixo, com fallback sem python3; `tokens` degrada para
+      over=unknown quando não parseia, o que nunca bloqueia o handoff.
+
+  - id: QA-2
+    severity: low
+    resolved: false
+    finding: >
+      A camada nativa (task/dispatch/gates) depende ainda da feature
+      experimental `orchestration` habilitada no app, além do runtime.
+    suggested_action: >
+      Validar junto com QA-1. Fica desligada por padrão
+      (orchestration.orca.native_tasks: false), então não afeta quem não optar.
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 1, low: 1 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "QA-1: confirmar o envelope real do Orca quando o runtime conectar."
+      - "QA-2: exercitar a camada nativa com a feature experimental ligada."

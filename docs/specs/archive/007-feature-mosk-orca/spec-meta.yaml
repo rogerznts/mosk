@@ -4,6 +4,7 @@ type: "feature"
 branch: "007-feature-mosk-orca"
 created_at: "2026-07-25T02:24:29Z"
 created_by: "Roger Santos <rogerznts@gmail.com>"
-status: active
-current_phase: specify
-last_phase_change: "2026-07-25T02:24:29Z"
+status: archived
+current_phase: archived
+last_phase_change: "2026-07-25T03:34:53Z"
+archived_at: "2026-07-25T03:35:04Z"
