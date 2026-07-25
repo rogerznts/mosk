@@ -25,7 +25,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/common.sh"
 
-DEFAULT_CEILING=800000
 INSTALL_HINT='brew install herdr   # ou veja https://herdr.dev/'
 
 usage() {
@@ -50,8 +49,11 @@ Opcoes globais:
   --help,-h   esta ajuda
 
 Config: o teto de tokens padrao vem de core-config.yaml
-(orchestration.herdr.context_token_ceiling); fallback 800000. Override por
---ceiling ou pela env MOSK_CONTEXT_TOKEN_CEILING.
+(orchestration.context_token_ceiling, ou a chave legada em orchestration.herdr);
+fallback 800000. Override por --ceiling ou pela env MOSK_CONTEXT_TOKEN_CEILING.
+
+Este e UM dos backends do atuador (ADR-0010). Prefira chamar via panes.sh, que
+resolve o backend (herdr | orca) e delega.
 EOF
 }
 
@@ -69,48 +71,13 @@ require_herdr() {
     return 0
 }
 
-# --- teto de tokens: env > --ceiling > core-config > default ---
-config_ceiling() {
-    local cfg val
-    cfg="$(core_config_file 2>/dev/null || true)"
-    if [[ -n "$cfg" && -f "$cfg" ]]; then
-        # a chave é única no arquivo — grep direto é robusto sem parser aninhado
-        val="$(grep -E '^[[:space:]]*context_token_ceiling:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[^0-9].*//')"
-        [[ -n "$val" ]] && { echo "$val"; return 0; }
-    fi
-    echo "$DEFAULT_CEILING"
-}
+# --- teto de tokens e parse do contador: compartilhados com os outros drivers ---
+# `context_token_ceiling` e `extract_tokens` moram em common.sh (ADR-0010), para
+# que herdr.sh e orca.sh nunca divirjam nesse ponto.
 
 # --- extrai o pane_id de uma saída JSON do herdr ---
 _pane_id_from_json() {
     grep -o '"pane_id":"[^"]*"' | head -1 | cut -d'"' -f4
-}
-
-# --- extrai a contagem de tokens do texto de um pane ---
-# Regra: ignora linhas de dica ("save"/"/clear"/"ctx left") e pega a ÚLTIMA
-# ocorrência de "<n>[k] tokens" — o contador de contexto nativo do Claude Code.
-# Se nada casar, não imprime nada (o chamador trata como desconhecido).
-_extract_tokens() {
-    awk '
-        function tonum(s,   k){
-            k=0
-            if (s ~ /[kK]/) { k=1; sub(/[kK]/,"",s) }
-            sub(/,/,".",s)
-            if (k) return int((s+0)*1000)
-            return int(s+0)
-        }
-        {
-            l=$0; low=tolower(l)
-            if (low ~ /save|clear|ctx left|context left/) next
-            while (match(l, /[0-9][0-9.,]*[ ]*[kK]?[ ]*tokens/)) {
-                m=substr(l,RSTART,RLENGTH)
-                num=m; sub(/[ ]*tokens.*/,"",num); gsub(/ /,"",num)
-                found=tonum(num)
-                l=substr(l,RSTART+RLENGTH)
-            }
-        }
-        END { if (found != "") print found }
-    '
 }
 
 # --- read cru → texto limpo do pane (JSON envelope do herdr) ---
@@ -139,7 +106,7 @@ cmd_check() {
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
     if ! has_herdr; then
         if [[ "$json" -eq 1 ]]; then
-            echo '{"ok":false,"reason":"herdr-not-found","install":"'"$INSTALL_HINT"'"}'
+            echo '{"ok":false,"driver":"herdr","herdr":false,"reason":"herdr-not-found","install":"'"$INSTALL_HINT"'"}'
         else
             require_herdr || true
         fi
@@ -149,7 +116,7 @@ cmd_check() {
     status="$(herdr status 2>/dev/null || true)"
     echo "$status" | grep -qiE 'status:[[:space:]]*running' && server_ok=true
     if [[ "$json" -eq 1 ]]; then
-        echo "{\"ok\":$server_ok,\"herdr\":true,\"server_running\":$server_ok}"
+        echo "{\"ok\":$server_ok,\"driver\":\"herdr\",\"herdr\":true,\"server_running\":$server_ok}"
     else
         if [[ "$server_ok" == true ]]; then
             echo "herdr: ok (binario presente, server rodando)."
@@ -173,11 +140,11 @@ cmd_tokens() {
         esac
     done
     [[ -n "$pane" ]] || { echo "erro: informe o pane_id." >&2; return 2; }
-    [[ -n "$ceiling" ]] || ceiling="${MOSK_CONTEXT_TOKEN_CEILING:-$(config_ceiling)}"
+    [[ -n "$ceiling" ]] || ceiling="$(context_token_ceiling)"
 
     local text used over
     text="$(_read_text "$(_read_raw "$pane")")"
-    used="$(printf '%s\n' "$text" | _extract_tokens)"
+    used="$(printf '%s\n' "$text" | extract_tokens)"
 
     if [[ -z "$used" ]]; then
         over="unknown"

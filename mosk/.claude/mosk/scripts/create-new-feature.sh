@@ -231,6 +231,23 @@ if [ "$HAS_GIT" = true ]; then
             fi
         done
 
+        # Worktree pessoal / de agente: um branch que aponta para o MESMO
+        # commit de uma base branch conhecida é, na prática, essa base. Cobre
+        # o padrão de ADEs como o Orca, em que cada worktree tem seu próprio
+        # branch (ex.: `rogerznts/master`) e a base fica ocupada por outro
+        # worktree. Os bloqueios abaixo continuam valendo por cima disto.
+        if [ "$is_allowed" = false ]; then
+            current_sha=$(git rev-parse --verify --quiet HEAD 2>/dev/null || echo "")
+            for allowed in $ALLOWED_BASE_BRANCHES; do
+                base_sha=$(git rev-parse --verify --quiet "refs/heads/$allowed" 2>/dev/null || echo "")
+                [ -z "$base_sha" ] && base_sha=$(git rev-parse --verify --quiet "refs/remotes/origin/$allowed" 2>/dev/null || echo "")
+                if [ -n "$current_sha" ] && [ "$current_sha" = "$base_sha" ]; then
+                    is_allowed=true
+                    break
+                fi
+            done
+        fi
+
         # Also block branches matching environment/release patterns
         if echo "$CURRENT_BRANCH" | grep -qE "$BLOCKED_BRANCH_PATTERNS"; then
             is_allowed=false
@@ -244,6 +261,7 @@ if [ "$HAS_GIT" = true ]; then
         if [ "$is_allowed" = false ]; then
             echo "ERROR: Cannot create a new feature branch from '$CURRENT_BRANCH'." >&2
             echo "New branches can only be created from: $ALLOWED_BASE_BRANCHES" >&2
+            echo "(or from a branch pointing at the same commit as one of them)" >&2
             echo "Switch to a base branch first, e.g.: git checkout main" >&2
             exit 1
         fi
