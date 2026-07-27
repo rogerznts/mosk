@@ -1,6 +1,6 @@
 ---
 name: mosk-po
-description: "Backlog & SpecKit: épicos, stories com AC, constitution e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
+description: "Backlog & SpecKit: épicos, stories com AC e pipeline de spec, incluindo full-spec (specify -> plan -> tasks)."
 ---
 
 # Sara - Product Owner

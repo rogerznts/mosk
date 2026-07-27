@@ -39,6 +39,18 @@ STRUCTURE:
   Source agents:       .claude/mosk/agents/NAME.md
   Skill wrappers:      .claude/skills/mosk-NAME/SKILL.md
   Claude Code agents:  .claude/agents/mosk-NAME.md
+
+DESCRIPTION (routing string):
+  Declared by the agent itself, on one physical line, no double quotes:
+
+    <!-- skill-description: Short pt-BR blurb with the triggers that should
+         route a request to this agent. -->
+
+  This is the source of truth for both the skill wrapper and the CC agent.
+  It is deliberately NOT derived from ## Mission: the description is routing
+  metadata (when to load me), the Mission is persona prose (what I do once
+  loaded). Agents without the field fall back to the existing wrapper, then
+  the CC agent, then the Mission's first line.
 EOF
             exit 0
             ;;
@@ -99,7 +111,23 @@ extract_description() {
     echo "$raw"
 }
 
-# Extract the Mission section's first sentence from an agent .md
+# Extract the canonical routing description declared by an agent .md:
+#
+#   <!-- skill-description: text with the routing triggers -->
+#
+# This is the SOURCE OF TRUTH for a skill's `description:`. It exists because
+# the description is a *routing* string (pt-BR, trigger-rich, read by the host
+# to decide when to load the skill) while ## Mission is *persona prose* (in
+# English, multi-line, read by the model once loaded). Deriving one from the
+# other truncated every curated description the moment this script ran.
+# Must be a single physical line and must not contain double quotes.
+extract_skill_description() {
+    local file="$1"
+    [[ -f "$file" ]] || return 1
+    sed -n 's/^<!-- *skill-description: *\(.*[^ ]\) *-->[[:space:]]*$/\1/p' "$file" | head -1
+}
+
+# Fallback for agents that predate `skill-description`: the Mission's first line.
 extract_mission() {
     local file="$1"
     [[ -f "$file" ]] || return 1
@@ -137,17 +165,57 @@ agents_to_skills() {
         local skill_name="mosk-$name"
         local skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
 
-        # Resolve description: CC agent > mission from source > existing skill (fallback)
+        # Resolve description, in order:
+        #   1. `skill-description` declared by the agent  — canonical
+        #   2. existing skill wrapper                     — preserves curated text
+        #   3. CC agent                                   — legacy installs
+        #   4. Mission's first line                       — agent without the field
+        #   5. generic fallback
+        # (2) sits above (3) and (4) on purpose: a description already in place is
+        # curated text, and silently replacing it with prose is a regression.
         local desc=""
-        desc="$(extract_description "$CC_AGENTS_DIR/$skill_name.md" 2>/dev/null)" || true
-        if [[ -z "$desc" ]]; then
-            desc="$(extract_mission "$agent_file" 2>/dev/null)" || true
-        fi
+        desc="$(extract_skill_description "$agent_file" 2>/dev/null)" || true
         if [[ -z "$desc" ]]; then
             desc="$(extract_description "$skill_file" 2>/dev/null)" || true
         fi
         if [[ -z "$desc" ]]; then
+            desc="$(extract_description "$CC_AGENTS_DIR/$skill_name.md" 2>/dev/null)" || true
+        fi
+        if [[ -z "$desc" ]]; then
+            desc="$(extract_mission "$agent_file" 2>/dev/null)" || true
+        fi
+        if [[ -z "$desc" ]]; then
             desc="MOSK $name agent."
+        fi
+        if [[ "$desc" == *'"'* ]]; then
+            echo "WARN: description of $skill_name contains a double quote — it would break the YAML front-matter; stripping." >&2
+            desc="${desc//\"/}"
+        fi
+
+        # An existing wrapper is edited IN PLACE: only the `description:` line is
+        # refreshed. Wrappers carry authored content the generator knows nothing
+        # about — extra front-matter keys (`argument-hint:`) and hand-written
+        # bodies — and regenerating from the boilerplate silently deleted them.
+        if [[ -f "$skill_file" ]]; then
+            local current_desc
+            current_desc="$(extract_description "$skill_file" 2>/dev/null)" || true
+            if [[ "$current_desc" == "$desc" ]]; then
+                echo "keep    $skill_name/SKILL.md"
+                kept=$((kept + 1))
+                continue
+            fi
+            if [[ "$DRY_RUN" == "true" ]]; then
+                echo "dry-run  would refresh description of $skill_file"
+            else
+                local tmp="$skill_file.tmp.$$"
+                awk -v d="$desc" '
+                    !done && /^description:/ { print "description: \"" d "\""; done = 1; next }
+                    { print }
+                ' "$skill_file" > "$tmp" && mv "$tmp" "$skill_file"
+            fi
+            echo "update  $skill_name/SKILL.md (description)"
+            updated=$((updated + 1))
+            continue
         fi
 
         local content
@@ -163,22 +231,9 @@ and activation instructions. Follow ALL instructions defined there exactly.
 SKILL_EOF
 )"
 
-        # Check if skill already exists with same content
-        if [[ -f "$skill_file" ]]; then
-            existing="$(cat "$skill_file")"
-            if [[ "$existing" == "$content" ]]; then
-                echo "keep    $skill_name/SKILL.md"
-                kept=$((kept + 1))
-                continue
-            fi
-            write_file "$skill_file" "$content"
-            echo "update  $skill_name/SKILL.md"
-            updated=$((updated + 1))
-        else
-            write_file "$skill_file" "$content"
-            echo "create  $skill_name/SKILL.md"
-            created=$((created + 1))
-        fi
+        write_file "$skill_file" "$content"
+        echo "create  $skill_name/SKILL.md"
+        created=$((created + 1))
     done
 
     echo
@@ -212,26 +267,49 @@ skills_to_agents() {
             continue
         fi
 
-        # If CC agent already exists, keep it (it may have PT-BR content)
-        if [[ -f "$agent_file" ]]; then
-            echo "keep    $skill_name.md (already exists)"
-            kept=$((kept + 1))
-            continue
-        fi
-
-        # Extract description from skill
+        # Canonical description: same resolution order as agents-to-skills
         local desc=""
-        desc="$(extract_description "$skill_file" 2>/dev/null)" || true
+        desc="$(extract_skill_description "$source_agent" 2>/dev/null)" || true
+        if [[ -z "$desc" ]]; then
+            desc="$(extract_description "$skill_file" 2>/dev/null)" || true
+        fi
         if [[ -z "$desc" ]]; then
             desc="$(extract_mission "$source_agent" 2>/dev/null)" || true
         fi
         if [[ -z "$desc" ]]; then
             desc="MOSK $base_name agent."
         fi
+        desc="${desc//\"/}"
 
-        # Extract persona name and role from source agent's first line
+        # If the CC agent already exists, keep its body (it may carry PT-BR
+        # content) but refresh the `description:` line when it drifted — that
+        # line is routing metadata, not authored content.
+        if [[ -f "$agent_file" ]]; then
+            local current_desc
+            current_desc="$(extract_description "$agent_file" 2>/dev/null)" || true
+            if [[ "$current_desc" == "$desc" ]]; then
+                echo "keep    $skill_name.md (already exists)"
+                kept=$((kept + 1))
+            elif [[ "$DRY_RUN" == "true" ]]; then
+                echo "dry-run  would refresh description of $agent_file"
+                echo "update  $skill_name.md (description)"
+                updated=$((updated + 1))
+            else
+                local tmp="$agent_file.tmp.$$"
+                awk -v d="$desc" '
+                    !done && /^description:/ { print "description: \"" d "\""; done = 1; next }
+                    { print }
+                ' "$agent_file" > "$tmp" && mv "$tmp" "$agent_file"
+                echo "update  $skill_name.md (description)"
+                updated=$((updated + 1))
+            fi
+            continue
+        fi
+
+        # Extract persona name and role from the source agent's H1 (which is not
+        # necessarily line 1 — a `skill-description` comment may precede it)
         local title_line
-        title_line="$(head -1 "$source_agent")"
+        title_line="$(grep -m1 '^# ' "$source_agent")"
         # e.g. "# Maria - Analyst" → persona="Maria", role="Analyst"
         local persona role
         persona="$(echo "$title_line" | sed -n 's/^# \(.*\) - .*/\1/p')"

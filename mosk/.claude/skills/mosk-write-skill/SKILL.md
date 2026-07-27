@@ -59,6 +59,21 @@ That file is the single source of truth — it contains the full persona, comman
 and activation instructions. Follow ALL instructions defined there exactly.
 ```
 
+> **For an agent wrapper, the description is authored in the agent, not
+> here.** Put it on the agent's first line, one physical line, no double
+> quotes:
+>
+> ```md
+> <!-- skill-description: <Área>: <ações principais em PT-BR, com gatilhos>. -->
+> ```
+>
+> `sync-agents-skills.sh` copies it into both the wrapper and the CC agent.
+> It is deliberately separate from `## Mission`: the description is *routing*
+> metadata (when to load me), the Mission is *persona prose* (what I do once
+> loaded). Deriving one from the other truncated every curated description.
+> The sync only ever rewrites the `description:` line of an existing wrapper —
+> extra front-matter keys (`argument-hint:`) and hand-written bodies survive.
+
 **Direct support body**: write the workflow inline (see `mosk-handoff`
 or `tea-commit` as references) — numbered steps, explicit rules, an
 `argument-hint` when it takes input.
