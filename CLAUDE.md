@@ -54,9 +54,13 @@ mosk/                        # installable template (source of truth)
 │   │   │                    # project-rule, project-manual,
 │   │   │                    # project-plan, project-update, …)
 │   │   ├── checklists/
+│   │   ├── data/            # static reference material read by tasks
+│   │   │   └── hallmark/    # vendored Hallmark fork (MIT) — see VENDOR.md;
+│   │   │                    # update via scripts/sync-hallmark.sh, never by hand
 │   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
 │   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,
-│   │   │                    # migrate-ctx-skills-to-rules.sh, common.sh
+│   │   │                    # migrate-ctx-skills-to-rules.sh, sync-hallmark.sh,
+│   │   │                    # common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)

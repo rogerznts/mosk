@@ -57,8 +57,15 @@ Key layers inside `mosk/.claude/mosk/`:
 - `scripts/` — Bash helpers (`create-new-feature.sh`,
   `sync-agents-skills.sh`, `link-codex-skills.sh`,
   `migrate-docs-structure.sh`, `migrate-ctx-skills-to-rules.sh`,
-  `common.sh`).
+  `sync-hallmark.sh`, `common.sh`).
 - `checklists/` — quality checklists invoked by optional tasks.
+- `data/` — static reference material read by tasks (elicitation methods,
+  test frameworks, …), plus `data/hallmark/`: a **vendored fork** of the
+  MIT-licensed [Hallmark](https://github.com/Nutlope/hallmark) design skill
+  (106 upstream files + `tokens.css` + `LICENSE` + `VENDOR.md`), consumed by
+  `tasks/hallmark.md`. Never hand-edit it as if it were MOSK-authored — every
+  local change becomes part of the fork's diff. Update with
+  `sync-hallmark.sh`.
 
 Reference documents in `docs/architecture/` (numeric prefix optional — always resolve via `index.md` links or glob `*<stem>.md`):
 

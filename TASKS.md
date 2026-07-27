@@ -73,6 +73,7 @@ loading protocol.
 | Task | Style / effect | Example |
 |---|---|---|
 | *(no arg)* | Shows the menu with all options. | `/mosk-ui-expert` |
+| `hallmark` | Anti-slop design system: picks one of 21 macrostructures + one of 20 themes, then runs 58 slop-test gates. Verbs: `audit` (score only, no edits), `redesign`, `study <url\|screenshot>`. | `hallmark landing page do produto` · `hallmark audit src/App.tsx` |
 | `webdesign-brutalist` | Swiss typography, terminal aesthetics, rigid grids. | `/mosk-ui-expert brutalist dashboard de monitoramento` |
 | `webdesign-minimalist` | Editorial, warm monochrome, flat bento grids. | `/mosk-ui-expert minimalist landing de analytics` |
 | `webdesign-soft` | $150k+ agency feel, haptic depth, cinematic motion. | `/mosk-ui-expert soft pricing page` |
@@ -88,6 +89,17 @@ loading protocol.
 - mandatory interaction states (loading, empty, error, active)
 - responsive collapse guarantees
 - dependency verification before any import
+
+**Hallmark** is a second, independent rule-set living alongside taste —
+vendored from [Nutlope/hallmark](https://github.com/Nutlope/hallmark) (MIT)
+into `mosk/.claude/mosk/data/hallmark/`. Where taste governs *finish*,
+Hallmark governs *structure*: it forces a different page shape, nav and
+footer archetype on every run (project memory in `.hallmark/log.json`), so
+two builds don't share a fingerprint. While the `hallmark` task is loaded its
+rules **override** the taste baseline where they conflict — display serifs
+and plain HTML + CSS output are legal there. Update the vendor with
+`bash .claude/mosk/scripts/sync-hallmark.sh`; never edit `data/hallmark/` by
+hand.
 
 ---
 
