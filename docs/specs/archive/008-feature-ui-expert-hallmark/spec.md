@@ -169,3 +169,8 @@ autodestrói seria entregar pela metade.
 - **SC-004**: `hallmark`, `hallmark audit`, `hallmark redesign` e `hallmark study`
   alcançam o Tiago a partir das quatro formas de invocação documentadas.
 - **SC-005**: Nenhuma das seis tasks `webdesign-*` muda de conteúdo.
+
+---
+**Arquivado em:** 2026-07-26
+**Status final:** Concluído
+**Promoções aplicadas:** 1 `copy` (ADR-0011 → `docs/architecture/adr/`) · 0 `append` · 0 `manual`
