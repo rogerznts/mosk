@@ -76,10 +76,30 @@ bash .claude/mosk/scripts/sync-agents-skills.sh \
 
 **Behavior:**
 - `agents-to-skills` (default direction): for each
-  `.claude/mosk/agents/<name>.md`, write/refresh
-  `.claude/skills/mosk-<name>/SKILL.md` pointing back to the source.
-- `skills-to-agents`: generate `.claude/agents/mosk-<name>.md` only
-  when missing (preserves PT-BR content in existing files).
+  `.claude/mosk/agents/<name>.md`, write `.claude/skills/mosk-<name>/SKILL.md`
+  pointing back to the source. **Wrappers that already exist are edited in
+  place — only the `description:` line is rewritten.** Extra front-matter keys
+  (`argument-hint:` in `mosk-orq`) and hand-written bodies are preserved.
+- `skills-to-agents`: generate `.claude/agents/mosk-<name>.md` when missing;
+  when present, keep the body and refresh only the `description:` line.
+
+**Description — fonte única (contrato).** A `description` de uma skill de
+agente é declarada **no próprio agente**, na primeira linha, em uma linha
+física e sem aspas duplas:
+
+```md
+<!-- skill-description: UI: interfaces premium, redesign, Hallmark (audit · redesign · study). -->
+```
+
+Ordem de resolução: `skill-description` → wrapper existente → CC agent →
+primeira linha da `## Mission` → genérico.
+
+Isso existe porque `description` e `## Mission` são coisas diferentes: a
+primeira é string de **roteamento** (pt-BR, com gatilhos, lida pelo host para
+decidir *quando* carregar a skill); a segunda é **prosa da persona** (inglês,
+multi-linha, lida pelo modelo depois de carregada). Antes, o script derivava a
+description da Mission via `head -1` — o que truncava as 11 descriptions
+curadas do template no primeiro `sync`, sem erro visível.
 - `--clean`: removes orphan skills and CC agents whose source agent
   no longer exists in `.claude/mosk/agents/`.
 - Warns (non-blocking) when legacy `ctx-*` skills are still present;
@@ -311,6 +331,37 @@ tree limpo. Branch sem spec ativa passa. Exit 0 = pronta; 1 = pontas soltas
 **Consumido por** camadas de guardrail (hook do Claude Code em `gh pr merge`,
 CI/branch protection, `/tea-open-pr`).
 
+### `sync-hallmark.sh`
+
+**Re-sincroniza o vendor do Hallmark** em `.claude/mosk/data/hallmark/` — um
+*fork* da skill MIT [Nutlope/hallmark](https://github.com/Nutlope/hallmark),
+consumido pela task `hallmark.md` do `mosk-ui-expert`.
+
+**Usage:**
+```bash
+bash .claude/mosk/scripts/sync-hallmark.sh [--ref <sha|tag|branch>] [--dry-run] [--help]
+```
+
+**Como funciona (diff/replay, não patch hardcoded):** baixa o upstream no ref
+**pinado** (lido de `VENDOR.md`), tira um `git diff --no-index` contra o vendor
+atual — esse diff *é* o conjunto de adequações MOSK — baixa o ref **novo** e
+reaplica com `git apply -p2 --reject`. Sem `--ref`, os dois refs coincidem e a
+rodada é um no-op verificado (round-trip idempotente).
+
+**Garantias:** valida todos os links markdown internos e quatro invariantes
+(blocos `MOSK-HEADER` / `MOSK-INTEGRATION` presentes em `hallmark.md`,
+`references/themes/tokens.css` e `LICENSE` presentes, `SKILL.md` renomeado).
+Qualquer conflito ou link quebrado **aborta sem tocar no vendor** e preserva a
+área de trabalho em `$TMPDIR/mosk-hallmark-sync/` (com os `.rej` e o
+`mosk.patch`) para resolução manual.
+
+Usa tarball do `codeload` (aceita qualquer SHA, inclusive commits que não são
+ponta de branch) — não depende de `npx`/degit. Requer `curl`, `git`, `tar`.
+
+**Run when:** for atualizar a versão do Hallmark, ou para conferir que o vendor
+ainda bate com o upstream pinado. **Nunca** copie o upstream por cima do
+diretório na mão: isso apaga a integração MOSK.
+
 ### `common.sh`
 
 Shared library — never executed directly, always `source`'d:
@@ -371,5 +422,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
+| Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |
 | Orchestrate agents over panes | `panes.sh` (via `/mosk-orq`) |
 | Descobrir qual backend de panes está ativo | `panes.sh driver --json` |

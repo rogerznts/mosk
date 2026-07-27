@@ -154,7 +154,7 @@ Created by `/mosk-po artefact "<description>"`.
 - `/mosk-pm` (João) — PRD, product scope, PRD delta.
 - `/mosk-architect` (Vinicius) — architecture, APIs, integrations, ADRs.
 - `/mosk-ux-expert` (Salete) — user flows, wireframes, front-end specs, UX behavior.
-- `/mosk-ui-expert` (Tiago) — visual acabamento, design system, premium pages, taste system.
+- `/mosk-ui-expert` (Tiago) — visual acabamento, design system, premium pages, taste system + Hallmark (anti-slop: macroestrutura, temas, `audit`/`redesign`/`study`).
 - `/mosk-po` (Sara) — specs, planning, task generation (SpecKit pipeline).
 - `/mosk-sm` (Roberto) — story readiness, sequencing.
 - `/mosk-dev` (Jaime) — implementation, QA fixes, archive.

@@ -254,7 +254,12 @@ HEADER
         skill_file="$entry/SKILL.md"
         desc=""
         if [[ -f "$skill_file" ]]; then
-            desc=$(sed -n 's/^description: *"\{0,1\}\(.*\)"\{0,1\}$/\1/p' "$skill_file" 2>/dev/null | head -1)
+            # NAO tentar tirar as aspas dentro do sed: `\(.*\)` e guloso, engole a
+            # aspa final e o `"\{0,1\}$` casa vazio — era assim que quase toda
+            # entrada do AGENTS.md terminava com um `"` sobrando.
+            desc=$(sed -n 's/^description: *//p' "$skill_file" 2>/dev/null | head -1)
+            desc="${desc#\"}"
+            desc="${desc%\"}"
         fi
         if [[ -n "$desc" ]]; then
             echo "- **$entry_name**: $desc"

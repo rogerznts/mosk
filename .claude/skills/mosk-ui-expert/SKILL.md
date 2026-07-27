@@ -1,6 +1,6 @@
 ---
 name: mosk-ui-expert
-description: "UI: interfaces premium, redesign, estilos visuais e design systems."
+description: "Design and build premium, non-generic digital interfaces — visual acabamento, design system, premium pages — plus the Hallmark anti-slop flow (hallmark · audit · redesign · study)."
 ---
 
 CRITICAL: Read and fully execute the agent definition at `../../mosk/agents/ui-expert.md`.

@@ -54,9 +54,13 @@ mosk/                        # installable template (source of truth)
 │   │   │                    # project-rule, project-manual,
 │   │   │                    # project-plan, project-update, …)
 │   │   ├── checklists/
+│   │   ├── data/            # static reference material read by tasks
+│   │   │   └── hallmark/    # vendored Hallmark fork (MIT) — see VENDOR.md;
+│   │   │                    # update via scripts/sync-hallmark.sh, never by hand
 │   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
 │   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,
-│   │   │                    # migrate-ctx-skills-to-rules.sh, common.sh
+│   │   │                    # migrate-ctx-skills-to-rules.sh, sync-hallmark.sh,
+│   │   │                    # common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)
@@ -154,6 +158,30 @@ When editing tasks:
 - keep outputs implementation-oriented
 - avoid mandatory elicitation unless the missing answer materially changes the result
 - keep optional artifacts optional
+
+Reference material a task reads at runtime lives in `mosk/.claude/mosk/data/`
+and is referenced by basename (see `design-tests.md` for the `## Dependencies`
+shape). `data/hallmark/` is different: it is a **vendored fork** of an upstream
+MIT project, not MOSK-authored content. Do not hand-edit it — every local change
+becomes part of the fork's diff. Update it with
+`bash mosk/.claude/mosk/scripts/sync-hallmark.sh` and read
+`data/hallmark/VENDOR.md` first.
+
+## Agent descriptions
+
+A skill's `description:` is **declared by the agent**, on its first line:
+
+```md
+<!-- skill-description: <Área>: <ações em pt-BR, com gatilhos de roteamento>. -->
+```
+
+It is deliberately separate from `## Mission`. The description is *routing*
+metadata (pt-BR, trigger-rich, read by the host to decide when to load the
+skill); the Mission is *persona prose* (English, multi-line, read by the model
+once loaded). `sync-agents-skills.sh` copies the declared line into both the
+skill wrapper and the CC agent, and only ever rewrites the `description:` line
+of files that already exist — extra front-matter keys and hand-written bodies
+survive. Never edit a wrapper's description directly; edit the agent.
 
 ## Validation
 

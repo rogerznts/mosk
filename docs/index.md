@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-07-22
+Last updated: 2026-07-26
 
 ## Fluxo do Pipeline
 
@@ -70,7 +70,9 @@ Corporativo).
   ADR-0006 grafo de orquestração consultivo — spec 004;
   ADR-0008 delivery-loop consultivo — promovido no archive da spec 005;
   ADR-0009 orquestração multi-pane sobre Herdr — promovido no archive da spec 006;
-  ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007) +
+  ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007;
+  ADR-0011 Hallmark vendorizado como corpo de referência do `mosk-ui-expert` —
+  promovido no archive da spec 008) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -102,6 +104,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 008 | [feature-ui-expert-hallmark](./specs/archive/008-feature-ui-expert-hallmark/) (Hallmark como ferramenta anti-slop do `/mosk-ui-expert`) | archived | 008-feature-ui-expert-hallmark | 2026-07-26 |
 | 007 | [feature-mosk-orca](./specs/archive/007-feature-mosk-orca/) (Orca como segundo backend do `/mosk-orq`; atuador plugável) | archived | 007-feature-mosk-orca | 2026-07-25 |
 | 006 | [feature-mosk-orq](./specs/archive/006-feature-mosk-orq/) (orquestrador `/mosk-orq` — Mauro — sobre Herdr) | archived | 006-feature-mosk-orq | 2026-07-23 |
 | 005 | [feature-delivery-loop](./specs/archive/005-feature-delivery-loop/) (delivery-loop consultivo e limitado) | archived | 005-feature-delivery-loop | 2026-07-22 |
