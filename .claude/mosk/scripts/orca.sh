@@ -139,7 +139,23 @@ orca_cli() {
 # Os nomes internos podem variar entre versões, então buscamos por chave em vez
 # de fixar caminhos — e degradamos sem python3.
 
-_has_py() { command -v python3 >/dev/null 2>&1; }
+# python3 UTILIZÁVEL, não apenas presente. No macOS sem Command Line Tools existe
+# um stub `python3` que só oferece instalar o CLT: `command -v` o encontra, o
+# heredoc falha, o `2>/dev/null` engole o erro e o extrator devolve vazio. Sondamos
+# uma vez e cacheamos.
+# MOSK_ORCA_NO_PY=1 força o ramo de degradação — é como o selftest o alcança numa
+# máquina que tem python3. Variável de ambiente de teste, não flag de subcomando.
+_has_py() {
+    [[ -n "${MOSK_ORCA_NO_PY:-}" ]] && return 1
+    if [[ -z "${_MOSK_PY_OK:-}" ]]; then
+        if command -v python3 >/dev/null 2>&1 && python3 -c 'pass' >/dev/null 2>&1; then
+            _MOSK_PY_OK=yes
+        else
+            _MOSK_PY_OK=no
+        fi
+    fi
+    [[ "$_MOSK_PY_OK" == yes ]]
+}
 
 # _json_bool <raw> <chave-de-topo-ou-aninhada...> — imprime true/false/vazio.
 _json_ok() {
@@ -217,33 +233,72 @@ else:
 
 # Texto de um `terminal read`: pega o maior campo textual do envelope
 # (text/output/content, ou lines/rows como lista).
+# Extrai o texto do terminal de um envelope do Orca.
+#
+# Precedência DECLARADA, primeiro match vence. A versão anterior colhia todo campo
+# textual do envelope e devolvia `max(out, key=len)` — o mais LONGO ganhava, então
+# qualquer campo grande vencia o conteúdo do terminal. Pior: desconhecia `tail`, a
+# chave onde o `orca terminal read` entrega a saída, e devolvia string vazia com
+# exit 0 (spec 009, achado 1).
 _text_from_json() {
     local raw="$1"
     if _has_py; then
         printf '%s' "$raw" | python3 -c 'import sys,json
 try: d = json.load(sys.stdin)
 except Exception: sys.exit(0)
-out = []
+
 def as_line(x):
     if isinstance(x, str): return x
     if isinstance(x, dict): return str(x.get("text") or x.get("content") or "")
     return ""
-def walk(n):
-    if isinstance(n, dict):
-        for k, v in n.items():
-            if k in ("text", "output", "content") and isinstance(v, str):
-                out.append(v)
-            elif k in ("lines", "rows") and isinstance(v, list):
-                out.append("\n".join(as_line(x) for x in v))
-            else:
+
+def find_key(root, key, kind):
+    hit = []
+    def walk(n):
+        if hit: return
+        if isinstance(n, dict):
+            for k, v in n.items():
+                if hit: return
+                if k == key and isinstance(v, kind):
+                    hit.append(v); return
                 walk(v)
-    elif isinstance(n, list):
-        for v in n:
-            walk(v)
-walk(d)
-sys.stdout.write(max(out, key=len) if out else "")' 2>/dev/null
+        elif isinstance(n, list):
+            for v in n:
+                if hit: return
+                walk(v)
+    walk(root)
+    return hit[0] if hit else None
+
+# 1) caminho conhecido — contrato de fato do `orca terminal read`.
+n = d
+for p in ("result", "terminal", "tail"):
+    n = n.get(p) if isinstance(n, dict) else None
+if isinstance(n, list):
+    sys.stdout.write("\n".join(as_line(x) for x in n)); sys.exit(0)
+
+# 2) chaves de LISTA, na ordem declarada. Lista vazia é conteúdo vazio legítimo.
+for k in ("tail", "lines", "rows"):
+    v = find_key(d, k, list)
+    if v is not None:
+        sys.stdout.write("\n".join(as_line(x) for x in v)); sys.exit(0)
+
+# 3) chaves de STRING, na ordem declarada.
+for k in ("text", "output", "content"):
+    v = find_key(d, k, str)
+    if v is not None:
+        sys.stdout.write(v); sys.exit(0)
+' 2>/dev/null
     else
-        printf '%s' "$raw" | sed -E 's/.*"text":"//; s/"[,}].*$//' | sed 's/\\n/\n/g'
+        # Sem python3 utilizável, FALHAMOS — não tentamos parsear JSON com sed.
+        # O extrator sed anterior (`s/.*"text":"//`) era desancorado: quando a chave
+        # não existia, a linha inteira passava adiante e o segundo corte devolvia um
+        # fragmento do envelope (`{"id":"x`). Isso é pior que vazio, porque passa por
+        # qualquer checagem de "veio conteúdo?".
+        # E não há extrator sed honesto aqui: a saída de terminal contém colchetes
+        # (barras de progresso, ANSI) que quebram qualquer casamento de array.
+        echo "erro: sem python3 utilizável; não é possível parsear a resposta do Orca com segurança." >&2
+        echo "  Instale python3. (Um extrator sed corromperia a saída — ver spec 009.)" >&2
+        return 1
     fi
 }
 
@@ -402,14 +457,128 @@ cmd_spawn() {
     echo "$handle"
 }
 
+_ms_to_s() { printf '%d.%03d' $(( $1 / 1000 )) $(( $1 % 1000 )); }
+
+# Colapsa espaços em branco (inclusive quebras de linha) para comparar texto que
+# passou por uma TUI — ela reflui, alinha e quebra o que recebe.
+_normalize_ws() { printf '%s' "$1" | tr '\n\t' '  ' | tr -s ' '; }
+
+# Quantas vezes <needle> aparece em <haystack>. Bash puro: casamento literal por
+# construção (a needle entre aspas dentro do padrão não é interpretada), sem
+# regex, sem subprocesso, e imune a bytes inválidos que fariam `grep` reclamar.
+_count_occurrences() {
+    local haystack="$1" needle="$2" n=0 rest="$1"
+    [[ -z "$needle" ]] && { echo 0; return 0; }
+    while [[ "$rest" == *"$needle"* ]]; do
+        rest="${rest#*"$needle"}"
+        n=$(( n + 1 ))
+    done
+    echo "$n"
+}
+
+# Confirmação de entrega. Duas forças, e a diferença é o ponto:
+#
+#   FORTE (padrão): exige que a sonda do texto enviado apareça MAIS VEZES no depois
+#   do que no antes. "O terminal mudou" não é prova de nada — a TUI do Claude muda
+#   sozinha (spinner, contador de tokens, medidor de compactação), e uma pane
+#   recém-spawnada, justo o caso que esta correção existe para pegar, é a que muda
+#   mais por conta própria. Confirmar por mudança aceitava entrega perdida como
+#   bem-sucedida (QA-009-001, reproduzido).
+#
+#   FRACA: só quando a sonda é curta demais para ser distintiva (ex.: um `y` de
+#   prompt de confiança). Cai para "mudou?" e AVISA que a confirmação é fraca.
+#
+# Contamos ocorrências em vez de "apareceu?" para que reenviar o MESMO texto ainda
+# conte como entrega nova.
+#
+# Falso negativo é o lado seguro desta troca: o `orq.md` manda reler antes de
+# reinjetar, então um "não confirmado" que na verdade chegou custa uma leitura. Um
+# falso positivo custa uma fase inteira do pipeline, em silêncio.
+_delivery_confirmed() {
+    local before="$1" after="$2" sent="${3:-}"
+    local floor="${MOSK_SEND_PROBE_MIN:-8}" max="${MOSK_SEND_PROBE_LEN:-24}"
+    local nsent; nsent="$(_normalize_ws "$sent")"
+
+    # Até 3 caracteres não há o que sondar (o `y` de um prompt de confiança).
+    if (( ${#nsent} <= 3 )); then
+        [[ -n "$sent" ]] && \
+            echo "aviso: texto curto demais para sondar; confirmação fraca (só mudança de tela)." >&2
+        [[ "$after" != "$before" ]]
+        return
+    fi
+
+    # A TUI NÃO ecoa verbatim — ela reformata. Um `/mosk-dev implement …` pode
+    # aparecer como só o token do comando (`⏺ Unknown command: /mosk-dev`), e um
+    # prefixo fixo de 24 caracteres dava falso negativo justamente no formato que
+    # o `orq.md` mais injeta (QA-009-006). Tentamos candidatas da mais distintiva
+    # para a menos, e basta uma incrementar.
+    local -a cands
+    if (( ${#nsent} < floor )); then
+        cands=("$nsent")                       # texto curto: só ele inteiro serve
+    else
+        (( max > ${#nsent} )) && max=${#nsent}
+        cands=("${nsent:0:max}" "${nsent%% *}" "${nsent:0:16}" "${nsent:0:floor}")
+    fi
+
+    local minlen="$floor"
+    (( minlen > ${#nsent} )) && minlen=${#nsent}
+
+    local nbefore nafter probe seen=""
+    nbefore="$(_normalize_ws "$before")"
+    nafter="$(_normalize_ws "$after")"
+    for probe in "${cands[@]}"; do
+        (( ${#probe} < minlen )) && continue
+        [[ "$seen" == *"<$probe>"* ]] && continue   # dedup entre candidatas iguais
+        seen+="<$probe>"
+        (( $(_count_occurrences "$nafter" "$probe") > $(_count_occurrences "$nbefore" "$probe") )) \
+            && return 0
+    done
+    return 1
+}
+
 cmd_send() {
     require_orca || return 1
     local pane="$1"; shift || true
     local text="$*"
     [[ -n "$pane" && -n "$text" ]] || { echo "erro: uso: send <pane> <text>" >&2; return 2; }
+
+    # Snapshot ANTES da injeção — a confirmação compara contra ele.
+    local before rc=0
+    before="$(cmd_read "$pane" 2>/dev/null)" || rc=$?
+
     # `--enter` é atômico aqui: não precisamos do respiro entre texto e Enter
     # que o backend Herdr exige.
     _orca_json "terminal send" terminal send --terminal "$pane" --text "$text" --enter >/dev/null
+
+    # Não conseguir LER é diferente de ler e nada mudar. Sem leitura não há
+    # confirmação possível: degradamos para o comportamento antigo, mas avisando —
+    # nunca em silêncio.
+    if (( rc != 0 )); then
+        echo "aviso: pane ilegível; injeção feita SEM confirmação de entrega." >&2
+        return 0
+    fi
+
+    # Confirmação (spec 009, achado 2): `exit 0` do `terminal send` não prova
+    # entrega. Numa TUI ainda montando a interface o texto é descartado e o send
+    # reporta sucesso — foi o que custou uma fase inteira de pipeline.
+    # Backoff progressivo: o caminho de FALHA é o que roda o laço inteiro, e cada
+    # volta é um processo `orca` novo. Passo dobrando (150→800ms) corta as
+    # invocações do pior caso pela metade e ainda chega mais rápido no caso bom.
+    local deadline_ms="${MOSK_SEND_CONFIRM_MS:-3000}"
+    local waited=0 step=150 after=""
+    while (( waited < deadline_ms )); do
+        sleep "$(_ms_to_s "$step")"
+        waited=$(( waited + step ))
+        after="$(cmd_read "$pane" 2>/dev/null)" || continue
+        _delivery_confirmed "$before" "$after" "$text" && return 0
+        (( step < 800 )) && step=$(( step * 2 ))
+    done
+
+    echo "erro: entrega não confirmada em ${deadline_ms}ms — o texto injetado não apareceu no terminal." >&2
+    echo "  NÃO reinjete às cegas: o \`terminal send\` já executou, e reenviar entrega o" >&2
+    echo "  prompt duas vezes. Releia o pane primeiro para separar 'não chegou' de" >&2
+    echo "  'chegou devagar' (ver orq.md, Step 2)." >&2
+    return 1
 }
 
 cmd_wait_idle() {

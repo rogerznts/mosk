@@ -1,0 +1,9 @@
+2026-07-29T16:42:34Z	legal	specify -> plan
+2026-07-29T16:45:32Z	legal	plan -> tasks
+2026-07-29T17:11:32Z	legal	tasks -> implement
+2026-07-29T17:15:57Z	legal	implement -> qa-gate
+2026-07-29T17:29:08Z	legal	qa-gate -> implement
+2026-07-29T17:51:47Z	legal	implement -> qa-gate
+2026-07-29T18:01:09Z	legal	qa-gate -> implement
+2026-07-29T23:44:16Z	legal	implement -> qa-gate
+2026-07-30T00:21:48Z	legal	qa-gate -> archived

@@ -104,6 +104,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 009 | [fix-orca-driver-read-send](./specs/archive/009-fix-orca-driver-read-send/) (driver Orca: `read` cego, `send` sem prova de entrega; + `common.sh` em zsh) | archived | 009-fix-orca-driver-read-send | 2026-07-29 |
 | 008 | [feature-ui-expert-hallmark](./specs/archive/008-feature-ui-expert-hallmark/) (Hallmark como ferramenta anti-slop do `/mosk-ui-expert`) | archived | 008-feature-ui-expert-hallmark | 2026-07-26 |
 | 007 | [feature-mosk-orca](./specs/archive/007-feature-mosk-orca/) (Orca como segundo backend do `/mosk-orq`; atuador plugável) | archived | 007-feature-mosk-orca | 2026-07-25 |
 | 006 | [feature-mosk-orq](./specs/archive/006-feature-mosk-orq/) (orquestrador `/mosk-orq` — Mauro — sobre Herdr) | archived | 006-feature-mosk-orq | 2026-07-23 |

@@ -362,6 +362,29 @@ ponta de branch) — não depende de `npx`/degit. Requer `curl`, `git`, `tar`.
 ainda bate com o upstream pinado. **Nunca** copie o upstream por cima do
 diretório na mão: isso apaga a integração MOSK.
 
+### `selftest-orca-driver.sh`
+
+**Exercita o parsing do driver Orca contra envelopes fixture, sem app Orca de pé.**
+Único verificador automatizável do repo além do `lint-graph.sh`.
+
+**Usage:**
+```bash
+bash .claude/mosk/scripts/selftest-orca-driver.sh [--verbose] [--help]
+```
+
+**Cobre (24 asserções):** precedência de chaves do extrator (`tail` vence campo
+textual mais longo — a regra antiga era `max(len)`); `tail: []` como conteúdo vazio
+legítimo vs. envelope de erro; itens `dict` dentro de `tail`; o ramo de degradação
+sem `python3` (forçado por `MOSK_ORCA_NO_PY=1`), que deve **falhar explicitamente** e
+nunca emitir fragmento do envelope; o predicado de confirmação de entrega do `send`;
+e a resolução de caminho do `common.sh` **em bash e em zsh**.
+
+Funciona porque o `orca.sh` não executa nada ao ser sourceado (guard
+`[[ "${BASH_SOURCE[0]}" != "$0" ]] && return 0`).
+
+**Run when:** ao mexer em `_text_from_json`, `_has_py`, `cmd_send`, ou nos helpers de
+caminho do `common.sh`. Exit 0 = limpo; exit 1 lista `caso :: esperado :: obtido`.
+
 ### `common.sh`
 
 Shared library — never executed directly, always `source`'d:
@@ -369,6 +392,17 @@ Shared library — never executed directly, always `source`'d:
 ```bash
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 ```
+
+**Resolução do próprio diretório (`MOSK_SCRIPTS_DIR`).** `common.sh` calcula uma
+única vez, no escopo de topo, o diretório onde ele mesmo vive, e os helpers de
+caminho (`get_repo_root`, `graph_file`, `core_config_file`) leem daí. A detecção
+cobre **bash e zsh**: `${BASH_SOURCE[0]}` no primeiro, `${(%):-%x}` no segundo.
+Isso importa porque as tasks mandam o agente rodar `source common.sh` **no shell
+dele**, e o shell padrão do macOS é zsh — onde `BASH_SOURCE` não existe. Antes,
+`dirname ""` virava `.` e todo caminho resolvia a partir do cwd, em silêncio: o
+`graph_file` apontava para fora do repo e **toda transição legal de fase era
+gravada como `off-graph`** (spec 009). Exporte `MOSK_SCRIPTS_DIR` para forçar o
+caminho; a lib avisa em stderr se não conseguir se localizar.
 
 **Provides:**
 - Repo-root + current-branch resolution with non-git fallbacks.
@@ -380,7 +414,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
   `update_spec_phase <dir> <phase>` (also bumps `last_phase_change`,
   **validates the transition against `pipeline-graph.yaml` and appends to
   `<dir>/phase-history.log`** — off-graph warns but proceeds, never blocks;
-  ADR-0006), `list_active_specs [<specs_root>]`,
+  ADR-0006). O log usa **três** rótulos, não dois: `legal`, `off-graph` (grafo
+  lido e a aresta não existe) e `unverified` (grafo ilegível — não deu para
+  checar). Conflacionar os dois últimos era o que transformava um erro de
+  caminho em histórico corrompido, já que `attempt_count` lê este arquivo,
+  `list_active_specs [<specs_root>]`,
   `write_spec_meta <dir> <number> <id> <type> <branch>`.
 - **Graph projections** (ADR-0007, zero-dep awk): `graph_file`,
   `graph_edges_from <phase>`, `graph_edge_exists <from> <to>`,
@@ -423,5 +461,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
 | Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |
+| Mexeu no parsing do driver Orca ou nos caminhos do `common.sh` | `selftest-orca-driver.sh` |
 | Orchestrate agents over panes | `panes.sh` (via `/mosk-orq`) |
 | Descobrir qual backend de panes está ativo | `panes.sh driver --json` |

@@ -4,6 +4,7 @@ type: "fix"
 branch: "009-fix-orca-driver-read-send"
 created_at: "2026-07-29T00:59:35Z"
 created_by: "Roger <phpsaux@gmail.com>"
-status: active
-current_phase: specify
-last_phase_change: "2026-07-29T00:59:35Z"
+status: archived
+current_phase: archived
+last_phase_change: "2026-07-30T00:21:48Z"
+archived_at: "2026-07-30T00:21:48Z"
