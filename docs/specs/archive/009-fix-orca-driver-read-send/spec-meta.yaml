@@ -1,0 +1,10 @@
+spec_number: "009"
+spec_id: "009-fix-orca-driver-read-send"
+type: "fix"
+branch: "009-fix-orca-driver-read-send"
+created_at: "2026-07-29T00:59:35Z"
+created_by: "Roger <phpsaux@gmail.com>"
+status: archived
+current_phase: archived
+last_phase_change: "2026-07-30T00:21:48Z"
+archived_at: "2026-07-30T00:21:48Z"

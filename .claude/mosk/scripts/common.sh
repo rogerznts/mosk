@@ -1,6 +1,37 @@
 #!/usr/bin/env bash
 # Common functions and variables for all scripts
 
+# ───────────────────── localização deste arquivo (bash E zsh) ─────────────────────
+# As tasks do MOSK mandam o agente rodar `source common.sh` no shell DELE — e o
+# shell padrão do macOS é zsh, onde `BASH_SOURCE` não existe. Resolver caminho com
+# `${BASH_SOURCE[0]}` degradava em silêncio nesse caso: `dirname ""` → `.`, e todo
+# caminho passava a resolver a partir do cwd. Efeito observado (spec 009):
+# `graph_file` apontando para fora do repo, `graph_edge_exists` sempre falso, e
+# TODA transição legal de fase gravada como `off-graph` no phase-history.log — o
+# mesmo log de onde `attempt_count` deriva o contador do delivery-loop (ADR-0008).
+#
+# Resolvido uma vez, no escopo de TOPO: em zsh, `$0` só é o arquivo sourceado aqui
+# (dentro de uma função ele passa a ser o nome da função).
+if [[ -z "${MOSK_SCRIPTS_DIR:-}" ]]; then
+    if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+        _mosk_common_self="${BASH_SOURCE[0]}"
+    elif [[ -n "${ZSH_VERSION:-}" ]]; then
+        _mosk_common_self="${(%):-%x}"   # equivalente zsh de BASH_SOURCE[0]
+    else
+        _mosk_common_self="$0"
+    fi
+    MOSK_SCRIPTS_DIR="$(cd "$(dirname "$_mosk_common_self")" 2>/dev/null && pwd)"
+    unset _mosk_common_self
+fi
+
+# Avisa alto em vez de resolver errado em silêncio: se o diretório detectado não
+# contém este arquivo, a detecção falhou, e seguir daqui é exatamente o defeito
+# que esta correção remove.
+if [[ ! -f "${MOSK_SCRIPTS_DIR:-}/common.sh" ]]; then
+    echo "aviso: common.sh não resolveu seu próprio diretório (obtido: '${MOSK_SCRIPTS_DIR:-}')." >&2
+    echo "  Exporte MOSK_SCRIPTS_DIR com o caminho de .claude/mosk/scripts/ para corrigir." >&2
+fi
+
 # Get repository root, with fallback for non-git repositories
 get_repo_root() {
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -8,8 +39,7 @@ get_repo_root() {
     else
         # Fall back to script location for non-git repos
         # Script is in .claude/mosk/scripts/, so go up 3 levels to reach repo root
-        local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        (cd "$script_dir/../../.." && pwd)
+        (cd "$MOSK_SCRIPTS_DIR/../../.." && pwd)
     fi
 }
 
@@ -198,10 +228,18 @@ update_spec_phase() {
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
     # --- graph validation + audit trail (advisory, never blocking) ---
-    local old_phase legality="legal"
+    # Três rótulos, não dois: `off-graph` só quando o grafo foi LIDO e a aresta
+    # realmente não existe. Grafo ilegível vira `unverified` — conflacionar os dois
+    # foi o que transformou um bug de resolução de caminho em log corrompido, já que
+    # `attempt_count` lê este arquivo para contar tentativas do delivery-loop.
+    local old_phase legality="legal" gf
     old_phase="$(read_spec_meta "$spec_dir" "current_phase")"
+    gf="$(graph_file)"
     if [[ -n "$old_phase" && "$old_phase" != "$new_phase" ]]; then
-        if ! graph_edge_exists "$old_phase" "$new_phase" 2>/dev/null; then
+        if [[ ! -f "$gf" ]]; then
+            legality="unverified"
+            echo "warn: grafo ilegível em '$gf'; transição ${old_phase} → ${new_phase} não verificada (prosseguindo)." >&2
+        elif ! graph_edge_exists "$old_phase" "$new_phase" 2>/dev/null; then
             legality="off-graph"
             echo "warn: transição fora do grafo: ${old_phase} → ${new_phase} (prosseguindo; ver pipeline-graph.yaml)" >&2
         fi
@@ -296,9 +334,7 @@ graph_file() {
         echo "$MOSK_GRAPH_FILE"
         return
     fi
-    local d
-    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    echo "$d/../pipeline-graph.yaml"
+    echo "$MOSK_SCRIPTS_DIR/../pipeline-graph.yaml"
 }
 
 # List edges whose `from` matches <phase>. Usage: graph_edges_from <phase>
@@ -387,9 +423,7 @@ core_config_file() {
         echo "$MOSK_CORE_CONFIG"
         return
     fi
-    local d
-    d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    echo "$d/../core-config.yaml"
+    echo "$MOSK_SCRIPTS_DIR/../core-config.yaml"
 }
 
 # Count delivery-loop attempts for a spec = number of `qa-gate -> implement`

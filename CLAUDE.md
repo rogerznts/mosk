@@ -60,7 +60,7 @@ mosk/                        # installable template (source of truth)
 │   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
 │   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,
 │   │   │                    # migrate-ctx-skills-to-rules.sh, sync-hallmark.sh,
-│   │   │                    # common.sh
+│   │   │                    # selftest-orca-driver.sh, common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)

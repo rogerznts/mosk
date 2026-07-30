@@ -1,0 +1,100 @@
+schema: 1
+story: "009"
+story_title: "Driver Orca — read cego e send sem prova de entrega (+ common.sh em zsh)"
+gate: "PASS"
+status_reason: "As duas polaridades fecharam ao mesmo tempo e reverifiquei cada uma: o falso positivo do QA-009-001 continua eliminado e o falso negativo do QA-009-006 saiu, inclusive no caminho de produção que ninguém havia testado (slash command válido). Restam dois itens low, ambos declarados e nenhum bloqueante."
+reviewer: "Joaquim (MOSK QA)"
+updated: "2026-07-29T17:56:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "QA-009-007"
+    severity: low
+    finding: >-
+      Envios de até 3 caracteres caem no modo fraco (confirma por qualquer mudança
+      de tela). Numa TUI de agente, que muda sozinha o tempo todo, isso significa
+      que um envio curto é efetivamente NÃO verificado — e o `orq.md` usa
+      exatamente essa forma para resolver prompt de MCP/trust ("no Orca,
+      `panes.sh send` já basta"). Consequência: o Mauro pode achar que respondeu
+      um prompt de confiança sem ter respondido. Autocorrige na observação
+      seguinte (`wait-idle`/`read` mostram o worker ainda parado) e o modo é
+      **declarado em stderr** — verifiquei que o aviso sai. Registrado para que
+      ninguém leia a garantia do aditivo do ADR-0010 como absoluta.
+    suggested_action: >-
+      Nada nesta spec. Se algum dia importar, o sinal certo para keystroke é o
+      desaparecimento do prompt que se queria responder, não a mudança de tela.
+    refs: ["mosk/.claude/mosk/scripts/orca.sh (_delivery_confirmed, modo fraco)"]
+
+  - id: "QA-009-004"
+    severity: low
+    finding: >-
+      Deriva de mirror PRÉ-EXISTENTE, mantida fora do 009 por instrução minha e
+      corretamente não tocada em nenhuma das duas rodadas: `payload-deploy.sh`,
+      `payload-env.sh`, `payload-infra.sh` e `agents/qa.md` (falta a seção
+      `## Idioma`) diferem entre `mosk/.claude/mosk/` e o mirror da raiz.
+    suggested_action: "Spec/chore própria para varrer a paridade do mirror."
+    refs: [".claude/mosk/scripts/payload-*.sh", ".claude/mosk/agents/qa.md"]
+
+  - id: "QA-009-008"
+    severity: low
+    finding: "Nit cosmético: `_count_occurrences` declara `haystack` e não usa (usa `rest=\"$1\"`)."
+    suggested_action: "Remover na próxima passagem pelo arquivo. Não justifica uma volta do loop."
+    refs: ["mosk/.claude/mosk/scripts/orca.sh:470"]
+
+resolved_since_last_gate:
+  - id: "QA-009-006"
+    severity_was: medium
+    verificacao: >-
+      Reproduzi meu caso original (`/mosk-zzz-probe-009 …` em TUI): era rc=1, agora
+      rc=0. E cobri o que faltava nos dois lados: **slash command VÁLIDO**
+      (`/mosk-help`, o caminho de produção que nenhuma das rodadas anteriores havia
+      exercitado) → rc=0. A escada de candidatas (prefixo longo → primeiro token →
+      16 → piso 8) resolve o eco reformatado sem afrouxar: fixtures `7l` e `7m`
+      travam que `/mosk-qa` não confirma envio de `/mosk-dev` e que o prefixo comum
+      `/mosk-` não confirma nada.
+
+historico_resolvidos:
+  - { id: "QA-009-001", severity_was: high,   fechado_em: "rodada 1" }
+  - { id: "QA-009-002", severity_was: medium, fechado_em: "rodada 1 (cobertura de produção completada na rodada 2)" }
+  - { id: "QA-009-003", severity_was: low,    fechado_em: "rodada 1" }
+  - { id: "QA-009-005", severity_was: low,    fechado_em: "rodada 1 (backoff) + rodada 2 (contagem em bash puro, -3 execs por comparação)" }
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 3 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "QA-009-007 — envio curto é efetivamente não verificado em TUI; declarado e autocorrigível."
+      - "QA-009-004 — paridade do mirror, fora do escopo do 009."
+
+evidence:
+  reverificado_pelo_qa_nesta_rodada:
+    - "selftest 34/34 nas duas cópias, reproduzido."
+    - "gate.yaml não foi editado pelo dev em nenhuma rodada (permanece untracked, sem modificação)."
+    - "TUI + slash VÁLIDO (/mosk-help) + entrega real → rc=0 (caminho de produção, primeira vez coberto)."
+    - "TUI + slash INVÁLIDO (a reprodução do QA-009-006) → rc=0 (era 1)."
+    - "Pane dinâmica + entrada descartada → rc=1 (falso positivo segue eliminado)."
+    - "Aviso do modo fraco confirmado saindo em stderr."
+    - "_count_occurrences em bash puro: casamento literal por construção, imune a byte inválido (que fez meu próprio `cut` abortar na rodada anterior)."
+  trace:
+    us_atendidas: ["US1", "US2", "US3", "Fase 6 (common.sh)"]
+    sc_atendidos: ["SC-001", "SC-002", "SC-003", "SC-004", "SC-005"]
+    frs_verificados: ["FR-001..FR-012"]
+
+nfr_validation:
+  security: { status: PASS, notes: "Sem superfície sensível: nada de auth/authz, segredos, queries, endpoints, desserialização ou crypto. A única adição é MOSK_SCRIPTS_DIR na resolução de caminho, no padrão dos MOSK_GRAPH_FILE / MOSK_CORE_CONFIG já existentes." }
+  performance: { status: PASS, notes: "Backoff progressivo (150→800ms) mais contagem em bash puro. Confirmação medida em ~1,7s no caminho feliz, sem mudança perceptível na orquestração." }
+  reliability: { status: PASS, notes: "As duas direções de erro fechadas e verificadas ao vivo. A garantia documentada no aditivo do ADR-0010 agora corresponde ao que o código faz, com a ressalva do QA-009-007 escrita." }
+  maintainability: { status: PASS, notes: "34 asserções cobrindo cada defeito encontrado nas três revisões, inclusive o eco parcial real da TUI. Baseline de falha registrado. Decisões revistas documentadas no plan.md e no ADR." }
+
+history:
+  - at: "2026-07-29T17:26:00Z"
+    gate: CONCERNS
+    note: "1ª revisão. US1 e Fase 6 em qualidade de PASS; US2 com falso positivo reproduzido (QA-009-001, high)."
+  - at: "2026-07-29T17:41:00Z"
+    gate: CONCERNS
+    note: "2ª revisão, após rodada 1. QA-009-001/002/003 fechados; novo QA-009-006 (medium) — falso negativo no formato `/mosk-…`."
+  - at: "2026-07-29T17:56:00Z"
+    gate: PASS
+    note: "3ª revisão, após rodada 2. QA-009-006 fechado e caminho de produção (slash válido) coberto. Loop convergiu em 2 de 3 tentativas."

@@ -94,6 +94,21 @@ Se o worker travar num prompt de MCP/trust, resolva pelo backend ativo (no Herdr
 `herdr pane send-keys <pane> <keys>`; no Orca, `panes.sh send` já basta) — ou peça
 ao humano. Nunca fique em laço tentando.
 
+**`send` que falha = entrega NÃO confirmada, não "erro de rede".** No backend Orca
+o `send` relê o pane e só devolve 0 quando o terminal mudou. Exit ≠ 0 significa que
+a injeção pode ter sido descartada por uma TUI que ainda não aceitava input — a
+falha que já custou uma fase inteira de pipeline (spec 009). Ao receber exit ≠ 0:
+
+1. **Releia o pane** (`panes.sh read <pane>`) antes de qualquer coisa.
+2. **Chegou?** (o prompt aparece no input, ou há sinal de atividade) → trate como
+   entregue e siga. **Não reinjete.**
+3. **Não chegou?** → reinjete **uma** vez, com mais respiro.
+4. **Continuou sem confirmar?** → **pare e devolva ao humano**, nos dois modos de
+   autonomia. `full-auto` não é licença para seguir às cegas.
+
+O passo 1 não é zelo: o `terminal send` **já executou** quando a confirmação falha.
+Reenviar sem reler entrega o prompt **duas vezes** ao worker.
+
 ### Step 3 — Laço (enquanto `current_phase` != `archived` e o humano não parar)
 1. **Jogada:** `bash .claude/mosk/scripts/legal_moves.sh <phase> --json`. Pegue o
    `default` e mapeie o nó → agente dono (`nodes:` → `agent`). `judgment` guard,
