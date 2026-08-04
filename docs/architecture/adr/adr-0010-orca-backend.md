@@ -89,6 +89,13 @@ impossível. Os bloqueios por padrão de ambiente/release e por branch de spec
 nem reescrito. A chave `orchestration.herdr` sobrevive intacta para não quebrar
 instalações existentes.
 
+> **Revogada em 2026-08-04 por [adr-0014](./adr-0014-orca-single-actuator.md).**
+> O Orca passa a ser o atuador único: `herdr.sh` é removido, `orchestration.driver`
+> reduz a `auto | orca | none` e `orchestration.herdr` deixa de existir. As demais
+> decisões deste ADR (1–6) permanecem vigentes — inclusive a fachada `panes.sh`,
+> mantida deliberadamente mesmo com um único backend. O ADR-0014 §4 também altera
+> o default de `native_tasks` (§5 deste ADR) de `false` para `auto`.
+
 ## Consequências
 
 - **Positivas:** o `/mosk-orq` funciona no ambiente real de trabalho; o custo de
