@@ -81,8 +81,8 @@ During task execution:
 
 1. Before starting, locate the originating artifact (story, spec, or task list) that mandated the work. Keep it open as the source of truth.
 2. At the end of each completed phase, story, or chore, go back to the originating artifact and check off (`[x]`) every item that was delivered.
-3. If the originating artifact has acceptance criteria, verify each one against the implementation before marking it done.
-4. If any criterion was not met or was only partially met, report it explicitly instead of silently skipping.
+3. Report anything not delivered, or delivered only in part, explicitly — never skip it silently. The gate can only weigh what you disclose.
+4. **Do not rule on acceptance criteria.** Recording what you touched is factual and is your job; deciding whether it *satisfies* an AC belongs to `qa-gate`, which reads the result without your history of trade-offs. You know why every shortcut was taken — that knowledge turns a self-review into a defence of the work rather than a test of it (spec 010 US2).
 
 ## Unit testing
 

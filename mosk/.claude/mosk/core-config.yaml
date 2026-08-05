@@ -22,6 +22,10 @@ qa:
   qaLocation: docs/qa
   gatesDir: docs/qa/gates
   assessmentsDir: docs/qa/assessments
+  # Corte de referência do `quality_score` do gate (0-100). É OBSERVAÇÃO, não
+  # gatilho: quem termina o delivery-loop é o `gate` (PASS/WAIVED), sempre
+  # (ADR-0008 §3). O corte serve para ler a trajetória entre voltas.
+  score_threshold: 85
 project:
   root: docs/project
   livingFile: docs/project/plan.md

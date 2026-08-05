@@ -29,10 +29,19 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - mark completed tasks as `[x]`
    - report blockers only when they are real blockers
 
-5. **After each completed phase, story, or chore:**
-   - Go back to the originating artifact (`tasks.md`, story file, or spec) and verify every acceptance criterion or checklist item against what was actually implemented.
-   - Mark delivered items as `[x]`. Report any item that was not met or only partially met.
-   - Do not move to the next phase until all items for the current one are checked.
+5. **After each completed phase, story, or chore — record, do not judge.**
+   - Go back to the originating artifact (`tasks.md`, story file, or spec) and
+     mark as `[x]` the items you actually delivered. This is a **factual record**
+     of what was touched.
+   - Report anything you could not deliver, or delivered only in part, and say so
+     plainly. Under-reporting here is what makes the gate blind.
+   - Do not move to the next phase while items of the current one are open.
+
+   **Do not rule on acceptance criteria.** Whether the work *satisfies* an AC is
+   decided by `qa-gate`, in a clean context. You carry the history of every
+   decision and trade-off you made — that history is exactly what makes a
+   self-assessment justify the result instead of testing it. Give the gate the
+   facts; let it judge (ADR-0012, spec 010 US2).
 
 6. Keep progress updates short:
    - what was completed

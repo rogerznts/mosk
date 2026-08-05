@@ -67,17 +67,17 @@
 
 *Entregável sozinho. Pré-requisito do fan-out.*
 
-- [ ] **T017** [US2] `mosk/.claude/mosk/tasks/implement.md`: remover o passo 5
+- [x] **T017** [US2] `mosk/.claude/mosk/tasks/implement.md`: remover o passo 5
   (auto-verificação dos próprios critérios de aceite).
-- [ ] **T018** [US2] `mosk/.claude/mosk/tasks/qa-gate.md`: absorver a verificação de
+- [x] **T018** [US2] `mosk/.claude/mosk/tasks/qa-gate.md`: absorver a verificação de
   critérios de aceite, executada em contexto limpo. [dep: T017]
-- [ ] **T019** [P] [US2] `mosk/.claude/mosk/pipeline-graph.yaml`: `qa-gate` passa a
+- [x] **T019** [P] [US2] `mosk/.claude/mosk/pipeline-graph.yaml`: `qa-gate` passa a
   `mode: agent`; rodar `lint-graph.sh` depois.
-- [ ] **T020** [P] [US2] `mosk/.claude/mosk/templates/qa-gate-tmpl.yaml`: campo
+- [x] **T020** [P] [US2] `mosk/.claude/mosk/templates/qa-gate-tmpl.yaml`: campo
   `score` (inteiro 0–100) ao lado de `status`.
-- [ ] **T021** [P] [US2] `mosk/.claude/mosk/core-config.yaml`: `qa.score_threshold`
+- [x] **T021** [P] [US2] `mosk/.claude/mosk/core-config.yaml`: `qa.score_threshold`
   com default 85.
-- [ ] **T022** [US2] `qa-gate.md`: emitir o `score`; a apresentação do loop passa a
+- [x] **T022** [US2] `qa-gate.md`: emitir o `score`; a apresentação do loop passa a
   mostrar os scores das voltas anteriores junto de `tentativa N/max`. O `status`
   permanece o **único** árbitro de terminação. [dep: T020, T021]
 
