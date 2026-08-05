@@ -85,21 +85,21 @@
 
 *Depende de M1 e M2.*
 
-- [ ] **T023** [US3] Criar `mosk/.claude/mosk/data/fanout-seam.md`: contrato
+- [x] **T023** [US3] Criar `mosk/.claude/mosk/data/fanout-seam.md`: contrato
   `dispatch_wave(plan) → results`, invariantes entre tiers (disco como fronteira,
   status curto, join só fecha com tudo assentado, ponteiro não ramifica).
-- [ ] **T024** [US3] `implement.md`: derivar o plano de fan-out dos marcadores `[P]`
+- [x] **T024** [US3] `implement.md`: derivar o plano de fan-out dos marcadores `[P]`
   do `tasks.md` — sem inferir paralelismo — e apresentá-lo para **aprovação
   única** (unidades, agrupamento, critério de aceite, teto, equivalente
   sequencial). [dep: T023]
-- [ ] **T025** [US3] `implement.md`: join explícito; suspensão **por ramo** em guard
+- [x] **T025** [US3] `implement.md`: join explícito; suspensão **por ramo** em guard
   `judgment`, escalação ou esgotamento de teto; uma entrada por onda no
   `phase-history.log`; nenhuma onda encadeia sozinha. [dep: T024]
-- [ ] **T026** [US3] `fanout-seam.md`: mapear o Tier 1 sobre as primitivas do Orca
+- [x] **T026** [US3] `fanout-seam.md`: mapear o Tier 1 sobre as primitivas do Orca
   (Task DAG com dependências, `ask`/`reply`, decision gates). [dep: T023, T012]
-- [ ] **T027** [US3] `fanout-seam.md`: Tiers 2 e 3 + regra de **tier único por
+- [x] **T027** [US3] `fanout-seam.md`: Tiers 2 e 3 + regra de **tier único por
   onda**, com degradação silenciosa e sem erro. [dep: T026]
-- [ ] **T028** [US3] Falha de dispatch (circuit breaker do atuador) é reportada como
+- [x] **T028** [US3] Falha de dispatch (circuit breaker do atuador) é reportada como
   unidade falha e **não** consome volta do delivery-loop. [dep: T025]
 
 ## M4 — Grafo e vocabulário (US4)

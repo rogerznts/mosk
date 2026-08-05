@@ -43,9 +43,25 @@ Delegados ao driver (backend Orca):
   close <pane>                            fecha o pane
   managed [--cwd <path>]                  panes geridos (JSON cru)
 
-Camada nativa de orquestracao (orchestration.orca.native_tasks):
-  native | task-create | task-list | dispatch | await | ask | reply
-  | gate-create | gate-resolve
+Camada nativa de orquestracao (orchestration.orca.native_tasks: auto|on|off):
+  native                                  a camada esta ativa?
+  run [<objetivo>]                        cria/vincula a Run (toda Task exige uma)
+  task-create <spec> [--deps <json_array>] [--parent <id>]
+  task-list [--json]                      prova de provenance
+  dispatch <task_id> <pane> [--no-inject]
+  worker-start --task <id> [--worktree current] [--agent claude]
+  worker-read --dispatch <id> [--limit N]
+  await [--ack <delivery_id>] [--timeout-ms <n>] [--types <a,b>]
+  delivery-id                             (stdin: envelope do await) id p/ o --ack
+  ask <pergunta> | --resume <message_id>  worker pergunta e bloqueia
+  reply <message_id> <resposta>           coordenador responde
+  gate-create <task_id> <pergunta>        abre o decision gate
+  gate-resolve <gate_id> <resolucao>      registra a decisao DO HUMANO
+
+Fan-out: `tier` resolve o tier; o contrato da onda esta em
+../data/fanout-seam.md. Duas armadilhas ja codificadas no driver: `await` sem
+--ack reentrega o mesmo lote a cada janela, e sem `question` nos tipos um worker
+que usa `ask` fica bloqueado ate o timeout.
 
 Opcoes globais:
   --help,-h   esta ajuda
