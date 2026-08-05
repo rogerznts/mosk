@@ -76,7 +76,11 @@ Corporativo).
   ADR-0012 fronteira decisão-de-rota × execução-de-fase,
   ADR-0013 seam de fan-out em três tiers,
   ADR-0014 Orca como atuador único — spec 010, substitui o ADR-0009 e revoga a
-  decisão 7 do ADR-0010) +
+  decisão 7 do ADR-0010;
+  ADR-0015 agente como fonte, skill como wrapper (e o template passa a shipar
+  as duas camadas),
+  ADR-0016 protocolo de invocação entre agentes (execução delega, rota não),
+  ADR-0017 convenção de nome de branch `{tipo}/{NNN}-{nome}`) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
