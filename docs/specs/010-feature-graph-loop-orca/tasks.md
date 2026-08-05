@@ -42,24 +42,24 @@
   Herdr.
 - [x] **T008** [P] [US1] `mosk/.claude/mosk/core-config.yaml`: `driver` para
   `auto|orca|none`, remover o bloco `herdr:`, `orca.native_tasks` para `auto`.
-- [ ] **T009** [US1] `mosk/.claude/mosk/scripts/orca.sh`: **defeito** — reconhecer
+- [x] **T009** [US1] `mosk/.claude/mosk/scripts/orca.sh`: **defeito** — reconhecer
   (`ack`) a Delivery processada antes de abrir a próxima janela de espera. Sem
   isso o mesmo lote é reentregue indefinidamente.
-- [ ] **T010** [US1] `orca.sh`: **defeito** — incluir `question` entre os tipos que
+- [x] **T010** [US1] `orca.sh`: **defeito** — incluir `question` entre os tipos que
   despertam a espera. Sem isso um worker que faz `ask` fica bloqueado até o
   timeout. [dep: T009]
-- [ ] **T011** [US1] `orca.sh`: criar ou vincular uma Run antes de `task-create`,
+- [x] **T011** [US1] `orca.sh`: criar ou vincular uma Run antes de `task-create`,
   conforme o contrato do guia.
-- [ ] **T012** [US1] `orca.sh`: expor `ask` e `reply` no wrapper.
-- [ ] **T013** [US1] `orca.sh`: usar o caminho supervisionado composto para iniciar
+- [x] **T012** [US1] `orca.sh`: expor `ask` e `reply` no wrapper.
+- [x] **T013** [US1] `orca.sh`: usar o caminho supervisionado composto para iniciar
   workers, em vez do par spawn próprio + dispatch low-level.
-- [ ] **T014** [US1] `orca.sh`: leitura tipada de transcript por dispatch em vez de
+- [x] **T014** [US1] `orca.sh`: leitura tipada de transcript por dispatch em vez de
   leitura de terminal cru (superfície que quebrou na spec 009).
-- [ ] **T015** [US1] `mosk/.claude/mosk/agents/orq.md`: backend único; **consultar o
+- [x] **T015** [US1] `mosk/.claude/mosk/agents/orq.md`: backend único; **consultar o
   guia versionado servido pelo binário** em vez de reproduzir a grammar do Orca;
   desambiguar *handoff* (Orca = transferir posse e parar de supervisionar; MOSK =
   transportar contexto sob supervisão — a skill **mantém** o nome).
-- [ ] **T016** [US1] `mosk/.claude/mosk/scripts/selftest-orca-driver.sh`: cobrir
+- [x] **T016** [US1] `mosk/.claude/mosk/scripts/selftest-orca-driver.sh`: cobrir
   `ack` de Delivery, `question` na espera, resolução de `tier`, regex ancorada e
   base-10 em `--number`. [dep: T002, T006, T010]
 
