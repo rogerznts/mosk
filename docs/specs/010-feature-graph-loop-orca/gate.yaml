@@ -1,41 +1,42 @@
 schema: 1
 story: "010"
 story_title: "Operação em loops e grafos + Orca como atuador único"
-gate: FAIL
-quality_score: 10
+gate: WAIVED
+quality_score: 40
 status_reason: >-
-  O smoke da camada nativa expôs dois defeitos funcionais no caminho central da
-  US1: `await` não sobrevive ao NDJSON de keepalive do `check --wait`, e
-  `worker-start` injeta o prompt sem submetê-lo — o worker fica parado com 0
-  tokens. Nenhum dos dois apareceria por leitura de código; ambos apareceram na
-  primeira execução real. Os 33 FRs seguem implementados e a validação
-  automatizável limpa, mas a supervisão de worker não funciona ponta a ponta.
+  Dois dos três defeitos foram corrigidos e provados (QA-010-007 e QA-010-006).
+  O terceiro — o prompt não chegar submetido ao worker do Orca — permanece aberto
+  após três abordagens, e foi **dispensado por decisão do usuário**: o trabalho
+  passa a usar agentes diretos (Tier 2, subagente nativo do runtime), que não
+  depende do Orca. O Tier 1 fica documentado como não-validado para
+  `--agent claude`.
 reviewer: "Joaquim (mosk-qa)"
-updated: "2026-08-05T08:15:00Z"
+updated: "2026-08-05T15:10:00Z"
 
-# Série do score: 40 → 30 → 10. A queda não é regressão do código — é
+# Série do score: 40 → 30 → 10 → 40. A subida final é correção real (007 e 006
+# fechados), não afrouxamento de critério.
+# Sobre a queda anterior: A queda não é regressão do código — é
 # conhecimento adquirido. Cada volta executou mais verificação e encontrou mais.
 # É o caso em que ler a série isolada engana: o trabalho não piorou, a medição
 # melhorou.
 
-waiver: { active: false }
+waiver:
+  active: true
+  scope: "QA-010-008 e os SCs que dependem dele (SC-001/002/003/004/007)"
+  reason: >-
+    O defeito está no Tier 1 (supervisão de worker via Orca), que é OPCIONAL por
+    decisão de arquitetura (ADR-0014 §1). O trabalho passa a usar agentes diretos
+    — Tier 2, subagente nativo do runtime — que não depende do Orca e é o caminho
+    que os ADR-0015/0016 formalizam. Os Tiers 2 e 3 entregam o mesmo resultado
+    observável (ADR-0013 §5); o que se perde é provenance verificável e o canal
+    `ask`/`reply`, ambos exclusivos do Tier 1.
+  approved_by: "Roger (usuário)"
+  conditions:
+    - "O Tier 1 fica marcado como não-validado para `--agent claude` até que um smoke ponta a ponta passe."
+    - "A hipótese não testada — corrida com a inicialização do Claude Code, `wait-idle` retornando antes de o agente aceitar entrada — fica registrada para quem retomar."
+    - "Nada no pipeline MOSK depende do Tier 1: sem atuador, o fluxo roda ponta a ponta."
 
 top_issues:
-  - id: "QA-010-007"
-    severity: high
-    finding: >-
-      `await` está quebrado. O `orca orchestration check --wait` emite NDJSON
-      enquanto espera — uma linha `{"_keepalive":true,"_heartbeat":true,...}` a
-      cada ~15s — e só depois o envelope real. O `_orca_json` captura a saída
-      inteira numa string e aplica `_json_ok` sobre ela; multi-linha não é JSON
-      válido, então declara falha mesmo quando o comando funcionou. Consequência:
-      toda espera por `worker_done`/`escalation`/`question` falha, e o
-      `delivery-id` volta vazio — o que torna o `--ack` (FR-007) inalcançável na
-      prática, mesmo estando implementado.
-    suggested_action: >-
-      Tratar a saída de `check --wait` como NDJSON: descartar linhas com
-      `_keepalive`/`_heartbeat` e validar apenas o último envelope. Cobrir com
-      fixture no selftest — o formato é estável e testável offline.
   - id: "QA-010-008"
     severity: high
     finding: >-
@@ -62,17 +63,6 @@ top_issues:
       que conclua — bloqueados por QA-010-007 e QA-010-008.
     suggested_action: >-
       Repetir o smoke depois de corrigir 007 e 008; os cinco SCs caem juntos.
-  - id: "QA-010-006"
-    severity: medium
-    finding: >-
-      `resolve_orca_cmd` aceita `$ORCA_CLI_COMMAND` sem verificar se o caminho
-      existe (orca.sh:112-115). Com valor quebrado, o `check` falha adiante e
-      reporta `runtime-unavailable` — o usuário lê "abra ou reinicie o app"
-      quando a causa é caminho inexistente. O caminho comum (binário fora do
-      PATH) diagnostica corretamente. Contraria o FR-005.
-    suggested_action: >-
-      Validar que o primeiro elemento é executável; se não for, reportar
-      `orca-not-found` com o caminho tentado.
   - id: "QA-010-003"
     severity: medium
     finding: >-
@@ -97,6 +87,17 @@ top_issues:
     suggested_action: "Remover manualmente se incomodar; nada ficou em execução."
 
 resolved_since_previous_gate:
+  - id: "QA-010-007"
+    note: >-
+      `await` corrigido e provado duas vezes: entregou mensagem real numa rodada
+      e reportou timeout honesto (count 0, timedOut true) noutra. `cmd_await`
+      deixou de usar `_orca_json` e filtra as linhas de keepalive, preservando o
+      envelope multi-linha. Coberto por fixture no selftest.
+  - id: "QA-010-006"
+    note: >-
+      `$ORCA_CLI_COMMAND` passa a ser validado com `command -v`. Caminho quebrado
+      avisa e cai na resolução normal, em vez de mandar reiniciar o app por um
+      erro de variável.
   - id: "QA-010-002"
     note: >-
       "Camada nativa nunca exercitada" — resolvido: foi exercitada nesta volta.
@@ -108,11 +109,11 @@ resolved_since_previous_gate:
 evidence:
   frs_verified: 33
   frs_total: 33
-  frs_failing_in_practice: 2      # FR-007 (inalcançável) e FR-011 (não submete)
+  frs_failing_in_practice: 1      # FR-011: worker-start/spawn+send não entrega ao agente
   success_criteria_verified: 2    # SC-006, SC-008; SC-005 parcial
   success_criteria_total: 8
   automated_checks:
-    selftest_orca_driver: "44 asserções ok"
+    selftest_orca_driver: "48 asserções ok"
     lint_graph: "clean"
     audit_docs_paths: "clean (R1..R5)"
   tasks_delivered: 34
@@ -121,17 +122,19 @@ evidence:
     executados: "1,2,3,17,18,20 (real) · 9,10,11 (simulado) · 19 (reprovou) · 6 parcial"
     nao_executados: "4,5,7,8,12-16,21,22"
     smoke_camada_nativa: >-
-      run → task-create → worker-start → await → worker-read → worker-stop.
-      Quebrou no `await`; o worker nunca processou o prompt.
+      5 rodadas. Validados: run, task-create (id real), task-list com
+      provenance, worker-read tipado, worker-stop, await com --ack e timeout
+      honesto. Falha remanescente: o prompt não chega submetido ao agente
+      `claude`, nem via worker-start nem via spawn+send.
 
 nfr_validation:
   security: { status: PASS, notes: "Sem superfície nova; a remoção do Herdr reduz dependência externa." }
-  reliability: { status: FAIL, notes: "A supervisão de worker não funciona ponta a ponta: await falha e o prompt não é submetido." }
+  reliability: { status: CONCERNS, notes: "await corrigido; a entrega do prompt ao worker do Orca segue sem funcionar (waived — Tier 1 é opcional)." }
   maintainability: { status: PASS, notes: "Uma camada a menos no atuador; regras em ADR e rules; selftest de 24 para 44 asserções." }
   performance: { status: CONCERNS, notes: "SC-001 não medido — nenhuma onda executou." }
 
 risk_summary:
-  totals: { critical: 0, high: 3, medium: 3, low: 1 }
+  totals: { critical: 0, high: 1, medium: 2, low: 1 }   # 007 e 006 fechados
   recommendations:
     must_fix:
       - "QA-010-007: tratar NDJSON no await (descartar keepalive, validar o último envelope)."
