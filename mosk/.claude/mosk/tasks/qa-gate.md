@@ -66,10 +66,29 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - `FAIL`
    - `WAIVED`
 
-5. **Score the delivery from 0 to 100 (`quality_score`).**
-   Judge the result as delivered: AC coverage, test evidence, severity of open
-   issues, NFR standing. Read `qa.score_threshold` from
-   `.claude/mosk/core-config.yaml` (default 85) as the reference cut.
+5. **Compute `quality_score` — do not estimate it.**
+
+   Use the toolkit's canonical formula, the same one `review-story.md` and
+   `assess-nfr.md` already apply:
+
+   ```text
+   quality_score = 100 - (20 × FAILs) - (10 × CONCERNS)
+   bounded to [0, 100]
+   ```
+
+   Inputs are the findings you just gathered: each `high` severity issue and each
+   `FAIL` NFR counts as a FAIL; each `medium` issue and each `CONCERNS` NFR counts
+   as a CONCERNS. If `technical-preferences.md` defines custom weights, use those
+   instead — same override the other two tasks honour.
+
+   **It must be computed, not judged.** The score exists to make successive turns
+   comparable; a number produced by fresh appraisal each round would drift with
+   the reviewer rather than with the work, and `61 → 68 → 69` would tell you
+   nothing. Deriving it from counted findings is what makes the series mean
+   something.
+
+   Read `qa.score_threshold` from `.claude/mosk/core-config.yaml` (default 85) as
+   the reference cut.
 
    **The score never decides anything.** `gate` remains the sole terminator of
    the delivery-loop (ADR-0008 §3) — a score of 92 does not turn a `FAIL` into a

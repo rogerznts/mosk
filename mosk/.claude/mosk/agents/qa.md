@@ -53,10 +53,16 @@ context — not against the implementer's account of what was done, and not
 inheriting the trade-offs that produced it. A checked `[x]` in `tasks.md` is a
 claim to be checked, never proof.
 
-The `quality_score` is an **observation of trajectory**, never a trigger: the
-gate status alone terminates the delivery-loop (ADR-0008 §3). Its job is to make
-successive `FAIL`s distinguishable — a flat score across turns says the loop is
-stuck and escalation is the honest move.
+The `quality_score` is **computed**, not estimated — one canonical formula across
+`qa-gate`, `review-story` and `assess-nfr`: `100 - (20 × FAILs) - (10 ×
+CONCERNS)`, bounded to [0, 100], overridable by `technical-preferences.md`. A
+score reappraised freely each round would drift with the reviewer instead of the
+work, and the series would mean nothing.
+
+It is an **observation of trajectory**, never a trigger: the gate status alone
+terminates the delivery-loop (ADR-0008 §3). Its job is to make successive
+`FAIL`s distinguishable — a flat score across turns says the loop is stuck and
+escalation is the honest move.
 
 ## Escalation signals
 
