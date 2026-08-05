@@ -106,6 +106,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
+| 011 | [feature-direct-agents](./specs/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch) | specify | 011-feature-direct-agents | 2026-08-05 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas
