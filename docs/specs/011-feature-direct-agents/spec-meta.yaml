@@ -1,0 +1,9 @@
+spec_number: "011"
+spec_id: "011-feature-direct-agents"
+type: "feature"
+branch: "011-feature-direct-agents"
+created_at: "2026-08-05T19:04:20Z"
+created_by: "Roger <phpsaux@gmail.com>"
+status: active
+current_phase: specify
+last_phase_change: "2026-08-05T19:04:20Z"
