@@ -106,13 +106,13 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 010 | [feature-graph-loop-orca](./specs/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único) | implement | 010-feature-graph-loop-orca | 2026-08-04 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 010 | [feature-graph-loop-orca](./specs/archive/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único — gate `WAIVED`) | archived | 010-feature-graph-loop-orca | 2026-08-05 |
 | 009 | [fix-orca-driver-read-send](./specs/archive/009-fix-orca-driver-read-send/) (driver Orca: `read` cego, `send` sem prova de entrega; + `common.sh` em zsh) | archived | 009-fix-orca-driver-read-send | 2026-07-29 |
 | 008 | [feature-ui-expert-hallmark](./specs/archive/008-feature-ui-expert-hallmark/) (Hallmark como ferramenta anti-slop do `/mosk-ui-expert`) | archived | 008-feature-ui-expert-hallmark | 2026-07-26 |
 | 007 | [feature-mosk-orca](./specs/archive/007-feature-mosk-orca/) (Orca como segundo backend do `/mosk-orq`; atuador plugável) | archived | 007-feature-mosk-orca | 2026-07-25 |

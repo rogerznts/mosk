@@ -315,3 +315,18 @@ conferir que resulta em `010`, não `008`.
   instalações existentes. O risco residual (um agente lendo os dois contratos e
   desligando a supervisão) é mitigado por instrução explícita no `orq.md` e pelo
   verbete no glossário — ver FR-031.
+
+---
+
+**Arquivado em:** 2026-08-05
+**Status final:** Concluído com waiver
+**Gate:** `WAIVED` · `quality_score: 40` (série 40 → 30 → 10 → 40)
+**Promoções aplicadas:** nenhuma — os ADR-0012/0013/0014 nasceram direto em
+`docs/architecture/adr/`, sem front-matter `promote:`.
+**Entregue:** 34 de 35 tarefas. M1–M4 completos.
+**Dispensado:** QA-010-008 (o prompt não chega submetido ao worker do Orca) e os
+critérios que dependiam dele. O Tier 1 é opcional por decisão de arquitetura
+(ADR-0014 §1); o trabalho segue em Tier 2 — agentes diretos, sem Orca.
+**Pendência declarada:** T034 executada em 10 dos 22 passos; o restante exige
+runtime Codex e worker vivo. Roteiro preservado em
+`tests/e2e-checklist-matriz-ambiente.md`.
