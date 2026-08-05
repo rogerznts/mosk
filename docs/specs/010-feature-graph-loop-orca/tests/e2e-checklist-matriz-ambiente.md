@@ -24,6 +24,22 @@ tal. O Ambiente C não rodou (sem acesso a runtime Codex). Os passos 4–8, 12, 
 
 O passo 19 **reprovou** e virou o achado QA-010-006 do gate.
 
+## Protocolo do smoke — aprendido errando
+
+Três regras, cada uma nascida de um erro cometido nas rodadas 1–4:
+
+1. **Drene a fila antes de começar** (`check` + `--ack`, em loop até `count: 0`).
+   O `check` devolve a Delivery FIFO mais antiga e a repete até ser reconhecida;
+   uma mensagem de rodada anterior chega como se fosse da atual. Aconteceu:
+   `delivery_54043f8fccba`, emitida na rodada 2, foi lida como sucesso da 3.
+2. **`--peek` não serve para drenar.** Ele é read-only e não cria Delivery, então
+   devolve `deliveryId: null` mesmo com `count: 1` — não há o que reconhecer.
+   Use `check` sem `--peek`.
+3. **Marcador único por rodada, e não apague a evidência anterior.** Nome de
+   arquivo e `subject` do `worker_done` com um nonce. Sem isso, efeito antigo e
+   efeito novo são indistinguíveis — e apagar o arquivo da rodada anterior antes
+   de ler a atual destrói a única prova disponível.
+
 ## Ambiente A — dentro da IDE do Orca
 
 - [x] **1. Abrir o projeto no Orca e rodar `bash .claude/mosk/scripts/panes.sh driver --json`**
