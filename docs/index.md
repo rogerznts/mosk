@@ -72,7 +72,11 @@ Corporativo).
   ADR-0009 orquestração multi-pane sobre Herdr — promovido no archive da spec 006;
   ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007;
   ADR-0011 Hallmark vendorizado como corpo de referência do `mosk-ui-expert` —
-  promovido no archive da spec 008) +
+  promovido no archive da spec 008;
+  ADR-0012 fronteira decisão-de-rota × execução-de-fase,
+  ADR-0013 seam de fan-out em três tiers,
+  ADR-0014 Orca como atuador único — spec 010, substitui o ADR-0009 e revoga a
+  decisão 7 do ADR-0010) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -98,6 +102,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
+| 010 | [feature-graph-loop-orca](./specs/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único) | tasks | 010-feature-graph-loop-orca | 2026-08-04 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas
