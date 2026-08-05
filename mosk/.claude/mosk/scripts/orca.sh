@@ -1018,6 +1018,45 @@ _wait_buffer_settled() {
     return 1
 }
 
+# Recupera o texto (`spec`) de uma task. Necessário no caminho spawn+send, que
+# injeta o prompt por conta própria em vez de deixar o `--inject` fazê-lo.
+_task_spec() {
+    local want="$1"
+    _has_py || { echo "erro: python3 necessario para ler o spec da task." >&2; return 1; }
+    orca_cli orchestration task-list --json 2>/dev/null | python3 -c '
+import sys,json
+want=sys.argv[1]
+try: d=json.load(sys.stdin)
+except Exception: sys.exit(0)
+out=[]
+def w(n):
+    if isinstance(n,dict):
+        if n.get("id")==want and n.get("spec"): out.append(n["spec"])
+        for v in n.values(): w(v)
+    elif isinstance(n,list):
+        for v in n: w(v)
+w(d)
+print(out[0] if out else "")
+' "$want" 2>/dev/null
+}
+
+# Preâmbulo de lifecycle montado por nós. O `dispatch --inject` normalmente o
+# fornece; no caminho spawn+send o dispatch é criado só para provenance
+# (--no-inject) e o prompt é entregue pelo `send`, que tem prova de entrega.
+_lifecycle_preamble() {
+    local task="$1" dispatch="$2"
+    cat <<EOF
+[MOSK · dispatch supervisionado] taskId=$task dispatchId=$dispatch
+Ao terminar, envie EXATAMENTE UMA VEZ, do seu proprio terminal:
+  orca orchestration send --type worker_done --subject "<status curto>" --body "<o que fez, o que achou, o que falta>" --task-id $task --dispatch-id $dispatch --outcome succeeded --json
+Use --outcome failed se nao concluir. Se ficar bloqueado, use:
+  orca orchestration ask --question "<pergunta>" --timeout-ms 600000 --json
+Depois do worker_done, encerre o turno e fique ocioso. Nao faca polling.
+
+TAREFA:
+EOF
+}
+
 # ── worker-start: caminho supervisionado composto ──
 # Compõe worktree + terminal + readiness + dispatch numa operação e devolve um
 # recibo com os efeitos exatos. Preferido ao par spawn-próprio + dispatch
@@ -1029,7 +1068,7 @@ _wait_buffer_settled() {
 cmd_worker_start() {
     require_native || return 1
     local task="" worktree="current" agent="claude" name="" retry_of=""
-    local submit=1 submit_timeout=60000
+    local submit=1 submit_timeout=60000 mode="spawn-send"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --task) task="$2"; shift 2 ;;
@@ -1037,6 +1076,8 @@ cmd_worker_start() {
             --agent) agent="$2"; shift 2 ;;
             --name) name="$2"; shift 2 ;;
             --retry-of) retry_of="$2"; shift 2 ;;
+            --mode) mode="$2"; shift 2 ;;
+            --composed) mode="composed"; shift ;;
             --no-submit) submit=0; shift ;;
             --submit-timeout) submit_timeout="$2"; shift 2 ;;
             -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
@@ -1047,6 +1088,38 @@ cmd_worker_start() {
     local -a extra=()
     [[ -n "$name" ]] && extra+=(--name "$name")
     [[ -n "$retry_of" ]] && extra+=(--retry-of "$retry_of")
+    # Caminho PADRÃO desde a emenda do ADR-0013 (spec 010): spawn + send.
+    # O `worker-start` composto cria terminal e dispatch corretamente, mas não
+    # deixa o prompt submetido ao agente — o texto fica no buffer de input e o
+    # worker nunca processa (QA-010-008, reproduzido em 4 rodadas). O `send` tem
+    # prova de entrega desde a spec 009: injeta e relê até a sonda aparecer.
+    # Dispatch com --no-inject existe aqui só para provenance; o prompt e o
+    # preâmbulo de lifecycle vão pelo send.
+    if [[ "$mode" == "spawn-send" ]]; then
+        local spec pane disp cwd
+        spec="$(_task_spec "$task")"
+        [[ -n "$spec" ]] || { echo "erro: nao consegui ler o spec da task $task." >&2; return 1; }
+        cwd="$(get_repo_root 2>/dev/null || pwd)"
+
+        pane="$(cmd_spawn --cwd "$cwd" --label "${name:-worker}" -- "$agent")" || return 1
+        cmd_wait_idle "$pane" --timeout "$submit_timeout" >/dev/null 2>&1 || true
+
+        local draw
+        draw="$(_orca_json "dispatch (tracking)" orchestration dispatch \
+            --task "$task" --to "$pane")" || return 1
+        disp="$(_id_from_json "$draw" dispatch)"
+
+        # `send` falha (exit ≠ 0) quando NÃO confirma a entrega — é o ponto
+        # inteiro desta troca de caminho. Propagamos a falha em vez de seguir
+        # como se o worker tivesse recebido a tarefa.
+        if ! cmd_send "$pane" "$(_lifecycle_preamble "$task" "${disp:-?}")$spec"; then
+            echo "erro: entrega do prompt NAO confirmada no pane $pane." >&2
+            return 1
+        fi
+        echo "${disp:-$pane}"
+        return 0
+    fi
+
     local raw
     raw="$(_orca_json "worker-start" orchestration worker-start \
         --task "$task" --worktree "$worktree" --agent "$agent" "${extra[@]}")" || return 1
