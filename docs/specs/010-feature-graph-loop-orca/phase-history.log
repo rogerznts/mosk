@@ -2,3 +2,4 @@
 2026-08-05T00:43:19Z	legal	plan -> tasks
 2026-08-05T07:23:03Z	legal	tasks -> implement
 2026-08-05T07:39:08Z	legal	implement -> qa-gate
+2026-08-05T17:07:21Z	legal	qa-gate -> implement

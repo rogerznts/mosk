@@ -222,6 +222,35 @@ check_eq "12. so o prefixo ancorado conta como spec" "015," "$got"
 check_eq "12. --number 010 vale dez, nao octal oito" "010" "$(printf '%03d' "$((10#010))")"
 check_eq "12. --number 15 normaliza para 015" "015" "$(printf '%03d' "$((10#15))")"
 
+# ── caso 13: NDJSON de keepalive do `check --wait` (QA-010-007) ──
+# O `check --wait` emite uma linha de keepalive a cada ~15s e só depois o
+# envelope real — que pode vir pretty-printed. Validar a saída inteira como um
+# JSON único fazia TODA espera falhar, mesmo bem-sucedida. O filtro precisa
+# remover as linhas de keepalive (sempre single-line) e preservar o envelope
+# multi-linha intacto.
+echo "selftest-orca-driver: NDJSON do check --wait"
+FX_WAIT_STREAM='{"_keepalive":true,"_heartbeat":true,"elapsedMs":15003,"deadlineMs":180000}
+{"_keepalive":true,"_heartbeat":true,"elapsedMs":30004,"deadlineMs":180000}
+{
+  "id": "abc",
+  "ok": true,
+  "result": {
+    "deliveryId": "dlv_777",
+    "count": 1
+  }
+}'
+filtered="$(printf '%s\n' "$FX_WAIT_STREAM" | grep -v '"_keepalive"')"
+check_eq "13. envelope sobrevive ao filtro" "true" "$(_json_ok "$filtered")"
+check_eq "13. deliveryId legivel apos o filtro" "dlv_777" "$(_id_from_json "$filtered" delivery)"
+check_eq "13. nenhuma linha de keepalive sobra" "0" "$(printf '%s' "$filtered" | grep -c '_keepalive' || true)"
+
+# Espera que termina só com keepalives = silêncio, não erro: o chamador precisa
+# distinguir "nada chegou" de "falhou", porque timeout é checkpoint (ADR-0013).
+FX_WAIT_ONLY_KEEPALIVE='{"_keepalive":true,"_heartbeat":true,"elapsedMs":15003,"deadlineMs":30000}
+{"_keepalive":true,"_heartbeat":true,"elapsedMs":30004,"deadlineMs":30000}'
+empty="$(printf '%s\n' "$FX_WAIT_ONLY_KEEPALIVE" | grep -v '"_keepalive"')"
+check_eq "13. so keepalive -> resta vazio (timeout, nao erro)" "" "${empty//[[:space:]]/}"
+
 # ─────────────────────────── relatório ───────────────────────────
 echo
 if [[ -n "$FAILURES" ]]; then

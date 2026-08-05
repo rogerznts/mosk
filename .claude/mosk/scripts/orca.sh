@@ -110,8 +110,17 @@ resolve_orca_cmd() {
     # 1) exportado pelo próprio Orca (sessões gerenciadas, WSL). Pode conter
     #    argumentos, por isso vira array.
     if [[ -n "${ORCA_CLI_COMMAND:-}" ]]; then
-        read -r -a ORCA_CMD <<< "$ORCA_CLI_COMMAND"
-        return 0
+        read -r -a _cand <<< "$ORCA_CLI_COMMAND"
+        # QA-010-006: aceitar sem verificar fazia um caminho quebrado falhar mais
+        # adiante, no `status`, e ser reportado como `runtime-unavailable` — o
+        # usuário lia "abra ou reinicie o app" quando a causa era o caminho não
+        # existir. Diagnóstico errado manda consertar a coisa errada.
+        if command -v "${_cand[0]}" >/dev/null 2>&1; then
+            ORCA_CMD=("${_cand[@]}")
+            return 0
+        fi
+        echo "aviso: \$ORCA_CLI_COMMAND aponta para '${_cand[0]}', que nao e executavel." >&2
+        echo "  Ignorando e seguindo para a resolucao normal (orca-dev/orca-ide/orca)." >&2
     fi
     # 2) checkout de desenvolvimento do próprio Orca
     if [[ -n "${ORCA_DEV_REPO_ROOT:-}" ]] && command -v orca-dev >/dev/null 2>&1; then
@@ -886,10 +895,38 @@ cmd_await() {
     # `--ack <id>` reconhece, checa e espera numa operação só.
     local -a extra=()
     [[ -n "$ack" ]] && extra+=(--ack "$ack")
+
+    # `check --wait` NÃO devolve um envelope só: enquanto espera, emite uma linha
+    # NDJSON de keepalive a cada ~15s —
+    #   {"_keepalive":true,"_heartbeat":true,"elapsedMs":...,"deadlineMs":...}
+    # — e só ao fim escreve o envelope real (que pode vir pretty-printed em
+    # várias linhas). Validar a saída inteira como um JSON único faz TODA espera
+    # falhar, mesmo bem-sucedida: foi o defeito QA-010-007, e é por isso que
+    # este caminho não passa pelo `_orca_json`.
+    #
+    # Filtrar as linhas de keepalive (que são sempre single-line) deixa
+    # exatamente o envelope — inclusive quando ele é multi-linha.
+    local raw
+    raw="$(orca_cli orchestration check --wait "${extra[@]}" \
+        --types "$types" --timeout-ms "$timeout" --json 2>&1 \
+        | grep -v '"_keepalive"' || true)"
+
     # Janela rolante: um timeout aqui é CHECKPOINT, não falha do worker. Tarefas
-    # longas levam 15-60 min; quem decide parar é o humano.
-    _orca_json "orchestration check --wait" orchestration check --wait \
-        "${extra[@]}" --types "$types" --timeout-ms "$timeout"
+    # longas levam 15-60 min; quem decide parar é o humano. Uma espera que
+    # termina sem envelope é silêncio, não erro — devolvemos um envelope vazio
+    # sintético para o chamador seguir o mesmo caminho de "nada chegou".
+    if [[ -z "${raw//[[:space:]]/}" ]]; then
+        echo '{"ok":true,"result":{"messages":[],"count":0,"_mosk":"wait-timeout"}}'
+        return 0
+    fi
+    if [[ "$(_json_ok "$raw")" != "true" ]]; then
+        local msg
+        msg="$(_json_error "$raw")"
+        echo "erro: orchestration check --wait falhou${msg:+ ($msg)}." >&2
+        [[ -z "$msg" ]] && printf '%s\n' "$raw" >&2
+        return 1
+    fi
+    printf '%s' "$raw"
 }
 
 # Extrai o deliveryId do envelope devolvido por `await`, para alimentar o --ack
@@ -951,6 +988,36 @@ cmd_reply() {
     _orca_json "reply" orchestration reply --id "$msg" --body "$body" >/dev/null
 }
 
+# Espera o buffer do terminal PARAR DE CRESCER antes de submeter.
+#
+# Existe porque o `worker-start` injeta o prompt de forma assíncrona: `tui-idle`
+# retorna com o texto ainda entrando, e um Enter mandado nesse instante se perde
+# no meio da injeção — o prompt fica no buffer, o agente nunca processa, e a task
+# trava em `dispatched` (QA-010-008). Confirmado empiricamente: os mesmos Enter
+# enviados depois, com o texto já completo, submeteram e o worker executou.
+#
+# É o "respiro" que a spec 009 documentou para o Herdr. O ADR-0010 §2 registrou
+# que o `--enter` atômico do Orca o dispensava — verdade para `send`, falso para
+# `worker-start`, que não injeta pela mesma via.
+_wait_buffer_settled() {
+    local handle="$1" tries="${2:-20}" prev="" cur="" stable=0
+    local i
+    for ((i = 0; i < tries; i++)); do
+        cur="$(cmd_read "$handle" 2>/dev/null || true)"
+        if [[ -n "$cur" && "$cur" == "$prev" ]]; then
+            stable=$((stable + 1))
+            # duas leituras idênticas seguidas: injeção terminou.
+            [[ "$stable" -ge 2 ]] && return 0
+        else
+            stable=0
+        fi
+        prev="$cur"
+        sleep 0.5
+    done
+    echo "aviso: buffer de $handle nao estabilizou; submetendo mesmo assim." >&2
+    return 1
+}
+
 # ── worker-start: caminho supervisionado composto ──
 # Compõe worktree + terminal + readiness + dispatch numa operação e devolve um
 # recibo com os efeitos exatos. Preferido ao par spawn-próprio + dispatch
@@ -962,6 +1029,7 @@ cmd_reply() {
 cmd_worker_start() {
     require_native || return 1
     local task="" worktree="current" agent="claude" name="" retry_of=""
+    local submit=1 submit_timeout=60000
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --task) task="$2"; shift 2 ;;
@@ -969,6 +1037,8 @@ cmd_worker_start() {
             --agent) agent="$2"; shift 2 ;;
             --name) name="$2"; shift 2 ;;
             --retry-of) retry_of="$2"; shift 2 ;;
+            --no-submit) submit=0; shift ;;
+            --submit-timeout) submit_timeout="$2"; shift 2 ;;
             -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
             *) [[ -z "$task" ]] && task="$1"; shift ;;
         esac
@@ -982,6 +1052,31 @@ cmd_worker_start() {
         --task "$task" --worktree "$worktree" --agent "$agent" "${extra[@]}")" || return 1
     local id
     id="$(_id_from_json "$raw" dispatch)"
+
+    # QA-010-008: o worker-start cria terminal e dispatch, mas o prompt pode
+    # ficar no BUFFER DE INPUT da TUI sem ser submetido — observado com o agente
+    # `claude`, que ficou `running` com 0 tokens e o texto visível e não
+    # processado, com a task presa em `dispatched`. É a mesma classe de falha que
+    # a spec 009 corrigiu para o `send`: entrega sem prova.
+    #
+    # Mitigação: esperar a TUI ficar pronta e submeter explicitamente. Um Enter
+    # com input vazio é no-op quando o prompt JÁ foi submetido, então a operação
+    # é segura nos dois casos — e é por isso que ela é incondicional em vez de
+    # depender de detectar "não submetido", que não tem sinal genérico confiável.
+    if [[ "$submit" -eq 1 ]]; then
+        local handle
+        handle="$(_handle_from_json "$raw")"
+        if [[ -n "$handle" ]]; then
+            orca_cli terminal wait --terminal "$handle" --for tui-idle \
+                --timeout-ms "$submit_timeout" --json >/dev/null 2>&1 || true
+            _wait_buffer_settled "$handle"
+            orca_cli terminal send --terminal "$handle" --text "" --enter --json >/dev/null 2>&1 \
+                || echo "aviso: nao consegui confirmar a submissao do prompt em $handle." >&2
+        else
+            echo "aviso: worker-start nao devolveu handle; submissao do prompt NAO confirmada." >&2
+        fi
+    fi
+
     echo "${id:-ok}"
 }
 
