@@ -43,7 +43,23 @@ Implement the agreed work with minimal ceremony, visible progress, and validatio
 - code changes
 - updated task progress
 - test and validation results
+- a **fan-out plan** when the phase has two or more `[P]` units, plus the join
+  report that closes the wave
 - archive-ready spec
+
+## Fan-out
+
+When `tasks.md` marks two or more units `[P]`, offer a wave instead of running
+them one by one. The rules live in `../data/fanout-seam.md`; three of them decide
+whether it works at all:
+
+- **Approval is asked once**, on the plan — never per branch. That is what makes
+  parallelism worth having.
+- **`[P]` is honoured, never inferred.** Different files, no dependencies. In
+  doubt, sequential: a wrongly parallel pair corrupts work that would have
+  succeeded serially.
+- **The join always returns to the human**, and no wave chains into another on
+  its own.
 
 ## Escalation signals
 
@@ -81,8 +97,8 @@ During task execution:
 
 1. Before starting, locate the originating artifact (story, spec, or task list) that mandated the work. Keep it open as the source of truth.
 2. At the end of each completed phase, story, or chore, go back to the originating artifact and check off (`[x]`) every item that was delivered.
-3. If the originating artifact has acceptance criteria, verify each one against the implementation before marking it done.
-4. If any criterion was not met or was only partially met, report it explicitly instead of silently skipping.
+3. Report anything not delivered, or delivered only in part, explicitly — never skip it silently. The gate can only weigh what you disclose.
+4. **Do not rule on acceptance criteria.** Recording what you touched is factual and is your job; deciding whether it *satisfies* an AC belongs to `qa-gate`, which reads the result without your history of trade-offs. You know why every shortcut was taken — that knowledge turns a self-review into a defence of the work rather than a test of it (spec 010 US2).
 
 ## Unit testing
 

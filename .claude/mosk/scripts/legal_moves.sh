@@ -152,6 +152,13 @@ done < <(graph_edges_from "$PHASE")
 
 moves_json+="]"
 
+# --- fan-out: a fase admite onda? (ADR-0012/0013) ---
+# O grafo diz apenas que a fase PODE ter onda; quantas unidades e quais vêm dos
+# marcadores [P] do tasks.md. Não resolvemos o tier aqui de propósito: isso é o
+# atuador (`panes.sh tier`), e o legal_moves é o cérebro do grafo — sondar o Orca
+# daqui acoplaria os dois e cobraria latência de quem só quer a próxima jogada.
+FANOUT_MODE="$(graph_phase_fanout "$PHASE" 2>/dev/null || true)"
+
 # --- escalations ---
 esc_json="["; efirst=1; human_esc=""
 while IFS='|' read -r eto esig; do
@@ -170,7 +177,9 @@ if [[ "$JSON" -eq 1 ]]; then
         printf '{"phase":"%s","loop":{"attempt":%s,"max":%s,"exhausted":%s,"exhausted_moves":%s},"moves":%s,"escalations":%s}\n' \
             "$PHASE" "${LOOP_CNT:-0}" "${LOOP_MAX:-0}" "$([[ "$LOOP_EXHAUSTED" -eq 1 ]] && echo true || echo false)" "$exm" "$moves_json" "$esc_json"
     else
-        printf '{"phase":"%s","moves":%s,"escalations":%s}\n' "$PHASE" "$moves_json" "$esc_json"
+        printf '{"phase":"%s","fanout":%s,"moves":%s,"escalations":%s}\n' \
+            "$PHASE" "$([[ -n "$FANOUT_MODE" ]] && echo "\"$FANOUT_MODE\"" || echo null)" \
+            "$moves_json" "$esc_json"
     fi
     exit 0
 fi
@@ -188,6 +197,13 @@ if [[ "$LOOP_EXHAUSTED" -eq 1 ]]; then
     echo "  ↳ escalar → ataque a causa raiz via uma escalação abaixo (architecture/prd/…)"
     echo "  ↳ waive   → /mosk-qa qa-gate: aceitar com WAIVED + justificativa → archived"
     echo "  ↳ parar   → assumir manual; encerrar o loop"
+fi
+if [[ -n "$FANOUT_MODE" ]]; then
+    echo "fan-out disponível nesta fase (modo: $FANOUT_MODE):"
+    echo "  ⇉ as unidades vêm dos marcadores [P] do tasks.md — nunca inferidas"
+    echo "  ⇉ tier do ambiente: bash .claude/mosk/scripts/panes.sh tier"
+    echo "  ⇉ contrato da onda: .claude/mosk/data/fanout-seam.md"
+    echo "  ⇉ o plano da onda é aprovado UMA vez; o join volta pra você"
 fi
 if [[ -n "$human_esc" ]]; then
     echo "escalações disponíveis:"

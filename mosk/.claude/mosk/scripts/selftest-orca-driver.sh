@@ -8,7 +8,10 @@
 # faltava alguém escrever as fixtures.
 #
 # Cobre: precedência de chaves, lista vazia como conteúdo legítimo, envelope de
-# erro, ramo de degradação sem python3, e o predicado de confirmação de entrega.
+# erro, ramo de degradação sem python3, o predicado de confirmação de entrega,
+# os tipos default da espera (`question` presente), a extração do deliveryId que
+# alimenta o `--ack`, a resolução de `native_tasks`, e as duas regras de
+# numeração de spec.
 #
 # Usage: selftest-orca-driver.sh [--verbose] [--help]
 # Exit 0 = tudo passou; exit 1 = falhas listadas (caso :: esperado :: obtido).
@@ -172,6 +175,81 @@ for shell_bin in bash zsh; do
     got="$("$shell_bin" -c "source '$SCRIPT_DIR/common.sh' 2>/dev/null; graph_edge_exists specify implement && echo TRUE || echo FALSE" 2>/dev/null)"
     check_eq "8. $shell_bin: aresta inexistente segue reprovada" "FALSE" "$got"
 done
+
+# ── caso 9: `question` entre os tipos que despertam a espera (spec 010) ──
+# Sem ele na lista default, um worker que usa `ask` fica bloqueado até o timeout,
+# perguntando para um coordenador que não está ouvindo. Foi um defeito real.
+echo "selftest-orca-driver: tipos default da espera"
+case "$AWAIT_DEFAULT_TYPES" in
+    *question*) ok "9. question esta nos tipos default" ;;
+    *) fail "9. question esta nos tipos default" "conter 'question'" "$AWAIT_DEFAULT_TYPES" ;;
+esac
+case "$AWAIT_DEFAULT_TYPES" in
+    *worker_done*) ok "9. worker_done segue nos tipos default" ;;
+    *) fail "9. worker_done segue nos tipos default" "conter 'worker_done'" "$AWAIT_DEFAULT_TYPES" ;;
+esac
+
+# ── caso 10: extração do deliveryId, que alimenta o --ack da rodada seguinte ──
+# Sem o ack, cada janela de espera reentrega o mesmo lote FIFO e a supervisão
+# nunca avança. O id precisa sair do envelope de forma confiável.
+echo "selftest-orca-driver: deliveryId para o --ack"
+FX_DELIVERY='{"id":"x","ok":true,"result":{"deliveryId":"dlv_123","count":2,"messages":[{"type":"worker_done"}]}}'
+FX_NO_DELIVERY='{"id":"x","ok":true,"result":{"count":0,"messages":[]}}'
+check_eq "10. deliveryId extraido do envelope" "dlv_123" "$(_id_from_json "$FX_DELIVERY" delivery)"
+check_eq "10. envelope sem delivery nao inventa id" "" "$(_id_from_json "$FX_NO_DELIVERY" delivery)"
+
+# ── caso 11: native_tasks on/off explícito não toca a rede ──
+# `auto` sonda o app (e por isso não é testável offline); on/off precisam
+# resolver sem nenhuma chamada, para que a config do usuário sempre vença.
+echo "selftest-orca-driver: resolucao de native_tasks"
+MOSK_ORCA_NATIVE_TASKS=on  native_tasks_enabled && got=TRUE || got=FALSE
+check_eq "11. native_tasks=on resolve ligado" "TRUE" "$got"
+MOSK_ORCA_NATIVE_TASKS=off native_tasks_enabled && got=TRUE || got=FALSE
+check_eq "11. native_tasks=off resolve desligado" "FALSE" "$got"
+MOSK_ORCA_NATIVE_TASKS=true native_tasks_enabled && got=TRUE || got=FALSE
+check_eq "11. legado 'true' segue valendo" "TRUE" "$got"
+unset MOSK_ORCA_NATIVE_TASKS
+
+# ── caso 12: numeração de spec (spec 010, US5) ──
+# Estes dois exercitam as REGRAS que o create-new-feature.sh aplica, não o script
+# em si — ele executa ao ser sourceado, então não dá para chamar suas funções
+# offline. Ainda assim pegam a regressão: se alguém desancorar a regex ou tirar o
+# `10#`, o caso quebra aqui, não na próxima spec criada.
+echo "selftest-orca-driver: numeracao de spec"
+BRANCHES=$'015-feature-graph-loop-orca\ndocs/adr-0012-0014-x\nfix/issue-123-foo\nchore/rfc-042-bar\nmaster'
+got="$(printf '%s\n' "$BRANCHES" | grep -oE '^[0-9]{3}-' | grep -oE '[0-9]+' | sort -n | tr '\n' ',')"
+check_eq "12. so o prefixo ancorado conta como spec" "015," "$got"
+check_eq "12. --number 010 vale dez, nao octal oito" "010" "$(printf '%03d' "$((10#010))")"
+check_eq "12. --number 15 normaliza para 015" "015" "$(printf '%03d' "$((10#15))")"
+
+# ── caso 13: NDJSON de keepalive do `check --wait` (QA-010-007) ──
+# O `check --wait` emite uma linha de keepalive a cada ~15s e só depois o
+# envelope real — que pode vir pretty-printed. Validar a saída inteira como um
+# JSON único fazia TODA espera falhar, mesmo bem-sucedida. O filtro precisa
+# remover as linhas de keepalive (sempre single-line) e preservar o envelope
+# multi-linha intacto.
+echo "selftest-orca-driver: NDJSON do check --wait"
+FX_WAIT_STREAM='{"_keepalive":true,"_heartbeat":true,"elapsedMs":15003,"deadlineMs":180000}
+{"_keepalive":true,"_heartbeat":true,"elapsedMs":30004,"deadlineMs":180000}
+{
+  "id": "abc",
+  "ok": true,
+  "result": {
+    "deliveryId": "dlv_777",
+    "count": 1
+  }
+}'
+filtered="$(printf '%s\n' "$FX_WAIT_STREAM" | grep -v '"_keepalive"')"
+check_eq "13. envelope sobrevive ao filtro" "true" "$(_json_ok "$filtered")"
+check_eq "13. deliveryId legivel apos o filtro" "dlv_777" "$(_id_from_json "$filtered" delivery)"
+check_eq "13. nenhuma linha de keepalive sobra" "0" "$(printf '%s' "$filtered" | grep -c '_keepalive' || true)"
+
+# Espera que termina só com keepalives = silêncio, não erro: o chamador precisa
+# distinguir "nada chegou" de "falhou", porque timeout é checkpoint (ADR-0013).
+FX_WAIT_ONLY_KEEPALIVE='{"_keepalive":true,"_heartbeat":true,"elapsedMs":15003,"deadlineMs":30000}
+{"_keepalive":true,"_heartbeat":true,"elapsedMs":30004,"deadlineMs":30000}'
+empty="$(printf '%s\n' "$FX_WAIT_ONLY_KEEPALIVE" | grep -v '"_keepalive"')"
+check_eq "13. so keepalive -> resta vazio (timeout, nao erro)" "" "${empty//[[:space:]]/}"
 
 # ─────────────────────────── relatório ───────────────────────────
 echo

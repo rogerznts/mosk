@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
-# panes.sh — fachada única do atuador de panes do /mosk-orq (ADR-0010).
-# Resolve QUAL backend está ativo (herdr | orca | none) e delega o argv
-# inalterado ao driver correspondente. É o único caminho que o agente conhece:
-# assim, trocar ou acrescentar backend não custa uma linha de prompt.
+# panes.sh — fachada única do atuador de panes do /mosk-orq (ADR-0010/0014).
+# Resolve SE há atuador disponível e delega o argv inalterado ao driver.
+#
+# Por que a fachada sobrevive com um único backend (ADR-0014 §2): é onde vive a
+# degradação `none` — requisito, não conveniência, porque o MOSK precisa rodar em
+# projetos sem atuador nenhum —, mantém o orq.md desacoplado do CLI do Orca, e é
+# o ponto onde a seleção de tier do fan-out é resolvida (ADR-0013 §3).
 #
 # NÃO decide o pipeline — o cérebro é legal_moves.sh / pipeline-graph.yaml, e o
-# humano decide toda bifurcação (ADR-0006/0009).
+# humano decide toda bifurcação (ADR-0006/0012).
 #
-# Contrato repassado aos drivers:
+# Contrato repassado ao driver:
 #   check | tokens | spawn | send | wait-idle | read | close | managed
 #
 # Usage:
-#   panes.sh driver [--json]        qual backend está ativo e por quê
-#   panes.sh <subcomando> [args]    delega ao driver ativo
+#   panes.sh driver [--json]        há atuador ativo e por quê
+#   panes.sh tier [--json]          qual tier de fan-out o ambiente oferece
+#   panes.sh <subcomando> [args]    delega ao driver
 #   panes.sh --help
 set -e
 
@@ -25,9 +29,10 @@ usage() {
 panes.sh <subcomando> [args]  — fachada do atuador de panes do /mosk-orq.
 
 Subcomandos proprios:
-  driver [--json]                         backend ativo + motivo da escolha
+  driver [--json]                         ha atuador ativo + motivo
+  tier [--json]                           tier de fan-out disponivel (ADR-0013)
 
-Delegados ao driver ativo (mesmo contrato nos dois backends):
+Delegados ao driver (backend Orca):
   check [--json]                          atuador disponivel? (go/no-go)
   tokens <pane> [--ceiling N] [--json]    tokens usados vs teto
   spawn --cwd <path> [--label <name>] [--focus] -- <argv...>
@@ -38,19 +43,38 @@ Delegados ao driver ativo (mesmo contrato nos dois backends):
   close <pane>                            fecha o pane
   managed [--cwd <path>]                  panes geridos (JSON cru)
 
-Exclusivos do backend orca (camada nativa, opt-in). Nos demais backends
-respondem `unsupported` com exit 3, sem quebrar o fluxo:
-  native | task-create | task-list | dispatch | await | gate-create | gate-resolve
+Camada nativa de orquestracao (orchestration.orca.native_tasks: auto|on|off):
+  native                                  a camada esta ativa?
+  run [<objetivo>]                        cria/vincula a Run (toda Task exige uma)
+  task-create <spec> [--deps <json_array>] [--parent <id>]
+  task-list [--json]                      prova de provenance
+  dispatch <task_id> <pane> [--no-inject]
+  worker-start --task <id> [--worktree current] [--agent claude]
+  worker-read --dispatch <id> [--limit N]
+  await [--ack <delivery_id>] [--timeout-ms <n>] [--types <a,b>]
+  delivery-id                             (stdin: envelope do await) id p/ o --ack
+  ask <pergunta> | --resume <message_id>  worker pergunta e bloqueia
+  reply <message_id> <resposta>           coordenador responde
+  gate-create <task_id> <pergunta>        abre o decision gate
+  gate-resolve <gate_id> <resolucao>      registra a decisao DO HUMANO
+
+Fan-out: `tier` resolve o tier; o contrato da onda esta em
+../data/fanout-seam.md. Duas armadilhas ja codificadas no driver: `await` sem
+--ack reentrega o mesmo lote a cada janela, e sem `question` nos tipos um worker
+que usa `ask` fica bloqueado ate o timeout.
 
 Opcoes globais:
   --help,-h   esta ajuda
 
-Escolha do backend, nesta precedencia:
+Escolha do atuador, nesta precedencia:
   1. env MOSK_ORQ_DRIVER, se definida
-  2. orchestration.driver no core-config.yaml (auto | herdr | orca | none)
-  3. em `auto`: o ambiente da sessao atual (variaveis ORCA_* ou HERDR_*)
-  4. em `auto`: o primeiro backend cujo `check` passar (orca, depois herdr)
-  5. nenhum -> `none` (o /mosk-orq degrada para o fluxo single-pane)
+  2. orchestration.driver no core-config.yaml (auto | orca | none)
+  3. em `auto`: exige sessao DENTRO da IDE do Orca **e** `check` passando.
+     Ter o binario no PATH nao basta — `spawn` cria terminais dentro do app,
+     e fora da IDE isso abriria paineis num app que voce nao esta usando.
+  4. nenhum -> `none` (o /mosk-orq degrada para o fluxo single-pane)
+
+`driver: herdr` (backend removido no ADR-0014) falha com aviso de migracao.
 EOF
 }
 
@@ -72,45 +96,34 @@ config_driver() {
     ' "$cc"
 }
 
-# ─────────────────────── sondagem dos backends ───────────────────────
-_probe_cache_orca=""
-_probe_cache_herdr=""
+# ─────────────────────── sondagem do backend ───────────────────────
+_probe_cache=""
+_probe_json=""
 
 backend_ok() {
-    local b="$1"
-    case "$b" in
-        orca)
-            [[ -n "$_probe_cache_orca" ]] || {
-                if bash "$SCRIPT_DIR/orca.sh" check --json >/dev/null 2>&1; then
-                    _probe_cache_orca=yes
-                else
-                    _probe_cache_orca=no
-                fi
-            }
-            [[ "$_probe_cache_orca" == yes ]]
-            ;;
-        herdr)
-            [[ -n "$_probe_cache_herdr" ]] || {
-                if bash "$SCRIPT_DIR/herdr.sh" check --json >/dev/null 2>&1; then
-                    _probe_cache_herdr=yes
-                else
-                    _probe_cache_herdr=no
-                fi
-            }
-            [[ "$_probe_cache_herdr" == yes ]]
-            ;;
-        *) return 1 ;;
-    esac
+    if [[ -z "$_probe_cache" ]]; then
+        if _probe_json="$(bash "$SCRIPT_DIR/orca.sh" check --json 2>/dev/null)"; then
+            _probe_cache=yes
+        else
+            _probe_cache=no
+        fi
+    fi
+    [[ "$_probe_cache" == yes ]]
 }
 
-# Estamos rodando DENTRO de um pane de qual multiplexer? É o sinal mais
-# confiável de desempate quando os dois estão instalados.
-in_orca_session()  { [[ -n "${ORCA_PANE_KEY:-}${ORCA_WORKTREE_ID:-}${ORCA_TERMINAL_HANDLE:-}" ]]; }
-in_herdr_session() { [[ -n "${HERDR_TAB_ID:-}${HERDR_WORKSPACE_ID:-}${HERDR_PANE_ID:-}" ]]; }
+# Motivo estruturado da última sondagem: orca-not-found | runtime-unavailable.
+probe_reason() {
+    printf '%s' "$_probe_json" | sed -nE 's/.*"reason":"([^"]*)".*/\1/p'
+}
+
+# Estamos rodando DENTRO da IDE do Orca? É o sinal de ativação (ADR-0014 §3.1) —
+# não a presença do binário, que só prova instalação.
+in_orca_session() { [[ -n "${ORCA_PANE_KEY:-}${ORCA_WORKTREE_ID:-}${ORCA_TERMINAL_HANDLE:-}" ]]; }
 
 # ─────────────────────── resolução do driver ───────────────────────
 RESOLVED_DRIVER=""
 RESOLVED_REASON=""
+RESOLVED_ACTION=""
 
 resolve_driver() {
     [[ -n "$RESOLVED_DRIVER" ]] && return 0
@@ -123,7 +136,13 @@ resolve_driver() {
     [[ -z "$want" ]] && { want=auto; from="default"; }
 
     case "$want" in
-        herdr|orca|none)
+        herdr)
+            echo "erro: o backend 'herdr' foi removido (ADR-0014); o Orca e o unico atuador." >&2
+            echo "  Ajuste orchestration.driver em $from para 'auto' (ou 'orca'/'none')." >&2
+            echo "  A chave orchestration.herdr, se existir, pode ser apagada." >&2
+            exit 1
+            ;;
+        orca|none)
             RESOLVED_DRIVER="$want"
             RESOLVED_REASON="fixado em $from"
             return 0
@@ -134,28 +153,33 @@ resolve_driver() {
             ;;
     esac
 
-    if in_orca_session && backend_ok orca; then
+    # Em `auto` são DOIS requisitos, não um: estar dentro da IDE e o check passar.
+    if ! in_orca_session; then
+        RESOLVED_DRIVER=none
+        RESOLVED_REASON="sessao fora da IDE do Orca"
+        RESOLVED_ACTION="abra este projeto no Orca para orquestrar em panes"
+        return 0
+    fi
+    if backend_ok; then
         RESOLVED_DRIVER=orca
         RESOLVED_REASON="sessao dentro do Orca"
         return 0
     fi
-    if in_herdr_session && backend_ok herdr; then
-        RESOLVED_DRIVER=herdr
-        RESOLVED_REASON="sessao dentro do Herdr"
-        return 0
-    fi
-    if backend_ok orca; then
-        RESOLVED_DRIVER=orca
-        RESOLVED_REASON="unico/primeiro backend disponivel"
-        return 0
-    fi
-    if backend_ok herdr; then
-        RESOLVED_DRIVER=herdr
-        RESOLVED_REASON="unico/primeiro backend disponivel"
-        return 0
-    fi
     RESOLVED_DRIVER=none
-    RESOLVED_REASON="nenhum atuador disponivel"
+    case "$(probe_reason)" in
+        orca-not-found)
+            RESOLVED_REASON="CLI do Orca nao encontrada"
+            RESOLVED_ACTION="instale o Orca (https://www.onorca.dev/)"
+            ;;
+        runtime-unavailable)
+            RESOLVED_REASON="runtime do app Orca inacessivel"
+            RESOLVED_ACTION="abra ou reinicie o app Orca"
+            ;;
+        *)
+            RESOLVED_REASON="nenhum atuador disponivel"
+            RESOLVED_ACTION="verifique a instalacao do Orca"
+            ;;
+    esac
     return 0
 }
 
@@ -164,35 +188,52 @@ cmd_driver() {
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
     resolve_driver
     if [[ "$json" -eq 1 ]]; then
-        echo "{\"driver\":\"$RESOLVED_DRIVER\",\"reason\":\"$RESOLVED_REASON\"}"
+        echo "{\"driver\":\"$RESOLVED_DRIVER\",\"reason\":\"$RESOLVED_REASON\",\"actionable\":\"$RESOLVED_ACTION\"}"
     else
         echo "driver: $RESOLVED_DRIVER ($RESOLVED_REASON)"
+        [[ -n "$RESOLVED_ACTION" ]] && echo "  -> $RESOLVED_ACTION"
     fi
     [[ "$RESOLVED_DRIVER" != none ]]
 }
 
-# ─────────────── subcomandos exclusivos da camada nativa ───────────────
-# Só o backend Orca os implementa (ADR-0010). No Herdr respondemos
-# `unsupported` com exit 3 — um código próprio, para o chamador distinguir
-# "este backend não faz isso" de "isto falhou".
-is_native_subcommand() {
-    case "$1" in
-        native|task-create|task-list|dispatch|await|gate-create|gate-resolve) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-unsupported() {
-    local sub="$1" driver="$2"
+# ─────────────────────── tier de fan-out (ADR-0013 §3) ───────────────────────
+# O Tier 1 é o único que este script pode afirmar: exige Orca dentro da IDE com a
+# camada de orquestração ativa. A escolha entre Tier 2 (subagente nativo) e Tier 3
+# (sequencial) é do RUNTIME que hospeda o agente — um shell não tem como saber se
+# quem o chamou dispõe de tool de subagente. Por isso reportamos `2+` com
+# `runtime_decides`, em vez de fingir uma certeza que não temos.
+cmd_tier() {
     local json=0
-    shift 2 || true
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
-    if [[ "$json" -eq 1 ]]; then
-        echo "{\"ok\":false,\"driver\":\"$driver\",\"reason\":\"unsupported\",\"subcommand\":\"$sub\"}"
+    resolve_driver
+
+    local tier reason action runtime_decides
+    if [[ "$RESOLVED_DRIVER" != orca ]]; then
+        tier="2+"; runtime_decides=true
+        reason="$RESOLVED_REASON"
+        action="$RESOLVED_ACTION"
     else
-        echo "aviso: '$sub' so existe no backend orca; driver ativo e '$driver'." >&2
+        local nat
+        if nat="$(bash "$SCRIPT_DIR/orca.sh" native --json 2>/dev/null)"; then
+            tier=1; runtime_decides=false
+            reason="$(printf '%s' "$nat" | sed -nE 's/.*"reason":"([^"]*)".*/\1/p')"
+            action=""
+        else
+            tier="2+"; runtime_decides=true
+            reason="$(printf '%s' "$nat" | sed -nE 's/.*"reason":"([^"]*)".*/\1/p')"
+            [[ -z "$reason" ]] && reason="camada de orquestracao indisponivel"
+            action="habilite a orquestracao em Settings > Experimental do Orca"
+        fi
     fi
-    return 3
+
+    if [[ "$json" -eq 1 ]]; then
+        echo "{\"tier\":\"$tier\",\"runtime_decides\":$runtime_decides,\"reason\":\"$reason\",\"actionable\":\"$action\"}"
+    else
+        echo "tier: $tier ($reason)"
+        [[ "$runtime_decides" == true ]] && echo "  -> Tier 2 se o runtime tiver subagente nativo; senao Tier 3 (sequencial)."
+        [[ -n "$action" ]] && echo "  -> $action"
+    fi
+    return 0
 }
 
 # ─────────────────────── degradação sem atuador ───────────────────────
@@ -202,13 +243,13 @@ no_actuator() {
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
 
     if [[ "$sub" == "check" && "$json" -eq 1 ]]; then
-        echo '{"ok":false,"driver":"none","reason":"no-actuator"}'
+        echo "{\"ok\":false,\"driver\":\"none\",\"reason\":\"$RESOLVED_REASON\"}"
         return 1
     fi
-    echo "erro: nenhum atuador de panes disponivel (Herdr ou Orca)." >&2
-    echo "  Orca:  https://www.onorca.dev/ (a CLI vem com o app; o app precisa estar aberto)" >&2
-    echo "  Herdr: brew install herdr   # ou veja https://herdr.dev/" >&2
-    echo "  Sem um deles, use o fluxo single-pane normal (ex.: /mosk-suggestion)." >&2
+    echo "erro: nenhum atuador de panes disponivel — $RESOLVED_REASON." >&2
+    [[ -n "$RESOLVED_ACTION" ]] && echo "  $RESOLVED_ACTION" >&2
+    echo "  O Orca e OPCIONAL: sem ele, use o fluxo single-pane normal" >&2
+    echo "  (ex.: /mosk-suggestion). O pipeline roda ponta a ponta sem atuador." >&2
     return 1
 }
 
@@ -217,16 +258,12 @@ no_actuator() {
 case "$1" in
     --help|-h) usage; exit 0 ;;
     driver) shift; cmd_driver "$@" ;;
+    tier)   shift; cmd_tier "$@" ;;
     *)
         resolve_driver
-        if is_native_subcommand "$1" && [[ "$RESOLVED_DRIVER" != orca ]]; then
-            unsupported "$1" "$RESOLVED_DRIVER" "$@"
-            exit $?
-        fi
         case "$RESOLVED_DRIVER" in
-            herdr) exec bash "$SCRIPT_DIR/herdr.sh" "$@" ;;
-            orca)  exec bash "$SCRIPT_DIR/orca.sh" "$@" ;;
-            *)     no_actuator "$@" ;;
+            orca) exec bash "$SCRIPT_DIR/orca.sh" "$@" ;;
+            *)    no_actuator "$@" ;;
         esac
         ;;
 esac

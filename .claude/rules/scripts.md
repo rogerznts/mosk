@@ -27,6 +27,15 @@ bash .claude/mosk/scripts/create-new-feature.sh \
 - Computes next spec number globally: `max(remote branches, **number
   reservations**, local branches, active spec dirs, archived spec dirs)
   + 1` (base-10 forced to avoid octal traps).
+- **Duas armadilhas de numeração já corrigidas (spec 010) — não reintroduza:**
+  - O prefixo dos **branches locais** é lido **ancorado no início** do nome
+    (`git branch --format` + `^[0-9]{3}-`). Sem a âncora, qualquer branch comum
+    com dígitos no meio — `docs/adr-0012-0014-x`, `fix/issue-123-foo` — é lido
+    como spec e desvia a numeração. As outras quatro fontes sempre foram
+    ancoradas; só esta não era.
+  - `--number` é normalizado com `$((10#$n))` **no parse e de novo em
+    `rebuild_branch_name`** (o funil por onde todo caminho passa). Sem isso,
+    `--number 010` chega ao `printf` como constante octal e reserva **008**.
 - **Atomic number reservation (collision-proof):** before creating the
   branch, it reserves the number on `origin` by pushing an immutable ref
   `refs/spec-numbers/<NNN>` (a unique dangling commit under a
@@ -233,6 +242,12 @@ source of truth `pipeline-graph.yaml` (ADR-0006/0007). **Never takes an
 edge** — evaluates `fact` guards mechanically, flags `judgment` guards for
 the agent, and presents; the human decides.
 
+**Fan-out aware** (ADR-0012/0013): quando o nó declara `fanout`, a saída inclui
+o bloco `fan-out disponível` (e `"fanout"` no JSON). É o grafo que diz se a fase
+admite onda — o `implement.md` consulta, não decide sozinho, para o dado não
+virar segunda cópia (ADR-0006 §1). O tier **não** é resolvido aqui: isso é o
+atuador (`panes.sh tier`), e sondar o Orca daqui acoplaria cérebro e atuador.
+
 **Usage:**
 ```bash
 bash .claude/mosk/scripts/legal_moves.sh <current_phase> [--json]
@@ -266,59 +281,77 @@ exit 1 lists `path:line :: detail`.
 
 ### `panes.sh`
 
-**Fachada única do atuador de panes do `/mosk-orq`** (ADR-0010). Resolve qual
-backend está ativo (`herdr | orca | none`) e delega o argv inalterado ao driver.
-É o único script que o agente chama — trocar de backend não muda o prompt.
+**Fachada única do atuador de panes do `/mosk-orq`** (ADR-0010/0014). Resolve se
+há atuador e delega o argv inalterado ao driver. É o único script que o agente
+chama — o prompt nunca fala com a CLI do Orca.
+
+Sobrevive com **um backend só** de propósito: é onde vive a degradação `none`,
+que é requisito (o MOSK roda em projetos sem atuador nenhum), e é o ponto de
+resolução do tier de fan-out.
 
 **Usage:**
 ```bash
-bash .claude/mosk/scripts/panes.sh driver [--json]   # backend ativo + motivo
-bash .claude/mosk/scripts/panes.sh <subcomando> ...  # delega
+bash .claude/mosk/scripts/panes.sh driver [--json]   # há atuador? + motivo
+bash .claude/mosk/scripts/panes.sh tier [--json]     # tier de fan-out (ADR-0013)
+bash .claude/mosk/scripts/panes.sh <subcomando> ...  # delega ao orca.sh
 ```
 
 **Precedência da escolha:** env `MOSK_ORQ_DRIVER` → `orchestration.driver` no
-`core-config.yaml` (`auto|herdr|orca|none`) → em `auto`, o ambiente da sessão
-(`ORCA_*` vs `HERDR_*`) → em `auto`, o primeiro backend cujo `check` passar →
-`none` (degradação single-pane, com dica de instalação dos dois).
+`core-config.yaml` (`auto|orca|none`) → em `auto`, **sessão dentro da IDE do
+Orca `E` `check` passando** → `none`.
 
-Subcomandos exclusivos do backend Orca (camada nativa) respondem `unsupported`
-com **exit 3** nos demais — código próprio, para distinguir "este backend não
-faz isso" de "isto falhou".
+**Ter o binário no PATH não basta.** Presença prova instalação, não contexto, e
+`spawn` cria terminais **dentro do app**: fora da IDE isso abriria painéis num
+aplicativo que o usuário não está usando. `driver: orca` explícito continua sendo
+honrado fora da IDE — quem força, assume. `driver: herdr` (backend removido)
+falha com aviso de migração, nunca degrada em silêncio.
 
-### `herdr.sh`
+`panes.sh driver` distingue os quatro casos, porque a ação do usuário difere em
+cada um: binário ausente (instalar) · fora da IDE (abrir o projeto no Orca) ·
+orquestração experimental desligada (habilitar nas configurações) · desligado por
+config.
 
-**Backend Herdr** do atuador. Wrapper mecânico da control API do
-[Herdr](https://herdr.dev/): spawna/injeta/espera/lê/fecha panes e mede tokens.
-Subcomandos: `check | tokens | spawn | send | wait-idle | read | close |
-managed`. Degrada graciosamente sem o binário `herdr` (`check` falha com dica de
-instalação). O `spawn` fixa a pane no space do orquestrador (env `HERDR_*`).
-Prefira chamar via `panes.sh`. Usage:
-`bash .claude/mosk/scripts/herdr.sh <subcomando> ...`.
+`panes.sh tier` devolve `{tier, runtime_decides, reason, actionable}`. Reporta
+`2+` com `runtime_decides` quando o Tier 1 não se aplica: um shell não tem como
+saber se quem o chamou dispõe de subagente nativo, e não finge essa certeza.
 
 ### `orca.sh`
 
-**Backend Orca** do atuador ([onorca.dev](https://www.onorca.dev/)). Implementa
-o **mesmo contrato** do `herdr.sh` sobre `orca terminal …` — mesmos subcomandos,
-mesmos flags, mesmo formato de saída; o "pane" é o handle de terminal do Orca.
+**Driver do atuador** ([onorca.dev](https://www.onorca.dev/)), único backend
+suportado (ADR-0014). O "pane" é o handle de terminal do Orca.
 
 **Resolução do executável (crítica):** `$ORCA_CLI_COMMAND` → `orca-dev` (quando
 `$ORCA_DEV_REPO_ROOT`) → `orca-ide` → `orca`, e **recusa** `/usr/bin/orca` ou
 `/bin/orca` — no Linux esse nome é o **leitor de tela do GNOME**, e executá-lo
 inicia síntese de voz na máquina do usuário. Nunca invoque `orca` cru.
 
-Diferenças absorvidas no wrapper: `--cwd` vira `--worktree path:<p>` (com
-fallback para `active`); `send` usa o `--enter` atômico (sem o respiro que o
-Herdr exige); `--split`/`--workspace`/`--tab` não têm equivalente e são
-reportados em stderr; sem contador nativo de tokens, `tokens` faz o mesmo parse
-da TUI (`over=unknown` quando não casa).
+**Wrapper fino por decisão de arquitetura (ADR-0014 §6):** a grammar do Orca não
+é memorizada aqui nem no prompt — o guia é servido pelo binário
+(`orca skills get orchestration`) para evitar version drift. É a lição da spec
+009 elevada a regra.
 
-**Camada nativa (opt-in, `orchestration.orca.native_tasks: true`):**
-`native | task-create | task-list | dispatch | await | gate-create |
-gate-resolve` — mapeiam `orca orchestration …` (task DAG, dispatch com preâmbulo
-de lifecycle, espera por `worker_done`, decision gates). Desligada por padrão; os
-subcomandos falham com mensagem clara enquanto ela estiver off. A invariante do
-ADR-0006 vale: o orquestrador **cria** o gate, o humano **resolve**, e
-`orchestration run` (coordinator loop autônomo do Orca) nunca é usado.
+Limites absorvidos no wrapper: `--cwd` vira `--worktree path:<p>` (com fallback
+para `active`); `send` usa o `--enter` atômico; `--split`/`--workspace`/`--tab`
+não têm equivalente e são reportados em stderr; sem contador nativo de tokens,
+`tokens` faz parse da TUI (`over=unknown` quando não casa).
+
+**Camada nativa (`orchestration.orca.native_tasks: auto|on|off`, default
+`auto`):** `native | run | task-create | task-list | dispatch | worker-start |
+worker-read | await | delivery-id | ask | reply | gate-create | gate-resolve`.
+Em `auto`, sonda a capacidade real com `orchestration run-list` — **não** com
+`task-list`, que exige Run vinculada e responde `run_required` quando não há: uma
+falha que prova o contrário do que se quer medir.
+
+Três armadilhas codificadas no wrapper, que não devem ser desfeitas:
+
+- **`await` sem `--ack` reentrega o mesmo lote** a cada janela; alimente com o
+  `delivery-id` da rodada anterior.
+- **`question` faz parte dos tipos default**: sem ele, um worker que usa `ask`
+  fica bloqueado até o timeout, perguntando para quem não ouve.
+- **toda Task exige Run vinculada** — `ensure_run` roda antes do `task-create`.
+
+A invariante do ADR-0006 vale: o orquestrador **cria** o gate, o humano
+**resolve**, e `orchestration run` (coordinator loop autônomo) nunca é usado.
 
 ### `check-ship-ready.sh`
 
@@ -372,7 +405,12 @@ diretório na mão: isso apaga a integração MOSK.
 bash .claude/mosk/scripts/selftest-orca-driver.sh [--verbose] [--help]
 ```
 
-**Cobre (24 asserções):** precedência de chaves do extrator (`tail` vence campo
+**Cobre (44 asserções):** os tipos default da espera (`question` presente — sem
+ele um worker que usa `ask` fica bloqueado até o timeout); a extração do
+`deliveryId` que alimenta o `--ack` (sem ack, cada janela reentrega o mesmo
+lote); a resolução de `native_tasks` (`on`/`off` sem tocar a rede); as duas
+regras de numeração de spec (regex ancorada e base-10 em `--number`); e, da
+spec 009: precedência de chaves do extrator (`tail` vence campo
 textual mais longo — a regra antiga era `max(len)`); `tail: []` como conteúdo vazio
 legítimo vs. envelope de erro; itens `dict` dentro de `tail`; o ramo de degradação
 sem `python3` (forçado por `MOSK_ORCA_NO_PY=1`), que deve **falhar explicitamente** e
@@ -422,7 +460,11 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
   `write_spec_meta <dir> <number> <id> <type> <branch>`.
 - **Graph projections** (ADR-0007, zero-dep awk): `graph_file`,
   `graph_edges_from <phase>`, `graph_edge_exists <from> <to>`,
-  `guard_kind <name>`, `guard_question <name>`.
+  `guard_kind <name>`, `guard_question <name>`,
+  `graph_node_field <node> <field>` (lê um campo de nó; vazio = não declarado),
+  `graph_phase_fanout <phase>` (a fase admite onda? ecoa o modo, exit 0/1).
+  Todas assumem o schema de **um registro por linha** em flow style — é o que
+  mantém o awk trivial, e o que o `lint-graph.sh` protege.
 - **Delivery-loop helpers** (ADR-0008): `attempt_count <dir>` (gate loopbacks
   derived from `phase-history.log`), `resolve_max_retries <dir>` (spec-meta
   override → `core-config.yaml orchestration.max_retries` → 3),
@@ -463,4 +505,6 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 | Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |
 | Mexeu no parsing do driver Orca ou nos caminhos do `common.sh` | `selftest-orca-driver.sh` |
 | Orchestrate agents over panes | `panes.sh` (via `/mosk-orq`) |
-| Descobrir qual backend de panes está ativo | `panes.sh driver --json` |
+| Descobrir se há atuador ativo (e por quê não) | `panes.sh driver --json` |
+| Saber qual tier de fan-out o ambiente oferece | `panes.sh tier --json` |
+| Entender o contrato de uma onda de fan-out | `.claude/mosk/data/fanout-seam.md` |

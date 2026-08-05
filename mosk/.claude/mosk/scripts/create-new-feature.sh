@@ -69,7 +69,14 @@ while [ $i -le $# ]; do
                 echo 'Error: --number requires a value' >&2
                 exit 1
             fi
-            BRANCH_NUMBER="$next_arg"
+            if [[ ! "$next_arg" =~ ^[0-9]+$ ]]; then
+                echo 'Error: --number must be a non-negative integer' >&2
+                exit 1
+            fi
+            # Force base-10: a zero-padded value like "010" is TEN, not octal 8.
+            # Without this, `--number 010` reached printf as an octal constant and
+            # the script reserved 008.
+            BRANCH_NUMBER=$((10#$next_arg))
             ;;
         --no-push)
             NO_PUSH=true
@@ -165,8 +172,13 @@ get_next_global_number() {
     # number is never handed out twice.
     local reserved_nums=$(git ls-remote origin 'refs/spec-numbers/*' 2>/dev/null | grep -oE 'refs/spec-numbers/[0-9]+' | grep -oE '[0-9]+$' | sort -n)
 
-    # Check ALL local feature branches
-    local local_nums=$(git branch 2>/dev/null | grep -oE '[0-9]{3}-' | grep -oE '[0-9]+' | sort -n)
+    # Check ALL local feature branches.
+    # The prefix must be ANCHORED at the start of the branch name: an unanchored
+    # match reads any embedded "NNN-" as a spec number, so an ordinary branch like
+    # `docs/adr-0012-0014-x` or `fix/issue-123-foo` silently skews the numbering.
+    # `--format` is what makes anchoring possible — plain `git branch` prefixes
+    # rows with "  ", "* " or "+ ".
+    local local_nums=$(git branch --format='%(refname:short)' 2>/dev/null | grep -oE '^[0-9]{3}-' | grep -oE '[0-9]+' | sort -n)
 
     # Check ALL spec directories (active + archived) so numbers are not reused
     local spec_nums="" archived_nums=""
@@ -368,7 +380,10 @@ reserve_spec_number() {
 # Build BRANCH_NAME / FEATURE_NUM from the current BRANCH_NUMBER and
 # enforce GitHub's branch-name byte limit.
 rebuild_branch_name() {
-    FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
+    # `10#` again here, not only at the --number parse: this is the single point
+    # every code path funnels through, so a zero-padded value arriving from any
+    # other source can never be read as octal.
+    FEATURE_NUM=$(printf "%03d" "$((10#${BRANCH_NUMBER:-0}))")
     local prefix
     if [ -n "$FEATURE_TYPE" ]; then
         CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
