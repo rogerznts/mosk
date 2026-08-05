@@ -115,14 +115,20 @@
 
 ## Validação e fechamento
 
-- [ ] **T033** Ressincronizar o espelho local e as camadas geradas:
+- [x] **T033** Ressincronizar o espelho local e as camadas geradas:
   `sync-agents-skills.sh --clean` e `link-codex-skills.sh` (`AGENTS.md` é gerado,
   nunca editado à mão). [dep: T015]
 - [ ] **T034** Matriz de ambiente (SC-005/SC-006): rodar a mesma spec pequena em
   três ambientes — dentro da IDE do Orca · Claude Code sem Orca · runtime sem
   subagente — conferindo mesmo conjunto de artefatos, mesmo veredito e nenhuma
   degradação fatal. [dep: T027, T028]
-- [ ] **T035** `audit-docs-paths.sh` e `lint-graph.sh` finais; conferir que
+  **NÃO EXECUTADA.** Exige rodar fora da IDE do Orca e num runtime sem subagente
+  — dois contextos que a sessão de desenvolvimento não alcança. O roteiro está
+  pronto e executável em
+  [`tests/e2e-checklist-matriz-ambiente.md`](./tests/e2e-checklist-matriz-ambiente.md)
+  (22 passos, cobrindo os três ambientes, as quatro degradações e a não-contaminação
+  dos contadores). Fica como pendência declarada para o `qa-gate`.
+- [x] **T035** `audit-docs-paths.sh` e `lint-graph.sh` finais; conferir que
   `docs/index.md` reflete o estado. [dep: T029, T032]
 
 ---

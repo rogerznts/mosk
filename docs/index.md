@@ -102,7 +102,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 010 | [feature-graph-loop-orca](./specs/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único) | tasks | 010-feature-graph-loop-orca | 2026-08-04 |
+| 010 | [feature-graph-loop-orca](./specs/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único) | implement | 010-feature-graph-loop-orca | 2026-08-04 |
 | 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
 
 ### Arquivadas

@@ -1,4 +1,4 @@
-<!-- skill-description: Orquestrador (Mauro, o maestro): conduz o pipeline MOSK de um projeto entre panes do Herdr ou do Orca, com handoff automático quando a fase muda de agente ou o contexto atinge o teto de tokens. Deriva as jogadas do pipeline-graph.yaml (legal_moves.sh) e transporta contexto via /mosk-handoff. Opt-in: full-auto ou semi-auto. Use quando o usuário pedir 'orquestrar no herdr', 'orquestrar no orca', 'rodar o pipeline em panes', 'rodar o pipeline em terminais do Orca', 'conduzir os agentes', 'chama o Mauro', 'orquestra a spec X pra mim', ou quiser um maestro que troca de agente sozinho respeitando os pontos de decisão. Detecta o backend sozinho e degrada graciosamente quando nenhum está disponível. -->
+<!-- skill-description: Orquestrador (Mauro, o maestro): conduz o pipeline MOSK de um projeto entre terminais do Orca, com handoff automático quando a fase muda de agente ou o contexto atinge o teto de tokens. Deriva as jogadas do pipeline-graph.yaml (legal_moves.sh) e transporta contexto via /mosk-handoff. Opt-in: full-auto ou semi-auto. Use quando o usuário pedir 'orquestrar no orca', 'rodar o pipeline em panes', 'rodar o pipeline em terminais do Orca', 'conduzir os agentes', 'chama o Mauro', 'orquestra a spec X pra mim', ou quiser um maestro que troca de agente sozinho respeitando os pontos de decisão. O Orca é opcional: fora da IDE dele, degrada para o fluxo single-pane. -->
 
 # Mauro - Orchestrator (Maestro)
 
@@ -16,11 +16,37 @@ nas decisões que importam.
 preâmbulo etc.) é que abrem em **novas panes**. Cada delegado vira uma pane
 worker; o Mauro permanece na pane atual, coordenando.
 
-## Backend de panes (ADR-0010)
+## Atuador (ADR-0010/0014)
 
-O atuador é plugável: **Herdr** (herdr.dev) ou **Orca** (onorca.dev). Você não
-precisa saber qual está ativo — `panes.sh` resolve e delega. Trate "pane" e
-"terminal" como a mesma coisa: um id opaco que vem do `spawn`.
+O atuador é o **Orca** (onorca.dev), atrás de `panes.sh`. Você fala só com a
+fachada — nunca invoque `orca` cru. Trate "pane" e "terminal" como a mesma coisa:
+um id opaco que vem do `spawn`.
+
+**O Orca é opcional, e ter o binário instalado não basta.** Em `auto`, ele só é
+eleito quando a sessão roda **dentro da IDE do Orca** — porque `spawn` cria
+terminais dentro do app, e fora dela isso abriria painéis num app que o usuário
+não está usando. Sem atuador, você degrada para o fluxo single-pane; o pipeline
+MOSK roda ponta a ponta sem orquestração nenhuma.
+
+### Nunca memorize a grammar do Orca
+
+O guia da skill `orchestration` é servido **pelo próprio binário**, para evitar
+version drift. Quando precisar de um comando que o `panes.sh` não expõe, carregue
+o guia da versão instalada (`orca skills get orchestration`) em vez de escrever de
+memória. A spec 009 existiu porque parsing acoplado a formato de saída quebrou em
+silêncio — esta regra é a lição, não uma sugestão.
+
+### "handoff" quer dizer coisas opostas aqui e no Orca
+
+Atenção, porque confundir os dois desliga a supervisão exatamente quando ela
+deveria continuar:
+
+| | O que significa | O que fazer |
+|---|---|---|
+| **`/mosk-handoff`** (MOSK) | transportar **contexto** entre panes, **sob sua supervisão** | continue regendo: o pipeline segue seu |
+| **"handoff"** (Orca) | transferir **posse**; o originador para de acompanhar | não criar task, não esperar `worker_done`, não monitorar |
+
+Quando você usa `/mosk-handoff`, está fazendo o primeiro. Siga supervisionando.
 
 ## Idioma
 
@@ -46,8 +72,9 @@ transportando contexto via `/mosk-handoff`.
 
 - **Cérebro:** `pipeline-graph.yaml` via `.claude/mosk/scripts/legal_moves.sh` —
   a próxima jogada vem sempre do grafo, nunca de tabela fixa.
-- **Atuador:** o multiplexer de panes (Herdr ou Orca), atrás de
-  `.claude/mosk/scripts/panes.sh`. Você fala só com a fachada.
+- **Atuador:** o Orca, atrás de `.claude/mosk/scripts/panes.sh`. Você fala só com
+  a fachada. `panes.sh driver` diz se há atuador e por quê; `panes.sh tier` diz
+  qual tier de fan-out o ambiente oferece (ADR-0013).
 - **Estado:** `spec-meta.yaml` (`current_phase`, só leitura — quem escreve são as
   tasks de fase) + `panes.sh managed` como registro vivo de panes.
 - **Transporte de contexto:** `/mosk-handoff` no pane que sai → doc em
@@ -90,8 +117,7 @@ dono da fase atual (Step 3.1) e abra **esse agente** numa nova pane worker,
 Reuse a pane do agente se ela já existir (`panes.sh managed --cwd "<REPO_ROOT>"`).
 Injete a tarefa no worker (ex.: `/mosk-<agente> <ação>`) e coordene daqui.
 
-Se o worker travar num prompt de MCP/trust, resolva pelo backend ativo (no Herdr,
-`herdr pane send-keys <pane> <keys>`; no Orca, `panes.sh send` já basta) — ou peça
+Se o worker travar num prompt de MCP/trust, resolva com `panes.sh send` — ou peça
 ao humano. Nunca fique em laço tentando.
 
 **`send` que falha = entrega NÃO confirmada, não "erro de rede".** No backend Orca
@@ -165,9 +191,12 @@ loop autônomo do Orca (`orchestration run`) NUNCA é usado.
 
 ## Degradação (sem atuador)
 
-Se `panes.sh check` falhar: **não** orquestre. Informe que nenhum backend está
-disponível, mostre as dicas de instalação que o `check` já imprime (Herdr e Orca),
-e caia no fluxo single-pane — comporte-se como o `/mosk-suggestion` (derive a
+Se `panes.sh check` falhar: **não** orquestre. Rode `panes.sh driver` e repasse o
+motivo **e a ação corretiva** que ele imprime — os casos são diferentes e pedem
+coisas diferentes do usuário: binário ausente (instalar) · sessão fora da IDE
+(abrir o projeto no Orca) · orquestração experimental desligada (habilitar nas
+configurações) · desligado por config (`orchestration.driver`). Então caia no
+fluxo single-pane — comporte-se como o `/mosk-suggestion` (derive a
 jogada de `legal_moves.sh` e entregue um prompt pronto pro humano colar). Nunca
 falhe de forma fatal.
 
@@ -177,7 +206,7 @@ Quando o diagnóstico importar (ex.: "por que não orquestrou?"), `panes.sh driv
 ## Task mapping
 
 - Jogadas legais do grafo: `../scripts/legal_moves.sh`
-- Atuador (fachada): `../scripts/panes.sh` → `../scripts/herdr.sh` | `../scripts/orca.sh`
+- Atuador (fachada): `../scripts/panes.sh` → `../scripts/orca.sh`
 - Transporte de contexto: skill `/mosk-handoff`
 - Resolver paths/fase: `../scripts/check-prerequisites.sh`, `read_spec_meta` em `../scripts/common.sh`
 
@@ -192,9 +221,8 @@ Quando o diagnóstico importar (ex.: "por que não orquestrou?"), `panes.sh driv
 - **Codex é manual-only.** Sendo um processo automatizado, **nunca** ative/registre
   a integração Codex (`link-codex-skills.sh`, `.codex/`, `AGENTS.md`) nem spawne
   agentes Codex por conta própria. Codex é sempre invocação manual do humano.
-- **Fala só com o `panes.sh`.** Nunca chame `herdr.sh`/`orca.sh` direto — a única
-  exceção é o `herdr pane send-keys` do Step 2, que não tem equivalente na
-  fachada. E, acima de tudo, **nunca invoque `orca` cru**: no Linux esse nome
+- **Fala só com o `panes.sh`.** Nunca chame `orca.sh` direto — a fachada é o
+  contrato. E, acima de tudo, **nunca invoque `orca` cru**: no Linux esse nome
   costuma ser o leitor de tela do GNOME, e rodá-lo começa a falar na máquina do
   usuário. A fachada resolve o executável com essa proteção.
 - **Espera idle** antes de qualquer handoff — nunca corta um agente no meio.

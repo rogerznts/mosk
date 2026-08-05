@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# orca.sh — driver do atuador de panes sobre o Orca (onorca.dev), irmão do
-# herdr.sh. Implementa o MESMO contrato de subcomandos, para que o /mosk-orq
-# não saiba qual backend está ativo (ADR-0010). NUNCA decide o pipeline — o
-# cérebro é legal_moves.sh / pipeline-graph.yaml, e o humano decide toda
-# bifurcação (ADR-0006/0009).
+# orca.sh — driver do atuador de panes sobre o Orca (onorca.dev), único backend
+# suportado (ADR-0014). Implementa o contrato de subcomandos que o /mosk-orq
+# conhece, sempre atrás da fachada panes.sh. NUNCA decide o pipeline — o cérebro
+# é legal_moves.sh / pipeline-graph.yaml, e o humano decide toda bifurcação
+# (ADR-0006/0012).
+#
+# Wrapper FINO por decisão de arquitetura (ADR-0014 §6): a grammar do Orca não é
+# memorizada aqui nem no prompt — o guia é servido pelo binário
+# (`orca skills get orchestration`) para evitar version drift.
 #
 # Dependência externa OPCIONAL: o app Orca + sua CLI. Sem ele, `check` falha
 # graciosamente (exit != 0 + mensagem) e o /mosk-orq degrada para orientação
@@ -48,23 +52,39 @@ Subcomandos:
   close <pane>                            fecha o terminal
   managed [--cwd <path>]                  lista terminais geridos (JSON cru)
 
-Camada nativa (opt-in; exige orchestration.orca.native_tasks: true):
-  native [--json]                         a camada esta ligada? (exit 0 = sim)
-  task-create <spec> [--deps <json_array>] [--parent <id>]
-                                          cria a task; imprime o task_id
+Camada nativa de orquestracao (orchestration.orca.native_tasks: auto|on|off;
+default `auto` — liga quando o app expoe a camada):
+  native [--json]                         a camada esta ativa? (exit 0 = sim)
+  run [<objetivo>] [--json]               cria/vincula a Run (toda Task exige uma)
+  task-create <spec> [--deps <json_array>] [--parent <id>] [--objective <t>]
+                                          vincula a Run e cria a task; imprime o id
   task-list [--json] [...]                estado das tasks (prova de provenance)
   dispatch <task_id> <pane> [--no-inject] despacha; imprime o dispatch_id
-  await [--timeout-ms <n>] [--types <a,b>]
-                                          espera worker_done/escalation/gate
+  worker-start --task <id> [--worktree current] [--agent claude] [--name <n>]
+        [--retry-of <dispatch_id>]        caminho supervisionado composto (preferido)
+  worker-read --dispatch <id> [--limit N] transcript tipado do worker
+  await [--timeout-ms <n>] [--types <a,b>] [--ack <delivery_id>]
+                                          espera worker_done/escalation/question/gate
+  delivery-id                             (stdin: envelope do await) imprime o id
+                                          para o --ack da rodada seguinte
+  ask <pergunta> [--options <csv>] [--timeout-ms <n>] | --resume <message_id>
+                                          worker pergunta e BLOQUEIA
+  reply <message_id> <resposta>           coordenador responde a um `ask`
   gate-create <task_id> <pergunta> [--options <json_array>]
                                           abre o decision gate; imprime o gate_id
   gate-resolve <gate_id> <resolucao>      registra a decisao DO HUMANO
 
+Duas armadilhas que custaram bug e estao codificadas acima:
+  - `await` SEM --ack reentrega o mesmo lote a cada janela; passe o delivery-id
+    da rodada anterior.
+  - `question` faz parte dos tipos default: sem ele, um worker que usa `ask`
+    fica bloqueado ate o timeout, perguntando para quem nao ouve.
+
 Opcoes globais:
   --help,-h   esta ajuda
 
-Contrato: identico ao de herdr.sh — o "pane" aqui e o handle de terminal do
-Orca (term_...). Prefira chamar via panes.sh, que resolve o backend e delega.
+O "pane" aqui e o handle de terminal do Orca (term_...). Prefira chamar via
+panes.sh, que resolve a disponibilidade do atuador e delega.
 
 Resolucao do executavel (nesta ordem): $ORCA_CLI_COMMAND, orca-dev (quando
 $ORCA_DEV_REPO_ROOT), orca-ide, e por fim `orca` — este ultimo APENAS se nao
@@ -74,9 +94,9 @@ Config: o teto de tokens padrao vem de core-config.yaml
 (orchestration.context_token_ceiling); fallback 800000. Override por --ceiling
 ou pela env MOSK_CONTEXT_TOKEN_CEILING.
 
-Diferencas conhecidas em relacao ao Herdr: --split/--workspace/--tab nao tem
-equivalente no `terminal create` do Orca (avisamos em stderr e seguimos), e o
-Orca nao expoe contador de tokens — `tokens` faz o mesmo parse da TUI.
+Limites conhecidos: --split/--workspace/--tab nao tem equivalente no
+`terminal create` do Orca (avisamos em stderr e seguimos), e o Orca nao expoe
+contador de tokens — `tokens` faz parse da TUI (`over=unknown` quando nao casa).
 EOF
 }
 
@@ -546,8 +566,8 @@ cmd_send() {
     local before rc=0
     before="$(cmd_read "$pane" 2>/dev/null)" || rc=$?
 
-    # `--enter` é atômico aqui: não precisamos do respiro entre texto e Enter
-    # que o backend Herdr exige.
+    # `--enter` é atômico aqui: texto e Enter numa chamada só, sem respiro entre
+    # os dois.
     _orca_json "terminal send" terminal send --terminal "$pane" --text "$text" --enter >/dev/null
 
     # Não conseguir LER é diferente de ler e nada mudar. Sem leitura não há
@@ -621,32 +641,90 @@ cmd_close() {
     _orca_json "terminal close" terminal close --terminal "$pane" >/dev/null
 }
 
-# ───────────── camada nativa de orquestração (opt-in, ADR-0010) ─────────────
-# Só existe no backend Orca. Desligada por padrão: exige
-# orchestration.orca.native_tasks: true no core-config (ou MOSK_ORCA_NATIVE_TASKS).
+# ───────────── camada nativa de orquestração (ADR-0010/0013/0014) ─────────────
+# Default `auto` desde o ADR-0014 §4: liga quando o app expõe a camada. Sem ela
+# não existe Tier 1 de fan-out (ADR-0013), e o /mosk-orq perde ask/reply e gates.
 # O que ela dá: provenance (taskId/dispatchId verificáveis), preâmbulo de
 # lifecycle injetado no worker e espera POR EVENTO em vez de polling de idle.
 #
 # O que ela NÃO muda: o julgamento continua humano. O `orchestration run` do Orca
 # (coordinator loop autônomo) NUNCA é usado aqui — gates são criados por nós e
-# resolvidos com a resposta do humano (ADR-0006).
+# resolvidos com a resposta do humano (ADR-0006/0012).
+#
+# Modelo do Orca: Run (namespace + inbox do coordenador) → Task (item de
+# trabalho, com --deps formando DAG) → Dispatch (uma tentativa numa terminal).
+# A autoridade de lifecycle vive no Dispatch, não no terminal.
 
-native_tasks_enabled() {
-    if [[ -n "${MOSK_ORCA_NATIVE_TASKS:-}" ]]; then
-        [[ "$MOSK_ORCA_NATIVE_TASKS" == "true" ]]
-        return
+# A camada de orquestração é uma feature EXPERIMENTAL do app Orca: pode estar
+# desligada nas configurações mesmo com o runtime rodando. Sondamos a capacidade
+# real em vez de assumir — um comando barato e somente-leitura.
+# Motivo de existir: com `native_tasks: auto` (default desde o ADR-0014 §4),
+# ligar sem sondar produziria falha no meio de uma onda, não no começo.
+#
+# A sonda precisa ser um comando SEM pré-condição de estado. `task-list` não
+# serve: ele exige uma Run vinculada e responde `run_required` quando não há —
+# uma falha que prova justamente o contrário do que se quer medir (a camada
+# respondeu!). `run-list` é inspeção pura: não consome mail, não exige Run.
+NATIVE_PROBE_CACHE=""
+orch_capable() {
+    if [[ -z "$NATIVE_PROBE_CACHE" ]]; then
+        local raw
+        raw="$(orca_cli orchestration run-list --json 2>/dev/null || true)"
+        if [[ "$(_json_ok "$raw")" == "true" ]]; then
+            NATIVE_PROBE_CACHE=yes
+        else
+            NATIVE_PROBE_CACHE=no
+        fi
     fi
-    local cfg val
-    cfg="$(core_config_file 2>/dev/null || true)"
-    [[ -n "$cfg" && -f "$cfg" ]] || return 1
-    val="$(grep -E '^[[:space:]]*native_tasks:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[[:space:]]*#.*//; s/[[:space:]]*$//')"
-    [[ "$val" == "true" ]]
+    [[ "$NATIVE_PROBE_CACHE" == yes ]]
+}
+
+# on | off | auto (default). Precedência: env > core-config > auto.
+# Legado: `true`/`false` continuam válidos como sinônimos de on/off.
+NATIVE_REASON=""
+native_tasks_enabled() {
+    local val="${MOSK_ORCA_NATIVE_TASKS:-}"
+    local src="env"
+    if [[ -z "$val" ]]; then
+        local cfg
+        cfg="$(core_config_file 2>/dev/null || true)"
+        if [[ -n "$cfg" && -f "$cfg" ]]; then
+            val="$(grep -E '^[[:space:]]*native_tasks:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[[:space:]]*#.*//; s/[[:space:]]*$//')"
+            src="core-config"
+        fi
+    fi
+    [[ -z "$val" ]] && { val=auto; src=default; }
+
+    case "$val" in
+        on|true)
+            NATIVE_REASON="ligada explicitamente em $src"
+            return 0
+            ;;
+        off|false)
+            NATIVE_REASON="desligada explicitamente em $src"
+            return 1
+            ;;
+        auto)
+            if orch_capable; then
+                NATIVE_REASON="auto: o app expoe a camada de orquestracao"
+                return 0
+            fi
+            NATIVE_REASON="auto: a orquestracao do app nao respondeu (feature experimental desligada?)"
+            return 1
+            ;;
+        *)
+            NATIVE_REASON="valor '$val' desconhecido em $src; tratando como off"
+            return 1
+            ;;
+    esac
 }
 
 require_native() {
     if ! native_tasks_enabled; then
-        echo "erro: a camada nativa esta desligada." >&2
-        echo "  Ligue com orchestration.orca.native_tasks: true no core-config.yaml." >&2
+        echo "erro: a camada nativa esta indisponivel — $NATIVE_REASON." >&2
+        echo "  Se a orquestracao do app estiver desligada, habilite-a em" >&2
+        echo "  Settings > Experimental; para forcar, use" >&2
+        echo "  orchestration.orca.native_tasks: on no core-config.yaml." >&2
         return 1
     fi
     require_orca
@@ -662,14 +740,21 @@ try: d = json.load(sys.stdin)
 except Exception: sys.exit(0)
 keys = (want + "Id", want + "_id", "id")
 found = {}
-def walk(n):
+def walk(n, depth=0):
     if isinstance(n, dict):
         for k, v in n.items():
+            # O `id` da RAIZ do envelope identifica a requisicao, nao o recurso.
+            # Aceita-lo como fallback devolvia esse id sempre que a chave
+            # especifica faltasse — silenciosamente errado, e a guarda
+            # `[[ -n "$id" ]]` de quem chama nunca disparava.
+            if k == "id" and depth == 0:
+                walk(v, depth + 1)
+                continue
             if k in keys and isinstance(v, (str, int)) and str(v):
                 found.setdefault(k, str(v))
-            walk(v)
+            walk(v, depth + 1)
     elif isinstance(n, list):
-        for v in n: walk(v)
+        for v in n: walk(v, depth + 1)
 walk(d)
 for k in keys:
     if k in found:
@@ -683,25 +768,68 @@ cmd_native() {
     local json=0
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
     if native_tasks_enabled; then
-        [[ "$json" -eq 1 ]] && echo '{"native_tasks":true}' || echo "native_tasks: on"
+        if [[ "$json" -eq 1 ]]; then
+            echo "{\"native_tasks\":true,\"reason\":\"$NATIVE_REASON\"}"
+        else
+            echo "native_tasks: on ($NATIVE_REASON)"
+        fi
         return 0
     fi
-    [[ "$json" -eq 1 ]] && echo '{"native_tasks":false}' || echo "native_tasks: off"
+    if [[ "$json" -eq 1 ]]; then
+        echo "{\"native_tasks\":false,\"reason\":\"$NATIVE_REASON\"}"
+    else
+        echo "native_tasks: off ($NATIVE_REASON)"
+    fi
     return 1
+}
+
+# Toda Task pertence a uma Run: o contrato manda criar ou vincular uma ANTES de
+# `task-create`. Sem isso o comando falha com `run_required` e nada é criado.
+#
+# A checagem é o próprio `task-list`: ele exige Run vinculada, então o envelope
+# responde a pergunta "há Run?" sem efeito colateral. (É exatamente por essa
+# pré-condição que ele NÃO serve como sonda de capacidade — ver orch_capable.)
+ensure_run() {
+    local objective="${1:-MOSK pipeline}"
+    local raw
+    raw="$(orca_cli orchestration task-list --json 2>/dev/null || true)"
+    [[ "$(_json_ok "$raw")" == "true" ]] && return 0
+
+    raw="$(_orca_json "run-create" orchestration run-create --objective "$objective")" || return 1
+    local id
+    id="$(_id_from_json "$raw" run)"
+    [[ -n "$id" ]] && echo "run: $id" >&2
+    return 0
+}
+
+cmd_run() {
+    require_native || return 1
+    local objective="" json=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --json) json=1; shift ;;
+            -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
+            *) objective="${objective:+$objective }$1"; shift ;;
+        esac
+    done
+    ensure_run "${objective:-MOSK pipeline}" || return 1
+    [[ "$json" -eq 1 ]] && echo '{"ok":true,"run":"bound"}' || echo "run vinculada."
 }
 
 cmd_task_create() {
     require_native || return 1
-    local spec="" deps="" parent=""
+    local spec="" deps="" parent="" objective=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --deps) deps="$2"; shift 2 ;;
             --parent) parent="$2"; shift 2 ;;
+            --objective) objective="$2"; shift 2 ;;
             -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
             *) spec="${spec:+$spec }$1"; shift ;;
         esac
     done
     [[ -n "$spec" ]] || { echo "erro: informe o spec da task." >&2; return 2; }
+    ensure_run "${objective:-MOSK pipeline}" || return 1
     local -a extra=()
     [[ -n "$deps" ]] && extra+=(--deps "$deps")
     [[ -n "$parent" ]] && extra+=(--parent "$parent")
@@ -734,26 +862,147 @@ cmd_dispatch() {
     echo "${id:-ok}"
 }
 
+# `question` faz parte do default por necessidade, não por completude: quando um
+# worker usa `ask`, o que chega é uma mensagem desse tipo. Sem ela na lista, o
+# waiter não acorda e o worker fica bloqueado até o timeout — perguntando para
+# alguém que não está ouvindo.
+AWAIT_DEFAULT_TYPES="worker_done,escalation,question,decision_gate"
+
 cmd_await() {
     require_native || return 1
-    local timeout="900000" types="worker_done,escalation,decision_gate"
+    local timeout="900000" types="$AWAIT_DEFAULT_TYPES" ack=""
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --timeout|--timeout-ms) timeout="$2"; shift 2 ;;
             --types) types="$2"; shift 2 ;;
+            --ack) ack="$2"; shift 2 ;;
             -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
             *) shift ;;
         esac
     done
+    # O `check` devolve a Delivery FIFO mais antiga e REPETE esse mesmo lote até
+    # receber `--ack <delivery_id>`. Sem o ack, cada janela reentrega o que já foi
+    # processado e a espera nunca avança. Passe o deliveryId da rodada anterior:
+    # `--ack <id>` reconhece, checa e espera numa operação só.
+    local -a extra=()
+    [[ -n "$ack" ]] && extra+=(--ack "$ack")
     # Janela rolante: um timeout aqui é CHECKPOINT, não falha do worker. Tarefas
     # longas levam 15-60 min; quem decide parar é o humano.
     _orca_json "orchestration check --wait" orchestration check --wait \
-        --types "$types" --timeout-ms "$timeout"
+        "${extra[@]}" --types "$types" --timeout-ms "$timeout"
+}
+
+# Extrai o deliveryId do envelope devolvido por `await`, para alimentar o --ack
+# da rodada seguinte. Sem isso o chamador teria de parsear JSON no prompt.
+cmd_delivery_id() {
+    local raw
+    raw="$(cat)"
+    _id_from_json "$raw" delivery
 }
 
 cmd_task_list() {
     require_native || return 1
     orca_cli orchestration task-list --json "$@" 2>/dev/null
+}
+
+# ── ask / reply: canal estruturado de pergunta bloqueante ──
+# É o par natural dos guards `judgment` e dos blocos "Escalation suggested"
+# (ADR-0006): em vez de texto solto num terminal, a dúvida vira uma mensagem
+# tipada que acorda o coordenador e recebe resposta rastreável.
+#
+# `ask` é do WORKER (pergunta e bloqueia). `reply` é do COORDENADOR.
+# Timeout NÃO cancela a pergunta: ela fica pendente. Retomar é `ask --resume
+# <message_id>` — perguntar de novo criaria uma segunda thread idêntica, e aí não
+# há como saber qual resposta pertence a qual pergunta.
+cmd_ask() {
+    require_native || return 1
+    local question="" options="" timeout="600000" resume=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --options) options="$2"; shift 2 ;;
+            --timeout|--timeout-ms) timeout="$2"; shift 2 ;;
+            --resume) resume="$2"; shift 2 ;;
+            -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
+            *) question="${question:+$question }$1"; shift ;;
+        esac
+    done
+    local -a args=()
+    if [[ -n "$resume" ]]; then
+        args=(--resume "$resume")
+    else
+        [[ -n "$question" ]] || { echo "erro: informe a pergunta (ou --resume <message_id>)." >&2; return 2; }
+        args=(--question "$question")
+        [[ -n "$options" ]] && args+=(--options "$options")
+    fi
+    _orca_json "ask" orchestration ask "${args[@]}" --timeout-ms "$timeout"
+}
+
+cmd_reply() {
+    require_native || return 1
+    local msg="" body=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --id) msg="$2"; shift 2 ;;
+            -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
+            *) if [[ -z "$msg" ]]; then msg="$1"; else body="${body:+$body }$1"; fi; shift ;;
+        esac
+    done
+    [[ -n "$msg" && -n "$body" ]] || { echo "erro: uso: reply <message_id> <resposta>" >&2; return 2; }
+    _orca_json "reply" orchestration reply --id "$msg" --body "$body" >/dev/null
+}
+
+# ── worker-start: caminho supervisionado composto ──
+# Compõe worktree + terminal + readiness + dispatch numa operação e devolve um
+# recibo com os efeitos exatos. Preferido ao par spawn-próprio + dispatch
+# low-level, que fica para topologia que esta composição não expressa.
+#
+# `--worktree current` NÃO cria worktree git: cria um terminal de agente novo no
+# worktree atual. Criar worktree de verdade só se houver conflito concreto de
+# arquivos — paralelismo por si só não é motivo.
+cmd_worker_start() {
+    require_native || return 1
+    local task="" worktree="current" agent="claude" name="" retry_of=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --task) task="$2"; shift 2 ;;
+            --worktree) worktree="$2"; shift 2 ;;
+            --agent) agent="$2"; shift 2 ;;
+            --name) name="$2"; shift 2 ;;
+            --retry-of) retry_of="$2"; shift 2 ;;
+            -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
+            *) [[ -z "$task" ]] && task="$1"; shift ;;
+        esac
+    done
+    [[ -n "$task" ]] || { echo "erro: uso: worker-start --task <task_id> [--worktree current] [--agent claude]" >&2; return 2; }
+    local -a extra=()
+    [[ -n "$name" ]] && extra+=(--name "$name")
+    [[ -n "$retry_of" ]] && extra+=(--retry-of "$retry_of")
+    local raw
+    raw="$(_orca_json "worker-start" orchestration worker-start \
+        --task "$task" --worktree "$worktree" --agent "$agent" "${extra[@]}")" || return 1
+    local id
+    id="$(_id_from_json "$raw" dispatch)"
+    echo "${id:-ok}"
+}
+
+# ── worker-read: leitura tipada, por dispatch ──
+# Devolve o transcript que o Orca consegue provar, ou saída de terminal com
+# `fallbackReason` explícito quando não consegue. Prefira isto a `read` de
+# terminal cru: foi essa superfície que quebrou em silêncio na spec 009.
+# Continue pelo `cursor` devolvido; em `source_changed`, recomece sem o antigo.
+cmd_worker_read() {
+    require_native || return 1
+    local dispatch="" limit="50"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --dispatch) dispatch="$2"; shift 2 ;;
+            --limit) limit="$2"; shift 2 ;;
+            -*) echo "opcao desconhecida: $1" >&2; return 2 ;;
+            *) [[ -z "$dispatch" ]] && dispatch="$1"; shift ;;
+        esac
+    done
+    [[ -n "$dispatch" ]] || { echo "erro: uso: worker-read --dispatch <dispatch_id> [--limit N]" >&2; return 2; }
+    _orca_json "worker-read" orchestration worker-read --dispatch "$dispatch" --limit "$limit"
 }
 
 cmd_gate_create() {
@@ -795,7 +1044,7 @@ cmd_managed() {
         esac
     done
     # Registro vivo: o terminal list já traz handle, título e worktree.
-    # Devolvemos o JSON cru (mesma semântica do backend Herdr).
+    # Devolvemos o JSON cru: quem chama filtra o que precisa.
     if [[ -z "$cwd" ]]; then
         orca_cli terminal list --json 2>/dev/null
     else
@@ -819,12 +1068,18 @@ case "$1" in
     read)      shift; cmd_read "$@" ;;
     close)     shift; cmd_close "$@" ;;
     managed)   shift; cmd_managed "$@" ;;
-    # camada nativa (opt-in)
+    # camada nativa de orquestração (native_tasks: auto)
     native)       shift; cmd_native "$@" ;;
+    run)          shift; cmd_run "$@" ;;
     task-create)  shift; cmd_task_create "$@" ;;
     task-list)    shift; cmd_task_list "$@" ;;
     dispatch)     shift; cmd_dispatch "$@" ;;
+    worker-start) shift; cmd_worker_start "$@" ;;
+    worker-read)  shift; cmd_worker_read "$@" ;;
     await)        shift; cmd_await "$@" ;;
+    delivery-id)  shift; cmd_delivery_id "$@" ;;
+    ask)          shift; cmd_ask "$@" ;;
+    reply)        shift; cmd_reply "$@" ;;
     gate-create)  shift; cmd_gate_create "$@" ;;
     gate-resolve) shift; cmd_gate_resolve "$@" ;;
     *) echo "subcomando desconhecido: $1" >&2; usage; exit 2 ;;

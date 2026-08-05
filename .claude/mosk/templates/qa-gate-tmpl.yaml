@@ -13,9 +13,23 @@ schema: 1
 story: "{{epic_num}}.{{story_num}}"
 story_title: "{{story_title}}"
 gate: "{{gate_status}}" # PASS|CONCERNS|FAIL|WAIVED
+quality_score: {{quality_score}} # 0-100. OBSERVAÇÃO, não gatilho: ver abaixo.
 status_reason: "{{status_reason}}" # 1-2 sentence summary of why this gate decision
 reviewer: "Quinn (Test Architect)"
 updated: "{{iso_timestamp}}"
+
+# Sobre `quality_score` (obrigatório desde a spec 010):
+# - CALCULADO, não estimado, pela fórmula canônica do toolkit — a mesma de
+#   review-story.md e assess-nfr.md:
+#       quality_score = 100 - (20 × FAILs) - (10 × CONCERNS), limitado a [0,100]
+#   Pesos customizados em technical-preferences.md sobrescrevem.
+# - `gate` continua sendo o ÚNICO árbitro de terminação do delivery-loop
+#   (ADR-0008 §3). O score não decide nada sozinho.
+# - Ele existe para tornar a TRAJETÓRIA visível entre voltas: dois FAIL com
+#   score parado sinalizam estagnação — hora de escalar, não de tentar de novo;
+#   dois FAIL com score subindo sinalizam convergência lenta. Isso só funciona
+#   porque o número vem de contagem, não de nova apreciação a cada rodada.
+# - O corte de referência vem de `qa.score_threshold` no core-config (default 85).
 
 # Always present but only active when WAIVED
 waiver: { active: false }
@@ -53,8 +67,7 @@ examples:
 # Uncomment and use if your team wants more detail
 
 optional_fields_examples:
-  quality_and_expiry: |
-    quality_score: 75  # 0-100 (optional scoring)
+  expiry: |
     expires: "2025-01-26T00:00:00Z"  # Optional gate freshness window
 
   evidence: |
