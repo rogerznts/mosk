@@ -183,3 +183,71 @@ própria: em caso de dúvida, sequencial.
   [adr-0014](./adr-0014-orca-single-actuator.md) §6: o wrapper permanece fino e
   a grammar é consultada na versão servida pelo binário, nunca memorizada no
   prompt.
+
+---
+
+## Emenda (spec 010, volta 2) — `worker-start` deixa de ser o caminho padrão
+
+- Data: 2026-08-05
+- Autor: Vinicius (mosk-architect), a partir do gate `010` (QA-010-008)
+- Altera: a decisão 2 (tabela de tiers) e o §4 de `data/fanout-seam.md`, que
+  descreviam `worker-start` como **preferido**. Não altera nada mais deste ADR.
+
+### O que a execução mostrou
+
+O `worker-start` foi adotado como caminho preferido porque a documentação do
+Orca o descreve assim — composição de worktree, terminal, readiness e dispatch
+num passo, com recibo dos efeitos. Nunca havia sido exercitado.
+
+Ao ser exercitado, em quatro rodadas de smoke:
+
+- **cria o terminal e o dispatch corretamente** — a task vai para `dispatched` e
+  o dispatch existe e é rastreável;
+- **mas o prompt não é submetido** ao agente `claude`. O texto chega ao buffer de
+  input da TUI e fica lá: worker `running` com **0 tokens**, task presa em
+  `dispatched`, nenhum `worker_done`.
+
+Duas mitigações falharam: enviar `Enter` logo após `tui-idle`, e aguardar o
+buffer estabilizar antes de enviar (`_wait_buffer_settled`). O que **funcionou**
+foi um `Enter` enviado manualmente minutos depois — o worker então processou e
+concluiu a tarefa. Ou seja: o mecanismo de submissão do terminal funciona; o que
+não funciona é o `worker-start` deixá-lo submetido.
+
+Isso refuta, para este caminho, a premissa registrada em
+[adr-0010](./adr-0010-orca-backend.md) §2 de que o `--enter` atômico do Orca
+dispensa o "respiro" que o backend anterior exigia: **é verdade para `send`, e
+falso para `worker-start`**, que não injeta pela mesma via.
+
+### Decisão
+
+**1. O caminho padrão do Tier 1 passa a ser `spawn` + `send` com prova de
+entrega.** É o par que a spec 009 blindou: o `send` tira snapshot do terminal,
+injeta, e relê até uma sonda distintiva do texto aparecer mais vezes do que
+antes — devolvendo erro quando não confirma. Nunca falhou em nenhuma rodada.
+
+**2. `worker-start` continua disponível, rebaixado a opcional.** Não é removido:
+suas vantagens são reais (um passo em vez de três, recibo com os efeitos exatos,
+placement remoto via `--on`). Passa a ser usado apenas quando a submissão for
+**comprovada** naquele ambiente — nunca assumida.
+
+**3. Entrega sem prova é falha, não sucesso.** Generalizando a lição da spec 009
+para além do `send`: qualquer caminho que entregue trabalho a um worker precisa
+confirmar que o worker o recebeu. Um dispatch criado não é prova de prompt
+submetido — foi exatamente essa confusão que fez `worker-start` parecer
+funcionar por leitura de código.
+
+**4. O resto do Tier 1 permanece intacto e validado.** Run, `task-create` com
+`--deps`, `task-list` com provenance, `worker-read` tipado, `worker-stop`, e o
+`check --wait` com `--ack` — todos exercitados e funcionando. O que falhou foi
+um elo, não a camada.
+
+### Consequências
+
+- **Positiva:** o Tier 1 passa a se apoiar no único caminho com prova de entrega,
+  e o fan-out deixa de depender de um elo que não entrega.
+- **Custo:** perde-se a composição num passo; `spawn` + `send` exige orquestrar
+  terminal e injeção separadamente, e o recibo de efeitos do `worker-start` não
+  tem equivalente direto.
+- **Registrado:** se o Orca corrigir a submissão do `worker-start`, a decisão 2
+  permite voltar a preferi-lo sem nova emenda — o critério é comprovar, não a
+  documentação afirmar.
