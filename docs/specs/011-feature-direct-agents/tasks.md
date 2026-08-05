@@ -21,46 +21,46 @@
 *Desbloqueia o resto. A matriz de invocação (US2) entra na mesma passada dos
 arquivos — abrir os 12 agentes duas vezes seria desperdício.*
 
-- [ ] **T001** [US1] Criar `mosk/.claude/agents/` e fixar o contrato do arquivo
+- [x] **T001** [US1] Criar `mosk/.claude/agents/` e fixar o contrato do arquivo
   migrado: front-matter (`name`, `description` vinda da `skill-description`) +
   corpo preservado + caminhos relativos à raiz do install
   (`.claude/mosk/tasks/x.md`, nunca `../tasks/x.md`).
-- [ ] **T002** [US1] Migrar um agente-piloto (`dev`) ponta a ponta e validar o
+- [x] **T002** [US1] Migrar um agente-piloto (`dev`) ponta a ponta e validar o
   contrato: front-matter correto, zero `../tasks/`, skill regenerada apontando
   para o novo local. **Só depois de passar, seguir para a onda.** [dep: T001]
-- [ ] **T003** [US2] Redigir a matriz de invocação do ADR-0016 §2 em formato
+- [x] **T003** [US2] Redigir a matriz de invocação do ADR-0016 §2 em formato
   reutilizável, para entrar em cada agente que pode invocar. [dep: T001]
 
 ### Onda de migração — 4 unidades independentes
 
-- [ ] **T004** [P] [US1+US2] Pipeline: `po`, `sm`, `dev` (dev já feito na T002 —
+- [x] **T004** [P] [US1+US2] Pipeline: `po`, `sm`, `dev` (dev já feito na T002 —
   revisar). Migrar + matriz de invocação. [dep: T002, T003]
-- [ ] **T005** [P] [US1+US2] Qualidade: `qa`, `security`. Migrar + matriz.
+- [x] **T005** [P] [US1+US2] Qualidade: `qa`, `security`. Migrar + matriz.
   [dep: T002, T003]
-- [ ] **T006** [P] [US1] Preâmbulo: `analyst`, `pm`, `architect`. Migrar. **Não
+- [x] **T006** [P] [US1] Preâmbulo: `analyst`, `pm`, `architect`. Migrar. **Não
   recebem matriz de invocação** — são os que ninguém pode invocar
   automaticamente; recebem a nota inversa. [dep: T002, T003]
-- [ ] **T007** [P] [US1] Design e meta: `ux-expert`, `ui-expert`, `bench`, `orq`.
+- [x] **T007** [P] [US1] Design e meta: `ux-expert`, `ui-expert`, `bench`, `orq`.
   Migrar. `bench` mantém a exceção do ADR-0002 intacta. [dep: T002, T003]
 
 ### Fechamento do M1
 
-- [ ] **T008** [US1] Remover `mosk/.claude/mosk/agents/` como fonte, após
+- [x] **T008** [US1] Remover `mosk/.claude/mosk/agents/` como fonte, após
   confirmar que os 12 migraram. [dep: T004, T005, T006, T007]
-- [ ] **T009** [US1] `sync-agents-skills.sh`: inverter a direção (agente → skill),
+- [x] **T009** [US1] `sync-agents-skills.sh`: inverter a direção (agente → skill),
   remover o modo `skills-to-agents`, ajustar o `--clean` para a nova fonte, e
   garantir que instalação antiga reaponte sem falhar em silêncio. [dep: T008]
-- [ ] **T010** [US1] Validar o roster: 12 agentes, 11 skills puras, toda skill
+- [x] **T010** [US1] Validar o roster: 12 agentes, 11 skills puras, toda skill
   apontando para agente existente, zero `../tasks/` nos agentes. [dep: T009]
 
 ## M2 — Nome de branch (US3)
 
 *Independente de M1. Pode entregar a qualquer momento.*
 
-- [ ] **T011** [US3] `create-new-feature.sh`: separar `BRANCH_NAME`
+- [x] **T011** [US3] `create-new-feature.sh`: separar `BRANCH_NAME`
   (`{tipo}/{NNN}-{nome}`) de `SPEC_DIR_NAME` (`{NNN}-{tipo}-{nome}`) — hoje são a
   mesma string, e é essa fusão que precisa acabar.
-- [ ] **T012** [US3] Detecção de número aceita `^([a-z]+/)?([0-9]{3})-`,
+- [x] **T012** [US3] Detecção de número aceita `^([a-z]+/)?([0-9]{3})-`,
   **mantendo a âncora** da spec 010. Sem a âncora, `docs/adr-0012-0014-x` volta a
   contar como spec 014. [dep: T011]
 - [ ] **T013** [US3] Resolução branch → spec por número (não por igualdade de
