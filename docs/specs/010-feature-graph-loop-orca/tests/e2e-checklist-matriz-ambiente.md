@@ -11,17 +11,30 @@ desenvolvimento não alcança. As demais validações (`lint-graph`,
 Cada passo diz a ação e o resultado esperado. Um agente de automação consegue
 executar tudo abaixo por linha de comando.
 
+## Execução parcial — 2026-08-05 (durante o `qa-gate`)
+
+**Legenda:** `[x]` executado e passou · `[~]` **simulado**, não literal ·
+`[!]` executado e **reprovou** · `[ ]` não executado.
+
+10 dos 22 passos rodaram. O Ambiente B foi simulado removendo as variáveis
+`ORCA_*`: exercita a lógica de detecção, que é o que decide o comportamento, mas
+o processo seguia dentro da IDE — não é o contexto literal, e está marcado como
+tal. O Ambiente C não rodou (sem acesso a runtime Codex). Os passos 4–8, 12, 21 e
+22 exigem worker vivo ou spec de teste.
+
+O passo 19 **reprovou** e virou o achado QA-010-006 do gate.
+
 ## Ambiente A — dentro da IDE do Orca
 
-- [ ] **1. Abrir o projeto no Orca e rodar `bash .claude/mosk/scripts/panes.sh driver --json`**
+- [x] **1. Abrir o projeto no Orca e rodar `bash .claude/mosk/scripts/panes.sh driver --json`**
   Esperado: `"driver":"orca"` com `"reason":"sessao dentro do Orca"`.
 
-- [ ] **2. Rodar `bash .claude/mosk/scripts/panes.sh tier --json`**
+- [x] **2. Rodar `bash .claude/mosk/scripts/panes.sh tier --json`**
   Esperado: `"tier":"1"` e `"runtime_decides":false`, se a orquestração
   experimental estiver habilitada. Se estiver desligada: `"tier":"2+"` e um
   `actionable` mandando habilitar em Settings > Experimental — **sem erro**.
 
-- [ ] **3. Rodar `bash .claude/mosk/scripts/legal_moves.sh implement`**
+- [x] **3. Rodar `bash .claude/mosk/scripts/legal_moves.sh implement`**
   Esperado: o bloco `fan-out disponível nesta fase (modo: unit)` aparece.
 
 - [ ] **4. Numa spec pequena com 2+ tarefas `[P]`, invocar `/mosk-dev implement`**
@@ -43,15 +56,15 @@ executar tudo abaixo por linha de comando.
 
 ## Ambiente B — Claude Code, fora da IDE do Orca
 
-- [ ] **9. Num terminal comum (fora do Orca), rodar `panes.sh driver --json`**
+- [~] **9. Num terminal comum (fora do Orca), rodar `panes.sh driver --json`**
   Esperado: `"driver":"none"` com `"reason":"sessao fora da IDE do Orca"` e um
   `actionable` mandando abrir o projeto no Orca. **Não** pode eleger o Orca só
   porque o binário está no PATH.
 
-- [ ] **10. Rodar `panes.sh tier --json`**
+- [~] **10. Rodar `panes.sh tier --json`**
   Esperado: `"tier":"2+"` com `"runtime_decides":true`.
 
-- [ ] **11. Rodar `MOSK_ORQ_DRIVER=orca panes.sh driver --json`**
+- [~] **11. Rodar `MOSK_ORQ_DRIVER=orca panes.sh driver --json`**
   Esperado: o override explícito é honrado (`"driver":"orca"`) — quem força,
   assume.
 
@@ -77,18 +90,18 @@ executar tudo abaixo por linha de comando.
 
 ## Degradações — nenhuma pode ser fatal (SC-006)
 
-- [ ] **17. Rodar com `orchestration.driver: herdr` no core-config**
+- [x] **17. Rodar com `orchestration.driver: herdr` no core-config**
   Esperado: falha com **mensagem de migração** citando o ADR-0014, indicando
   ajustar para `auto`. Nunca degrada em silêncio.
 
-- [ ] **18. Rodar com `orchestration.driver: none`**
+- [x] **18. Rodar com `orchestration.driver: none`**
   Esperado: fluxo single-pane, sem erro; o pipeline roda ponta a ponta.
 
-- [ ] **19. Renomear temporariamente o binário do Orca e rodar `panes.sh driver`**
+- [!] **19. Renomear temporariamente o binário do Orca e rodar `panes.sh driver`**
   Esperado: motivo `CLI do Orca nao encontrada` e `actionable` de instalação.
   Restaure o binário ao fim.
 
-- [ ] **20. Rodar `panes.sh await` sem a camada nativa disponível**
+- [x] **20. Rodar `panes.sh await` sem a camada nativa disponível**
   Esperado: mensagem clara apontando a configuração a habilitar — nunca stack
   trace nem saída vazia.
 

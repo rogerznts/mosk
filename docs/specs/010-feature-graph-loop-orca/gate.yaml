@@ -1,0 +1,137 @@
+schema: 1
+story: "010"
+story_title: "Operação em loops e grafos + Orca como atuador único"
+gate: CONCERNS
+quality_score: 30
+status_reason: >-
+  Os 33 requisitos funcionais estão implementados e verificáveis no disco, e toda
+  validação automatizável passa. Execução parcial do checklist de matriz fechou
+  SC-006 e metade de SC-005, e encontrou um defeito novo (QA-010-006). Os
+  critérios que dependem de worker vivo — SC-001/002/003/004/007 — seguem sem
+  verificação, e a camada nativa do Orca continua não exercitada.
+reviewer: "Joaquim (mosk-qa)"
+updated: "2026-08-05T07:52:00Z"
+
+# Nota sobre a queda 40 -> 30: o score caiu porque a verificação encontrou mais
+# do que confirmou — comportamento esperado numa primeira execução de checklist.
+# A fórmula conta achados, não confirmações; a série de scores precisa ser lida
+# junto do que foi verificado, não isolada.
+
+waiver: { active: false }
+
+top_issues:
+  - id: "QA-010-001"
+    severity: high
+    finding: >-
+      7 dos 8 critérios de sucesso não verificados end-to-end. T034 (matriz de
+      três ambientes) declarada como não executada pelo dev; SC-001 (ganho de
+      tempo do fan-out), SC-002 (zero reprocessamento), SC-003 (ask atendido),
+      SC-004 (AC não atendido reprovado), SC-005/006 (paridade e degradação) e
+      SC-007 (contador intacto) dependem dela ou de execução real. Só SC-008
+      (numeração) foi comprovado — empiricamente, porque o bug ocorreu.
+    suggested_action: >-
+      Executar tests/e2e-checklist-matriz-ambiente.md (22 passos) e re-emitir o
+      gate. O checklist já cobre os três ambientes, as quatro degradações e a
+      não-contaminação dos contadores.
+  - id: "QA-010-002"
+    severity: high
+    finding: >-
+      A camada nativa do Orca foi implementada contra a documentação e nunca
+      exercitada contra o runtime. `worker-start`, `worker-read`, `ask`, `reply`
+      e `await --ack` só foram testados como roteamento de subcomando (mensagem
+      de erro de uso). O único comando que tocou o runtime de verdade foi
+      `run-create`. Um erro de flag ou de forma de envelope nesses cinco só
+      apareceria em uso — e foi exatamente essa classe de falha silenciosa que
+      originou a spec 009.
+    suggested_action: >-
+      Rodar uma onda mínima real (1 task, 1 worker) dentro da IDE do Orca,
+      exercitando o ciclo completo worker-start → await --ack → ask/reply →
+      worker_done, antes de considerar a US1 convergida.
+  - id: "QA-010-003"
+    severity: medium
+    finding: >-
+      Este gate foi emitido pelo mesmo contexto que implementou a spec, herdando
+      o histórico de todas as decisões e trade-offs — precisamente a condição que
+      a US2 desta spec define como não-confiável. A verificação foi compensada com
+      checagem mecânica contra o disco, mas o julgamento de severidade e o veredito
+      permanecem sujeitos ao viés que a spec existe para eliminar.
+    suggested_action: >-
+      Re-emitir o gate a partir de contexto limpo (subagente ou sessão nova). Um
+      verificador independente pode razoavelmente concluir FAIL em vez de
+      CONCERNS — é justamente essa dúvida que um gate não-independente não resolve.
+  - id: "QA-010-004"
+    severity: medium
+    finding: >-
+      O espelho local `.claude/mosk/` está defasado do template em 20+ arquivos
+      que nunca recebeu (bench.md, grill.md, planner.md, payload-*.sh, vários
+      templates) e mantém 4 legados que o template já removeu. A spec sincronizou
+      apenas os 15 arquivos que tocou. É condição pré-existente, mas agora
+      conhecida — e afeta a fidelidade de qualquer teste feito neste workspace.
+    suggested_action: >-
+      Abrir item próprio para reconciliar o espelho por inteiro, decidindo caso a
+      caso o que é legado a remover e o que nunca foi propagado.
+  - id: "QA-010-006"
+    severity: medium
+    finding: >-
+      Encontrado ao executar o passo 19 do checklist: `resolve_orca_cmd` aceita
+      `$ORCA_CLI_COMMAND` sem verificar se o caminho existe (orca.sh:112-115).
+      Com um valor quebrado, o `check` falha adiante e reporta
+      `runtime-unavailable` — o usuário recebe "abra ou reinicie o app Orca"
+      quando a causa real é caminho inexistente. O caminho comum (binário fora do
+      PATH) diagnostica corretamente `orca-not-found`; só o de configuração
+      manual engana. Contraria o FR-005, que exige distinguir os quatro casos
+      justamente porque a ação do usuário difere em cada um.
+    suggested_action: >-
+      Validar que o primeiro elemento de $ORCA_CLI_COMMAND é executável antes de
+      aceitá-lo; se não for, reportar `orca-not-found` com o caminho tentado.
+  - id: "QA-010-005"
+    severity: low
+    finding: >-
+      A validação do FR-009 criou uma Run órfã no runtime do Orca do usuário
+      (5ef64d40-68b6-4432-8d78-bc87f0305a61), vazia e sem tasks.
+    suggested_action: >-
+      Remover manualmente se incomodar; `orchestration reset --tasks` limparia
+      estado local mais amplo do que o necessário.
+
+evidence:
+  frs_verified: 33
+  frs_total: 33
+  success_criteria_verified: 2          # SC-006 e SC-008; SC-005 parcial
+  success_criteria_total: 8
+  automated_checks:
+    selftest_orca_driver: "44 asserções ok"
+    lint_graph: "clean"
+    audit_docs_paths: "clean (R1..R5)"
+  tasks_delivered: 34
+  tasks_total: 35
+  # Execução parcial de tests/e2e-checklist-matriz-ambiente.md
+  checklist_matriz:
+    executados: "1,2,3 (real) · 9,10,11 (simulado por env) · 17,18,19,20 (real)"
+    nao_executados: "4-8, 12-16, 21, 22"
+    ambiente_a: "real — driver=orca, tier=1, fan-out anunciado pelo grafo"
+    ambiente_b: >-
+      SIMULADO removendo as variáveis ORCA_*. Exercita a lógica de detecção,
+      que é o que decide o comportamento, mas o processo segue rodando dentro
+      da IDE — não é o contexto literal.
+    ambiente_c: "NÃO EXECUTADO — sem acesso a runtime Codex."
+    degradacoes: >-
+      4 de 4 sem erro fatal: driver herdr falha com migração e exit 1; driver
+      none devolve envelope; binário ausente do PATH diagnostica orca-not-found;
+      await sem camada nativa dá mensagem acionável. Fecha SC-006.
+
+nfr_validation:
+  security: { status: PASS, notes: "Sem superfície nova de auth/input/segredo; a remoção do Herdr reduz superfície externa." }
+  reliability: { status: CONCERNS, notes: "Caminhos de degradação escritos e parcialmente testados; os do await sem camada nativa não foram exercitados." }
+  maintainability: { status: PASS, notes: "Uma camada a menos no atuador; regras registradas em ADR e rules; selftest ampliado de 24 para 44 asserções." }
+  performance: { status: CONCERNS, notes: "SC-001 (ganho de tempo do fan-out) não medido — nenhuma onda foi executada." }
+
+risk_summary:
+  totals: { critical: 0, high: 2, medium: 3, low: 1 }
+  recommendations:
+    must_fix:
+      - "Exercitar a camada nativa do Orca ponta a ponta (worker-start → await --ack → ask/reply → worker_done)."
+      - "Corrigir o diagnóstico de $ORCA_CLI_COMMAND quebrado (QA-010-006)."
+      - "Completar a matriz: passos 4-8, 12-16, 21, 22 — os que exigem worker vivo, spec de teste ou runtime Codex."
+    monitor:
+      - "Re-emitir este gate de contexto limpo para remover o viés do autor."
+      - "Reconciliar o espelho local em item próprio."
