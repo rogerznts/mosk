@@ -18,6 +18,18 @@ version: 1
 # kind: phase     → o ponteiro (current_phase) ocupa; update_spec_phase valida.
 # kind: side-trip → alcançável a partir de uma fase, mas o ponteiro NÃO entra.
 # mode: skill (contexto compartilhado, interativo) | agent (isolado, paralelo)
+#
+# fanout: unit    → a fase admite ONDA: N unidades independentes despachadas
+#                   juntas, encerradas por um join (ADR-0012/0013). As unidades
+#                   vêm dos marcadores [P] do tasks.md — o grafo diz que a fase
+#                   PODE ter onda, nunca quantas nem quais. Contrato operacional
+#                   em data/fanout-seam.md.
+# parallel_with   → deixa de ser decorativo: os nós listados podem compor a MESMA
+#                   onda (side-trips que não se bloqueiam). Antes o campo existia
+#                   e ninguém lia.
+#
+# INVARIANTE que o fan-out não relaxa: o humano aprova o PLANO da onda uma vez
+# (decisão de rota); o join volta pra ele. Nenhuma onda encadeia outra sozinha.
 nodes:
   discovery:       { kind: side-trip, agent: mosk-analyst,   mode: skill, optional: true }
   prd:             { kind: side-trip, agent: mosk-pm,         mode: skill, optional: true }
@@ -29,7 +41,7 @@ nodes:
   tasks:           { kind: phase,     agent: mosk-po,         mode: skill }
   clarify:         { kind: side-trip, agent: mosk-po,         mode: skill, optional: true }
   readiness:       { kind: side-trip, agent: mosk-sm,         mode: skill, optional: true }
-  implement:       { kind: phase,     agent: mosk-dev,        mode: skill }
+  implement:       { kind: phase,     agent: mosk-dev,        mode: skill, fanout: unit }
   security-review: { kind: side-trip, agent: mosk-security,   mode: agent, optional: true }
   qa-gate:         { kind: phase,     agent: mosk-qa,         mode: agent }
   archived:        { kind: phase,     terminal: true }

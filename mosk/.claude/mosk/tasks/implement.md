@@ -32,8 +32,16 @@ data:
 
 4. **Choose how to execute: sequential, or a fan-out wave.**
 
-   Read the `[P]` markers in `tasks.md`. If the current phase has two or more
-   `[P]` units, offer a **wave**; otherwise go sequential and skip to 4b.
+   Ask the graph whether this phase admits a wave at all — it is the single
+   source of that fact, not this prompt:
+
+   ```bash
+   bash .claude/mosk/scripts/legal_moves.sh implement
+   ```
+
+   A `fan-out disponível` block means the phase declares `fanout` in
+   `pipeline-graph.yaml`. Then read the `[P]` markers in `tasks.md`: two or more
+   `[P]` units → offer a **wave**; otherwise go sequential and skip to 4b.
 
    **Never infer parallelism.** `[P]` means *different files, no dependencies*.
    Honour the marker as written — do not derive it by reasoning about the code,

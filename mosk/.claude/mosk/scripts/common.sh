@@ -377,6 +377,44 @@ graph_edge_exists() {
     graph_edges_from "$from" | awk -v t="$to" -F'|' '$1 == t { found = 1 } END { exit found ? 0 : 1 }'
 }
 
+# Read a field from a NODE entry. Usage: graph_node_field <node> <field>
+# Emits the value, or nothing when the node/field is absent (callers treat empty
+# as "not declared"). Same flow-style assumption as the other projections:
+# one record per line (ADR-0007), which is what keeps this awk trivial.
+graph_node_field() {
+    local want="$1" fld="$2" gf
+    gf="$(graph_file)"
+    [[ -f "$gf" ]] || return 0
+    awk -v want="$want" -v fld="$fld" '
+        /^[^[:space:]#]/ { inb = ($0 ~ /^nodes:/) }
+        !inb { next }
+        {
+            line = $0
+            sub(/^[[:space:]]+/, "", line)
+            key = line
+            sub(/[[:space:]]*:.*$/, "", key)
+            if (key != want) next
+            re = fld ":[[:space:]]*"
+            if (match(line, re)) {
+                v = substr(line, RSTART + RLENGTH)
+                if (substr(v, 1, 1) == "\"") { v = substr(v, 2); sub(/".*/, "", v) }
+                else { sub(/[,}].*$/, "", v); sub(/[[:space:]]+$/, "", v) }
+                print v
+            }
+            exit
+        }
+    ' "$gf"
+}
+
+# Does <phase> admit a fan-out wave? Usage: graph_phase_fanout <phase>
+# Echoes the declared mode (e.g. `unit`) and returns 0; returns 1 when absent.
+graph_phase_fanout() {
+    local v
+    v="$(graph_node_field "$1" fanout)"
+    [[ -n "$v" ]] || return 1
+    echo "$v"
+}
+
 # Read a field from a guard entry. Internal. Usage: _graph_guard_field <name> <field>
 _graph_guard_field() {
     local name="$1" fld="$2" gf

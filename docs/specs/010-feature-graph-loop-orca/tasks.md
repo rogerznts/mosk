@@ -104,13 +104,13 @@
 
 ## M4 — Grafo e vocabulário (US4)
 
-- [ ] **T029** [US4] `pipeline-graph.yaml`: declarar `fan-out` e `join`, dando
+- [x] **T029** [US4] `pipeline-graph.yaml`: declarar `fan-out` e `join`, dando
   semântica ao `parallel_with` hoje decorativo; `lint-graph.sh` depois.
-- [ ] **T030** [US4] `mosk/.claude/mosk/scripts/legal_moves.sh`: apresentar a jogada
+- [x] **T030** [US4] `mosk/.claude/mosk/scripts/legal_moves.sh`: apresentar a jogada
   paralela quando legal. [dep: T029]
-- [ ] **T031** [P] [US4] `docs/architecture/glossary.md`: verbetes "onda" e
+- [x] **T031** [P] [US4] `docs/architecture/glossary.md`: verbetes "onda" e
   desambiguação de *handoff*.
-- [ ] **T032** [P] [US4] Docs do repo: `README.md`, `TASKS.md`,
+- [x] **T032** [P] [US4] Docs do repo: `README.md`, `TASKS.md`,
   `.claude/rules/scripts.md` — remover Herdr, descrever `tier` e o fan-out.
 
 ## Validação e fechamento
