@@ -631,22 +631,76 @@ cmd_close() {
 # (coordinator loop autônomo) NUNCA é usado aqui — gates são criados por nós e
 # resolvidos com a resposta do humano (ADR-0006).
 
-native_tasks_enabled() {
-    if [[ -n "${MOSK_ORCA_NATIVE_TASKS:-}" ]]; then
-        [[ "$MOSK_ORCA_NATIVE_TASKS" == "true" ]]
-        return
+# A camada de orquestração é uma feature EXPERIMENTAL do app Orca: pode estar
+# desligada nas configurações mesmo com o runtime rodando. Sondamos a capacidade
+# real em vez de assumir — um comando barato e somente-leitura.
+# Motivo de existir: com `native_tasks: auto` (default desde o ADR-0014 §4),
+# ligar sem sondar produziria falha no meio de uma onda, não no começo.
+#
+# A sonda precisa ser um comando SEM pré-condição de estado. `task-list` não
+# serve: ele exige uma Run vinculada e responde `run_required` quando não há —
+# uma falha que prova justamente o contrário do que se quer medir (a camada
+# respondeu!). `run-list` é inspeção pura: não consome mail, não exige Run.
+NATIVE_PROBE_CACHE=""
+orch_capable() {
+    if [[ -z "$NATIVE_PROBE_CACHE" ]]; then
+        local raw
+        raw="$(orca_cli orchestration run-list --json 2>/dev/null || true)"
+        if [[ "$(_json_ok "$raw")" == "true" ]]; then
+            NATIVE_PROBE_CACHE=yes
+        else
+            NATIVE_PROBE_CACHE=no
+        fi
     fi
-    local cfg val
-    cfg="$(core_config_file 2>/dev/null || true)"
-    [[ -n "$cfg" && -f "$cfg" ]] || return 1
-    val="$(grep -E '^[[:space:]]*native_tasks:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[[:space:]]*#.*//; s/[[:space:]]*$//')"
-    [[ "$val" == "true" ]]
+    [[ "$NATIVE_PROBE_CACHE" == yes ]]
+}
+
+# on | off | auto (default). Precedência: env > core-config > auto.
+# Legado: `true`/`false` continuam válidos como sinônimos de on/off.
+NATIVE_REASON=""
+native_tasks_enabled() {
+    local val="${MOSK_ORCA_NATIVE_TASKS:-}"
+    local src="env"
+    if [[ -z "$val" ]]; then
+        local cfg
+        cfg="$(core_config_file 2>/dev/null || true)"
+        if [[ -n "$cfg" && -f "$cfg" ]]; then
+            val="$(grep -E '^[[:space:]]*native_tasks:' "$cfg" 2>/dev/null | head -1 | sed -E 's/.*:[[:space:]]*//; s/[[:space:]]*#.*//; s/[[:space:]]*$//')"
+            src="core-config"
+        fi
+    fi
+    [[ -z "$val" ]] && { val=auto; src=default; }
+
+    case "$val" in
+        on|true)
+            NATIVE_REASON="ligada explicitamente em $src"
+            return 0
+            ;;
+        off|false)
+            NATIVE_REASON="desligada explicitamente em $src"
+            return 1
+            ;;
+        auto)
+            if orch_capable; then
+                NATIVE_REASON="auto: o app expoe a camada de orquestracao"
+                return 0
+            fi
+            NATIVE_REASON="auto: a orquestracao do app nao respondeu (feature experimental desligada?)"
+            return 1
+            ;;
+        *)
+            NATIVE_REASON="valor '$val' desconhecido em $src; tratando como off"
+            return 1
+            ;;
+    esac
 }
 
 require_native() {
     if ! native_tasks_enabled; then
-        echo "erro: a camada nativa esta desligada." >&2
-        echo "  Ligue com orchestration.orca.native_tasks: true no core-config.yaml." >&2
+        echo "erro: a camada nativa esta indisponivel — $NATIVE_REASON." >&2
+        echo "  Se a orquestracao do app estiver desligada, habilite-a em" >&2
+        echo "  Settings > Experimental; para forcar, use" >&2
+        echo "  orchestration.orca.native_tasks: on no core-config.yaml." >&2
         return 1
     fi
     require_orca
@@ -683,10 +737,18 @@ cmd_native() {
     local json=0
     for a in "$@"; do [[ "$a" == "--json" ]] && json=1; done
     if native_tasks_enabled; then
-        [[ "$json" -eq 1 ]] && echo '{"native_tasks":true}' || echo "native_tasks: on"
+        if [[ "$json" -eq 1 ]]; then
+            echo "{\"native_tasks\":true,\"reason\":\"$NATIVE_REASON\"}"
+        else
+            echo "native_tasks: on ($NATIVE_REASON)"
+        fi
         return 0
     fi
-    [[ "$json" -eq 1 ]] && echo '{"native_tasks":false}' || echo "native_tasks: off"
+    if [[ "$json" -eq 1 ]]; then
+        echo "{\"native_tasks\":false,\"reason\":\"$NATIVE_REASON\"}"
+    else
+        echo "native_tasks: off ($NATIVE_REASON)"
+    fi
     return 1
 }
 

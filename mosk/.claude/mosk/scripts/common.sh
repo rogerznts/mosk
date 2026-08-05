@@ -471,17 +471,18 @@ resolve_max_retries() {
     echo "$v"
 }
 
-# ---------- atuador de panes: helpers compartilhados (ADR-0010) ----------
-# Os drivers de orquestração (herdr.sh, orca.sh) implementam o MESMO contrato de
-# subcomandos sobre multiplexers diferentes. Estas duas peças são idênticas nos
-# dois — moram aqui para existir em uma cópia só.
+# ---------- atuador de panes: helpers compartilhados (ADR-0010/0014) ----------
+# O driver de orquestração (orca.sh) implementa o contrato de subcomandos sobre a
+# CLI do Orca — o único backend suportado (ADR-0014). Estas peças moram aqui, e
+# não no driver, porque a fachada (panes.sh) também as consome.
 
 MOSK_DEFAULT_TOKEN_CEILING=800000
 
 # Teto de tokens para o gatilho de handoff por contexto.
 # Precedência: env MOSK_CONTEXT_TOKEN_CEILING > core-config > default.
-# No core-config aceita tanto a chave comum (orchestration.context_token_ceiling)
-# quanto a legada de antes do driver plugável (orchestration.herdr.…).
+# Lê a chave comum (orchestration.context_token_ceiling). O grep é por nome de
+# chave, não por caminho, então uma chave legada aninhada de instalação antiga
+# continua sendo encontrada — não quebra quem ainda não migrou o core-config.
 context_token_ceiling() {
     if [[ -n "${MOSK_CONTEXT_TOKEN_CEILING:-}" ]]; then
         echo "$MOSK_CONTEXT_TOKEN_CEILING"
