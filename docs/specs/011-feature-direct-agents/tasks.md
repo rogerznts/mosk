@@ -85,7 +85,7 @@ arquivos — abrir os 12 agentes duas vezes seria desperdício.*
 - [x] **T019** **Smoke de instalação:** `npx degit` num diretório limpo e
   verificar `.claude/agents/` populado. É a **única** prova do SC-001 — o único
   teste que enxerga o que o consumidor recebe. [dep: T010]
-- [ ] **T020** Invocar um agente migrado por `subagent_type` e confirmar retorno
+- [x] **T020** Invocar um agente migrado por `subagent_type` e confirmar retorno
   em contexto isolado. Fecha o SC-003. [dep: T019]
   **NÃO EXECUTADA.** O runtime carrega a lista de agentes no início da sessão, e
   a migração aconteceu durante ela — invocar agora exercitaria a versão em

@@ -2,31 +2,20 @@ schema: 1
 story: "011"
 story_title: "Agentes diretos — o template ship a camada de agentes"
 gate: CONCERNS
-quality_score: 60
+quality_score: 70
 status_reason: >-
   Os 21 requisitos funcionais passam, verificados contra o disco e — onde o grep
   daria falso negativo — por teste funcional. O gap que motivou a spec está
-  fechado: o consumidor recebe 12 agentes invocáveis. Restam quatro verificações
-  pendentes, nenhuma indicando defeito: invocação real por `subagent_type`, o
-  formato de branch exercitado ponta a ponta, o transporte do degit, e a
-  independência deste próprio gate.
+  fechado: o consumidor recebe 12 agentes invocáveis, e a invocação por
+  `subagent_type` foi comprovada nesta rodada (SC-003). Restam três verificações
+  pendentes, nenhuma indicando defeito: o formato de branch exercitado ponta a
+  ponta, o transporte do degit, e a independência deste próprio gate.
 reviewer: "Joaquim (mosk-qa)"
-updated: "2026-08-05T22:30:00Z"
+updated: "2026-08-05T23:05:00Z"
 
 waiver: { active: false }
 
 top_issues:
-  - id: "QA-011-001"
-    severity: medium
-    finding: >-
-      SC-003 não verificado. A invocação real de um agente migrado por
-      `subagent_type` (T020) não pôde rodar: o runtime carrega a lista de agentes
-      no início da sessão, e a migração aconteceu durante ela — invocar agora
-      exercitaria a versão em memória, não a do disco, produzindo um verde sem
-      significado. Declarado pelo dev, não omitido.
-    suggested_action: >-
-      Na primeira sessão nova, invocar qualquer `mosk-<n>` por `subagent_type` e
-      confirmar retorno em contexto isolado. É teste de 1 minuto.
   - id: "QA-011-002"
     severity: medium
     finding: >-
@@ -68,14 +57,14 @@ top_issues:
 evidence:
   frs_verified: 21
   frs_total: 21
-  success_criteria_verified: 5      # SC-001, 002, 004, 006, 007
+  success_criteria_verified: 6      # SC-001, 002, 003, 004, 006, 007
   success_criteria_partial: 1       # SC-005
-  success_criteria_unverified: 1    # SC-003
+  success_criteria_unverified: 0
   automated_checks:
     selftest_orca_driver: "52 asserções ok (era 48)"
     lint_graph: "clean"
     audit_docs_paths: "clean (R1..R5)"
-  tasks_delivered: 21
+  tasks_delivered: 22
   tasks_total: 22
   roster: "12 agentes, 23 skills (12 de agente + 11 puras) — bate com ADR-0015 §3"
   smoke_instalacao: >-
@@ -86,6 +75,17 @@ evidence:
     comportamento, não padrão de texto, é o que evitou dois defeitos inexistentes
     neste gate.
 
+resolved_in_this_round:
+  - id: "QA-011-001"
+    note: >-
+      SC-003 fechado, e a hipótese que o sustentava estava ERRADA. Eu havia
+      afirmado que a invocação exigiria sessão nova; o runtime fixa a LISTA de
+      tipos na inicialização, mas relê a DEFINIÇÃO do agente a cada spawn. Um
+      `mosk-dev` invocado agora respondeu com a seção de invocação (M1 desta
+      spec), caminhos `.claude/mosk/tasks/` (M1) e a regra de registrar-sem-julgar
+      (spec 010 US2) — com `tool_uses: 0`, provando que veio da definição
+      carregada e não de leitura de disco.
+
 nfr_validation:
   security: { status: PASS, notes: "Sem superfície nova; nenhuma credencial, entrada externa ou execução dinâmica." }
   reliability: { status: PASS, notes: "Migração mecânica com contrato provado em piloto antes da onda; sync com uma direção e falha explícita no modo removido." }
@@ -93,11 +93,10 @@ nfr_validation:
   performance: { status: PASS, notes: "N/A — sem caminho de execução sensível a tempo." }
 
 risk_summary:
-  totals: { critical: 0, high: 0, medium: 4, low: 1 }
+  totals: { critical: 0, high: 0, medium: 3, low: 1 }
   recommendations:
     must_fix: []
     monitor:
-      - "Invocar um agente por subagent_type na próxima sessão (1 min, fecha SC-003)."
       - "Criar a spec 012 no formato novo — exercita SC-005 sem trabalho extra."
       - "Rodar o degit real depois do merge."
       - "Re-emitir o gate de contexto limpo."
