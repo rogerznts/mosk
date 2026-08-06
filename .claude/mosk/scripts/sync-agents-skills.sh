@@ -7,9 +7,13 @@ set -e
 # Synchronizes MOSK agents, Claude Code agents, and skill wrappers.
 #
 # Directions:
-#   agents-to-skills  — generate .claude/skills/mosk-NAME/SKILL.md from .claude/mosk/agents/NAME.md
-#   skills-to-agents  — generate .claude/agents/mosk-NAME.md from .claude/skills/mosk-NAME/SKILL.md
-#   both              — run both directions (default)
+#   agents-to-skills  — generate .claude/skills/mosk-NAME/SKILL.md from .claude/agents/mosk-NAME.md
+#
+# Desde a spec 011 (ADR-0015) há UMA direção só: o CC agent é a fonte, a skill é
+# gerada. `skills-to-agents` foi REMOVIDO — gerar o agente a partir do wrapper
+# hoje sobrescreveria a definição completa com um ponteiro de três linhas.
+# `both` permanece aceito como alias de `agents-to-skills`, para não quebrar
+# quem já o tem em script.
 #
 # Usage: sync-agents-skills.sh [agents-to-skills|skills-to-agents|both] [--dry-run] [--clean]
 
@@ -26,19 +30,17 @@ for arg in "$@"; do
 Usage: sync-agents-skills.sh [DIRECTION] [--dry-run] [--clean]
 
 DIRECTION:
-  agents-to-skills   Generate skill wrappers from agent definitions
-  skills-to-agents   Generate Claude Code agents from skill definitions
-  both               Run both directions (default)
+  agents-to-skills   Generate skill wrappers from agent definitions (default)
+  both               Alias of agents-to-skills (kept for compatibility)
 
 OPTIONS:
   --dry-run   Show what would be done without writing files
   --clean     Remove orphan skills and CC agents that have no corresponding source agent
   --help, -h  Show this help message
 
-STRUCTURE:
-  Source agents:       .claude/mosk/agents/NAME.md
-  Skill wrappers:      .claude/skills/mosk-NAME/SKILL.md
-  Claude Code agents:  .claude/agents/mosk-NAME.md
+STRUCTURE (spec 011):
+  Source (agent):      .claude/agents/mosk-NAME.md   <- fonte única
+  Skill wrapper:       .claude/skills/mosk-NAME/SKILL.md  <- gerado
 
 DESCRIPTION (routing string):
   Declared by the agent itself, on one physical line, no double quotes:
@@ -54,7 +56,13 @@ DESCRIPTION (routing string):
 EOF
             exit 0
             ;;
-        agents-to-skills|skills-to-agents|both) ;;
+        agents-to-skills|both) ;;
+        skills-to-agents)
+            echo "ERROR: 'skills-to-agents' foi removido na spec 011: o agente e a fonte," >&2
+            echo "       e gerar o agente a partir do wrapper sobrescreveria a definicao" >&2
+            echo "       completa com um ponteiro. Use 'agents-to-skills'." >&2
+            exit 1
+            ;;
         *)
             echo "ERROR: Unknown option '$arg'. Use --help for usage." >&2
             exit 1
@@ -65,16 +73,20 @@ done
 # --- Resolve paths relative to the install root ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MOSK_AGENTS_DIR="$INSTALL_ROOT/.claude/mosk/agents"
-SKILLS_DIR="$INSTALL_ROOT/.claude/skills"
+# FONTE ÚNICA desde a spec 011 (ADR-0015): o CC agent. A camada intermediária
+# `.claude/mosk/agents/` deixou de existir — o conteúdo migrou para cá, e o
+# script deixou de ser conversão entre duas fontes concorrentes para ser
+# materialização de uma só: agente → skill, numa direção.
 CC_AGENTS_DIR="$INSTALL_ROOT/.claude/agents"
+SKILLS_DIR="$INSTALL_ROOT/.claude/skills"
 
-# Dev repo fallback: if CC_AGENTS_DIR doesn't exist, try parent (root .claude/agents/)
-if [[ ! -d "$CC_AGENTS_DIR" ]]; then
-    _parent_agents="$(cd "$INSTALL_ROOT/.." && pwd)/.claude/agents"
-    if [[ -d "$_parent_agents" ]]; then
-        CC_AGENTS_DIR="$_parent_agents"
-    fi
+# Instalação anterior à 011 ainda tem a fonte antiga no disco. Avisamos em vez de
+# ignorar: skills apontando para um caminho que sumiu falhariam em silêncio.
+LEGACY_AGENTS_DIR="$INSTALL_ROOT/.claude/mosk/agents"
+if [[ -d "$LEGACY_AGENTS_DIR" ]]; then
+    echo "NOTE: $LEGACY_AGENTS_DIR ainda existe (layout pré-spec-011)." >&2
+    echo "      A fonte agora é $CC_AGENTS_DIR. Após conferir que os agentes" >&2
+    echo "      migraram, remova o diretório antigo." >&2
 fi
 
 # --- Warn about legacy ctx-* context skills ---
@@ -153,33 +165,33 @@ agents_to_skills() {
     echo "=== agents → skills ==="
     echo
 
-    if [[ ! -d "$MOSK_AGENTS_DIR" ]]; then
-        echo "WARN: $MOSK_AGENTS_DIR not found, skipping."
+    if [[ ! -d "$CC_AGENTS_DIR" ]]; then
+        echo "WARN: $CC_AGENTS_DIR not found, skipping."
         return
     fi
 
-    for agent_file in "$MOSK_AGENTS_DIR"/*.md; do
+    for agent_file in "$CC_AGENTS_DIR"/mosk-*.md; do
         [[ -f "$agent_file" ]] || continue
-        local name
-        name="$(basename "$agent_file" .md)"
-        local skill_name="mosk-$name"
+        local skill_name name
+        skill_name="$(basename "$agent_file" .md)"   # mosk-<n>
+        name="${skill_name#mosk-}"                    # <n>
         local skill_file="$SKILLS_DIR/$skill_name/SKILL.md"
 
         # Resolve description, in order:
-        #   1. `skill-description` declared by the agent  — canonical
-        #   2. existing skill wrapper                     — preserves curated text
-        #   3. CC agent                                   — legacy installs
-        #   4. Mission's first line                       — agent without the field
-        #   5. generic fallback
-        # (2) sits above (3) and (4) on purpose: a description already in place is
-        # curated text, and silently replacing it with prose is a regression.
+        #   1. front-matter `description:` do CC agent    — canônico desde a 011
+        #   2. `skill-description` legada no corpo        — agente ainda não migrado
+        #   3. wrapper existente                          — preserva texto curado
+        #   4. primeira linha da Mission                  — agente sem o campo
+        #   5. fallback genérico
+        # (3) fica acima de (4) de propósito: uma description já no lugar é texto
+        # curado, e substituí-la em silêncio por prosa é regressão.
         local desc=""
-        desc="$(extract_skill_description "$agent_file" 2>/dev/null)" || true
+        desc="$(extract_description "$agent_file" 2>/dev/null)" || true
         if [[ -z "$desc" ]]; then
-            desc="$(extract_description "$skill_file" 2>/dev/null)" || true
+            desc="$(extract_skill_description "$agent_file" 2>/dev/null)" || true
         fi
         if [[ -z "$desc" ]]; then
-            desc="$(extract_description "$CC_AGENTS_DIR/$skill_name.md" 2>/dev/null)" || true
+            desc="$(extract_description "$skill_file" 2>/dev/null)" || true
         fi
         if [[ -z "$desc" ]]; then
             desc="$(extract_mission "$agent_file" 2>/dev/null)" || true
@@ -225,7 +237,7 @@ name: $skill_name
 description: "$desc"
 ---
 
-CRITICAL: Read and fully execute the agent definition at \`../../mosk/agents/$name.md\`.
+CRITICAL: Read and fully execute the agent definition at \`.claude/agents/$skill_name.md\`.
 That file is the single source of truth — it contains the full persona, commands, dependencies,
 and activation instructions. Follow ALL instructions defined there exactly.
 SKILL_EOF
@@ -260,10 +272,10 @@ skills_to_agents() {
 
         # Skip non-agent skills (boot, help)
         local base_name="${skill_name#mosk-}"
-        local source_agent="$MOSK_AGENTS_DIR/$base_name.md"
+        local source_agent="$CC_AGENTS_DIR/$skill_name.md"
 
         if [[ ! -f "$source_agent" ]]; then
-            echo "skip    $skill_name (no source agent at mosk/agents/$base_name.md)"
+            echo "skip    $skill_name (sem agente-fonte em .claude/agents/$skill_name.md)"
             continue
         fi
 
@@ -345,10 +357,10 @@ clean_orphans() {
 
     # Build roster of valid agent base names from source agents
     local -a roster=()
-    if [[ -d "$MOSK_AGENTS_DIR" ]]; then
-        for f in "$MOSK_AGENTS_DIR"/*.md; do
+    if [[ -d "$CC_AGENTS_DIR" ]]; then
+        for f in "$CC_AGENTS_DIR"/mosk-*.md; do
             [[ -f "$f" ]] || continue
-            roster+=("$(basename "$f" .md)")
+            roster+=("$(basename "$f" .md | sed 's/^mosk-//')")
         done
     fi
 

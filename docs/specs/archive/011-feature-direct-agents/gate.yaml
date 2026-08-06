@@ -1,0 +1,117 @@
+schema: 1
+story: "011"
+story_title: "Agentes diretos — o template ship a camada de agentes"
+gate: WAIVED
+quality_score: 70
+status_reason: >-
+  Os 21 requisitos funcionais passam, verificados contra o disco e — onde o grep
+  daria falso negativo — por teste funcional. O gap que motivou a spec está
+  fechado: o consumidor recebe 12 agentes invocáveis, e a invocação por
+  `subagent_type` foi comprovada nesta rodada (SC-003). Restam três verificações
+  pendentes, nenhuma indicando defeito: o formato de branch exercitado ponta a
+  ponta, o transporte do degit, e a independência deste próprio gate.
+reviewer: "Joaquim (mosk-qa)"
+updated: "2026-08-05T23:05:00Z"
+
+waiver:
+  active: true
+  scope: "QA-011-002 (SC-005 parcial), QA-011-003 (degit simulado) e QA-011-004 (gate não independente)"
+  reason: >-
+    Nenhuma das três é defeito — são verificações que dependem de coisas fora
+    desta sessão, e todas já têm resolução natural identificada: o formato de
+    branch será exercitado quando a spec 012 nascer com ele; o degit real só
+    pode rodar depois do merge; e a independência do gate exige contexto limpo.
+    Manter a spec aberta não aproxima nenhuma delas de acontecer. Os 21 FRs
+    passam, 6 de 8 SCs estão verificados, `must_fix` está vazio e todos os NFRs
+    são PASS.
+  approved_by: "Roger (usuário)"
+  conditions:
+    - "A spec 012 deve nascer no formato `{tipo}/{NNN}-{nome}` — é o teste do SC-005, sem trabalho extra."
+    - "Depois do merge, rodar `npx degit rogerznts/mosk/mosk .` num diretório limpo e repetir as quatro checagens do T019."
+    - "O gap do espelho local (QA-011-005, herdado da 010) segue aberto e continua fora de escopo."
+
+top_issues:
+  - id: "QA-011-002"
+    severity: medium
+    finding: >-
+      SC-005 parcial. O código do formato novo está correto — teste funcional
+      confirma `feature/012-algo` como branch e `012-feature-algo` como pasta —
+      mas nenhuma spec foi criada com ele. A própria 011 nasceu no formato
+      legado, por decisão registrada (ela implementa o formato). O caminho
+      completo (criar branch, resolver spec ativa, rodar uma fase) nunca correu.
+    suggested_action: >-
+      A spec 012 é o teste natural: nasce no formato novo e exercita criação,
+      resolução e fase numa passada só.
+  - id: "QA-011-003"
+    severity: medium
+    finding: >-
+      O smoke de instalação (T019) simulou o degit copiando `mosk/.`, porque o
+      degit real puxa do remoto e o trabalho não está pushado. É fiel ao
+      CONTEÚDO que o consumidor receberia — 12 agentes com front-matter válido,
+      zero caminhos quebrados — mas não exercita o transporte.
+    suggested_action: >-
+      Depois do merge, rodar `npx degit rogerznts/mosk/mosk .` num diretório
+      limpo e repetir as mesmas quatro checagens.
+  - id: "QA-011-004"
+    severity: medium
+    finding: >-
+      Gate emitido pelo mesmo contexto que implementou a spec — a condição que a
+      010 definiu como não-confiável. Compensado com verificação mecânica contra
+      o disco, e a compensação provou seu valor: dois FRs deram falso negativo no
+      grep e passaram no teste funcional. Ainda assim, o julgamento de severidade
+      permanece do autor.
+    suggested_action: "Re-emitir de contexto limpo (subagente ou sessão nova)."
+  - id: "QA-011-005"
+    severity: low
+    finding: >-
+      O espelho local `.claude/mosk/` segue defasado do template nos 20+ arquivos
+      herdados da 010 (QA-010-004). A camada de agentes foi sincronizada nesta
+      spec; o resto não. Fora de escopo declarado.
+    suggested_action: "Item próprio, como já recomendado no gate da 010."
+
+evidence:
+  frs_verified: 21
+  frs_total: 21
+  success_criteria_verified: 6      # SC-001, 002, 003, 004, 006, 007
+  success_criteria_partial: 1       # SC-005
+  success_criteria_unverified: 0
+  automated_checks:
+    selftest_orca_driver: "52 asserções ok (era 48)"
+    lint_graph: "clean"
+    audit_docs_paths: "clean (R1..R5)"
+  tasks_delivered: 22
+  tasks_total: 22
+  roster: "12 agentes, 23 skills (12 de agente + 11 puras) — bate com ADR-0015 §3"
+  smoke_instalacao: >-
+    12 agentes com front-matter válido, 0 caminhos quebrados, 0 wrappers órfãos,
+    fonte antiga ausente. Transporte não exercitado (QA-011-003).
+  falso_negativo_corrigido: >-
+    FR-015 e FR-016 deram FALHA no grep e passaram no teste funcional. Verificar
+    comportamento, não padrão de texto, é o que evitou dois defeitos inexistentes
+    neste gate.
+
+resolved_in_this_round:
+  - id: "QA-011-001"
+    note: >-
+      SC-003 fechado, e a hipótese que o sustentava estava ERRADA. Eu havia
+      afirmado que a invocação exigiria sessão nova; o runtime fixa a LISTA de
+      tipos na inicialização, mas relê a DEFINIÇÃO do agente a cada spawn. Um
+      `mosk-dev` invocado agora respondeu com a seção de invocação (M1 desta
+      spec), caminhos `.claude/mosk/tasks/` (M1) e a regra de registrar-sem-julgar
+      (spec 010 US2) — com `tool_uses: 0`, provando que veio da definição
+      carregada e não de leitura de disco.
+
+nfr_validation:
+  security: { status: PASS, notes: "Sem superfície nova; nenhuma credencial, entrada externa ou execução dinâmica." }
+  reliability: { status: PASS, notes: "Migração mecânica com contrato provado em piloto antes da onda; sync com uma direção e falha explícita no modo removido." }
+  maintainability: { status: PASS, notes: "Uma camada a menos por agente; 63 caminhos relativos convertidos para relativos-à-raiz, imunes a mover o arquivo." }
+  performance: { status: PASS, notes: "N/A — sem caminho de execução sensível a tempo." }
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 3, low: 1 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "Criar a spec 012 no formato novo — exercita SC-005 sem trabalho extra."
+      - "Rodar o degit real depois do merge."
+      - "Re-emitir o gate de contexto limpo."

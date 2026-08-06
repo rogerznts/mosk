@@ -1,0 +1,10 @@
+spec_number: "010"
+spec_id: "010-feature-graph-loop-orca"
+type: "feature"
+branch: "010-feature-graph-loop-orca"
+created_at: "2026-08-05T00:29:14Z"
+created_by: "Roger <phpsaux@gmail.com>"
+status: archived
+current_phase: archived
+last_phase_change: "2026-08-05T17:56:05Z"
+archived_at: "2026-08-05T17:56:05Z"

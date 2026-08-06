@@ -72,7 +72,15 @@ Corporativo).
   ADR-0009 orquestração multi-pane sobre Herdr — promovido no archive da spec 006;
   ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007;
   ADR-0011 Hallmark vendorizado como corpo de referência do `mosk-ui-expert` —
-  promovido no archive da spec 008) +
+  promovido no archive da spec 008;
+  ADR-0012 fronteira decisão-de-rota × execução-de-fase,
+  ADR-0013 seam de fan-out em três tiers,
+  ADR-0014 Orca como atuador único — spec 010, substitui o ADR-0009 e revoga a
+  decisão 7 do ADR-0010;
+  ADR-0015 agente como fonte, skill como wrapper (e o template passa a shipar
+  as duas camadas),
+  ADR-0016 protocolo de invocação entre agentes (execução delega, rota não),
+  ADR-0017 convenção de nome de branch `{tipo}/{NNN}-{nome}`) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -104,6 +112,8 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 011 | [feature-direct-agents](./specs/archive/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch — gate `WAIVED`) | archived | 011-feature-direct-agents | 2026-08-05 |
+| 010 | [feature-graph-loop-orca](./specs/archive/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único — gate `WAIVED`) | archived | 010-feature-graph-loop-orca | 2026-08-05 |
 | 009 | [fix-orca-driver-read-send](./specs/archive/009-fix-orca-driver-read-send/) (driver Orca: `read` cego, `send` sem prova de entrega; + `common.sh` em zsh) | archived | 009-fix-orca-driver-read-send | 2026-07-29 |
 | 008 | [feature-ui-expert-hallmark](./specs/archive/008-feature-ui-expert-hallmark/) (Hallmark como ferramenta anti-slop do `/mosk-ui-expert`) | archived | 008-feature-ui-expert-hallmark | 2026-07-26 |
 | 007 | [feature-mosk-orca](./specs/archive/007-feature-mosk-orca/) (Orca como segundo backend do `/mosk-orq`; atuador plugável) | archived | 007-feature-mosk-orca | 2026-07-25 |

@@ -43,6 +43,25 @@ while [ $i -le $# ]; do
                 echo 'Error: --type requires a value' >&2
                 exit 1
             fi
+            # ADR-0017 §2: tipos por extenso, sem abreviação. Dois nomes para o
+            # mesmo tipo reintroduzem exatamente o problema que a convenção
+            # resolve — e agora o tipo vira SEGMENTO DE CAMINHO no branch, então
+            # um valor inválido produz um branch estruturalmente errado.
+            # Falhar aqui é barato; descobrir no merge, não.
+            case "$next_arg" in
+                feature|fix|hotfix|gmud|refactor|experimental|extension) ;;
+                feat|bug|hf|chore|doc|docs|ci|build)
+                    echo "Error: '--type $next_arg' nao e um tipo de spec valido." >&2
+                    echo "  Tipos por extenso: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
+                    echo "  Trabalho fora de spec usa branch '{tipo}/{nome}' SEM numero — nao precisa deste script." >&2
+                    exit 1
+                    ;;
+                *)
+                    echo "Error: tipo desconhecido '--type $next_arg'." >&2
+                    echo "  Validos: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
+                    exit 1
+                    ;;
+            esac
             FEATURE_TYPE="$next_arg"
             ;;
         --extends)
@@ -69,7 +88,14 @@ while [ $i -le $# ]; do
                 echo 'Error: --number requires a value' >&2
                 exit 1
             fi
-            BRANCH_NUMBER="$next_arg"
+            if [[ ! "$next_arg" =~ ^[0-9]+$ ]]; then
+                echo 'Error: --number must be a non-negative integer' >&2
+                exit 1
+            fi
+            # Force base-10: a zero-padded value like "010" is TEN, not octal 8.
+            # Without this, `--number 010` reached printf as an octal constant and
+            # the script reserved 008.
+            BRANCH_NUMBER=$((10#$next_arg))
             ;;
         --no-push)
             NO_PUSH=true
@@ -165,8 +191,20 @@ get_next_global_number() {
     # number is never handed out twice.
     local reserved_nums=$(git ls-remote origin 'refs/spec-numbers/*' 2>/dev/null | grep -oE 'refs/spec-numbers/[0-9]+' | grep -oE '[0-9]+$' | sort -n)
 
-    # Check ALL local feature branches
-    local local_nums=$(git branch 2>/dev/null | grep -oE '[0-9]{3}-' | grep -oE '[0-9]+' | sort -n)
+    # Check ALL local feature branches, in BOTH formats (ADR-0017):
+    #   legado : NNN-tipo-nome        →  `011-feature-direct-agents`
+    #   novo   : tipo/NNN-nome        →  `feature/012-algo`
+    #
+    # A âncora `^` é inegociável e vem antes do segmento de tipo: sem ela,
+    # qualquer "NNN-" embutido conta como spec, e um branch comum como
+    # `docs/adr-0012-0014-x` ou `fix/issue-123-foo` desvia a numeração — foi o
+    # defeito que a spec 010 corrigiu, e alargar a regex para o formato novo é
+    # exatamente onde ele voltaria se a âncora fosse perdida.
+    #
+    # `sed -nE` em vez de `grep -oE` porque agora é preciso CAPTURAR o número
+    # (grupo 2) e descartar o segmento de tipo (grupo 1).
+    local local_nums=$(git branch --format='%(refname:short)' 2>/dev/null \
+        | sed -nE 's|^([a-z][a-z-]*/)?([0-9]{3})-.*|\2|p' | sort -n)
 
     # Check ALL spec directories (active + archived) so numbers are not reused
     local spec_nums="" archived_nums=""
@@ -368,13 +406,23 @@ reserve_spec_number() {
 # Build BRANCH_NAME / FEATURE_NUM from the current BRANCH_NUMBER and
 # enforce GitHub's branch-name byte limit.
 rebuild_branch_name() {
-    FEATURE_NUM=$(printf "%03d" "$BRANCH_NUMBER")
+    # `10#` again here, not only at the --number parse: this is the single point
+    # every code path funnels through, so a zero-padded value arriving from any
+    # other source can never be read as octal.
+    FEATURE_NUM=$(printf "%03d" "$((10#${BRANCH_NUMBER:-0}))")
+    # Branch e pasta DEIXAM de ser a mesma string (ADR-0017 §4). O branch agrupa
+    # por tipo na UI do git; a pasta continua plana, porque barra criaria
+    # hierarquia acidental e quebraria o glob `specs/*/` usado em toda parte.
+    # A ponte entre os dois é o campo `branch` do spec-meta.yaml — a igualdade de
+    # string sempre foi presumida, e frágil.
     local prefix
     if [ -n "$FEATURE_TYPE" ]; then
         CLEAN_TYPE=$(echo "$FEATURE_TYPE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
-        prefix="${FEATURE_NUM}-${CLEAN_TYPE}-"
+        prefix="${CLEAN_TYPE}/${FEATURE_NUM}-"
+        SPEC_DIR_NAME="${FEATURE_NUM}-${CLEAN_TYPE}-${BRANCH_SUFFIX}"
     else
         prefix="${FEATURE_NUM}-"
+        SPEC_DIR_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
     fi
     BRANCH_NAME="${prefix}${BRANCH_SUFFIX}"
     if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
@@ -512,14 +560,17 @@ create_branch_and_folder() {
             >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
         fi
 
-        FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+        # A pasta usa SPEC_DIR_NAME (plano), o branch usa BRANCH_NAME (com tipo
+        # à frente). São strings diferentes desde o ADR-0017 §4 — e o
+        # `spec-meta.yaml` é a ponte: `spec_id` é a pasta, `branch` é o branch.
+        FEATURE_DIR="$SPECS_DIR/${SPEC_DIR_NAME:-$BRANCH_NAME}"
         mkdir -p "$FEATURE_DIR"
 
         TEMPLATE="$REPO_ROOT/.claude/mosk/templates/spec-template.md"
         SPEC_FILE="$FEATURE_DIR/spec.md"
         if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "$BRANCH_NAME" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
+        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "${SPEC_DIR_NAME:-$BRANCH_NAME}" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
 
         # Try atomic push if git is present and user didn't opt out.
         if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then
