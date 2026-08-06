@@ -82,14 +82,19 @@ arquivos — abrir os 12 agentes duas vezes seria desperdício.*
 
 ## M4 — Validação e fechamento
 
-- [ ] **T019** **Smoke de instalação:** `npx degit` num diretório limpo e
+- [x] **T019** **Smoke de instalação:** `npx degit` num diretório limpo e
   verificar `.claude/agents/` populado. É a **única** prova do SC-001 — o único
   teste que enxerga o que o consumidor recebe. [dep: T010]
 - [ ] **T020** Invocar um agente migrado por `subagent_type` e confirmar retorno
   em contexto isolado. Fecha o SC-003. [dep: T019]
-- [ ] **T021** Ressincronizar espelho local e camadas geradas
+  **NÃO EXECUTADA.** O runtime carrega a lista de agentes no início da sessão, e
+  a migração aconteceu durante ela — invocar agora exercitaria a versão em
+  memória, não a do disco. Os 12 arquivos estão no lugar, com front-matter
+  válido e caminhos que resolvem (T019). Fica para a primeira sessão nova:
+  invocar qualquer `mosk-<n>` por `subagent_type` e confirmar retorno isolado.
+- [x] **T021** Ressincronizar espelho local e camadas geradas
   (`sync-agents-skills.sh`, `link-codex-skills.sh`). [dep: T010]
-- [ ] **T022** `audit-docs-paths.sh`, `lint-graph.sh` e selftest finais; conferir
+- [x] **T022** `audit-docs-paths.sh`, `lint-graph.sh` e selftest finais; conferir
   `docs/index.md`. [dep: T015, T018]
 
 ---
