@@ -121,14 +121,23 @@ find_feature_dir_by_prefix() {
     local branch_name="$2"
     local specs_dir="$repo_root/docs/specs"
 
-    # Extract numeric prefix from branch (e.g., "004" from "004-whatever")
-    if [[ ! "$branch_name" =~ ^([0-9]{3})- ]]; then
-        # If branch doesn't have numeric prefix, fall back to exact match
+    # Extrai o prefixo numérico do branch, nos DOIS formatos (ADR-0017):
+    #   legado : 004-whatever          → 004
+    #   novo   : feature/012-whatever  → 012
+    #
+    # A âncora `^` vem antes do segmento de tipo e é o que impede que um "NNN-"
+    # embutido no meio do nome seja lido como spec.
+    #
+    # Sem o segmento opcional, um branch no formato novo cairia no fallback de
+    # match exato e procuraria `docs/specs/feature/012-whatever` — caminho que
+    # nunca existe, porque a pasta é plana por decisão (ADR-0017 §4).
+    if [[ ! "$branch_name" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
+        # Branch sem prefixo numérico: cai para match exato.
         echo "$specs_dir/$branch_name"
         return
     fi
 
-    local prefix="${BASH_REMATCH[1]}"
+    local prefix="${BASH_REMATCH[2]}"
 
     # Search for directories in specs/ that start with this prefix
     local matches=()

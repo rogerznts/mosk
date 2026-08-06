@@ -43,6 +43,25 @@ while [ $i -le $# ]; do
                 echo 'Error: --type requires a value' >&2
                 exit 1
             fi
+            # ADR-0017 §2: tipos por extenso, sem abreviação. Dois nomes para o
+            # mesmo tipo reintroduzem exatamente o problema que a convenção
+            # resolve — e agora o tipo vira SEGMENTO DE CAMINHO no branch, então
+            # um valor inválido produz um branch estruturalmente errado.
+            # Falhar aqui é barato; descobrir no merge, não.
+            case "$next_arg" in
+                feature|fix|hotfix|gmud|refactor|experimental|extension) ;;
+                feat|bug|hf|chore|doc|docs|ci|build)
+                    echo "Error: '--type $next_arg' nao e um tipo de spec valido." >&2
+                    echo "  Tipos por extenso: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
+                    echo "  Trabalho fora de spec usa branch '{tipo}/{nome}' SEM numero — nao precisa deste script." >&2
+                    exit 1
+                    ;;
+                *)
+                    echo "Error: tipo desconhecido '--type $next_arg'." >&2
+                    echo "  Validos: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
+                    exit 1
+                    ;;
+            esac
             FEATURE_TYPE="$next_arg"
             ;;
         --extends)

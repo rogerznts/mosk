@@ -63,12 +63,12 @@ arquivos — abrir os 12 agentes duas vezes seria desperdício.*
 - [x] **T012** [US3] Detecção de número aceita `^([a-z]+/)?([0-9]{3})-`,
   **mantendo a âncora** da spec 010. Sem a âncora, `docs/adr-0012-0014-x` volta a
   contar como spec 014. [dep: T011]
-- [ ] **T013** [US3] Resolução branch → spec por número (não por igualdade de
+- [x] **T013** [US3] Resolução branch → spec por número (não por igualdade de
   nome), aceitando legado e novo. Toca `common.sh` e `check-prerequisites.sh`.
   [dep: T012]
-- [ ] **T014** [US3] Validar tipo na criação: por extenso; `feat`/`bug`/`hf` e
+- [x] **T014** [US3] Validar tipo na criação: por extenso; `feat`/`bug`/`hf` e
   nome não-kebab falham com mensagem clara. [dep: T011]
-- [ ] **T015** [US3] `selftest-orca-driver.sh`: cobrir numeração nos dois
+- [x] **T015** [US3] `selftest-orca-driver.sh`: cobrir numeração nos dois
   formatos, sem regredir as 48 asserções. [dep: T012]
 
 ## M3 — Docs

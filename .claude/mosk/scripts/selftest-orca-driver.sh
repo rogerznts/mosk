@@ -219,6 +219,28 @@ echo "selftest-orca-driver: numeracao de spec"
 BRANCHES=$'015-feature-graph-loop-orca\ndocs/adr-0012-0014-x\nfix/issue-123-foo\nchore/rfc-042-bar\nmaster'
 got="$(printf '%s\n' "$BRANCHES" | grep -oE '^[0-9]{3}-' | grep -oE '[0-9]+' | sort -n | tr '\n' ',')"
 check_eq "12. so o prefixo ancorado conta como spec" "015," "$got"
+
+# ── caso 12b: numeração nos DOIS formatos de branch (spec 011, ADR-0017) ──
+# `tipo/NNN-nome` passou a ser o canônico; `NNN-tipo-nome` continua em uso. A
+# detecção precisa contar os dois — e a âncora `^` continua sendo o que impede
+# que um "NNN-" embutido conte como spec. Alargar a regex sem manter a âncora
+# reintroduziria de uma vez o bug que a spec 010 corrigiu.
+BRANCHES2=$'011-feature-direct-agents\nfeature/012-algo\nfix/013-bug\nhotfix/014-urgente\ndocs/adr-0012-0014-x\nchore/sync-042-pmo\nfeat/komodo-deploy\nmaster'
+got="$(printf '%s\n' "$BRANCHES2" | sed -nE 's|^([a-z][a-z-]*/)?([0-9]{3})-.*|\2|p' | sort -n | tr '\n' ',')"
+check_eq "12b. conta os dois formatos, ignora o resto" "011,012,013,014," "$got"
+
+# `chore/sync-042-pmo` NÃO pode contar: o 042 está no meio do nome, não logo
+# após a barra. É a distinção que faz "tem número" significar "tem spec".
+case "$got" in
+    *042*) fail "12b. numero no meio do nome nao conta" "sem 042" "$got" ;;
+    *) ok "12b. numero no meio do nome nao conta" ;;
+esac
+
+# Resolução branch -> pasta: a pasta é PLANA, o branch tem o tipo à frente.
+check_eq "12b. prefixo extraido do formato novo" "012" \
+    "$(printf 'feature/012-algo\n' | sed -nE 's|^([a-z][a-z-]*/)?([0-9]{3})-.*|\2|p')"
+check_eq "12b. prefixo extraido do formato legado" "011" \
+    "$(printf '011-feature-direct-agents\n' | sed -nE 's|^([a-z][a-z-]*/)?([0-9]{3})-.*|\2|p')"
 check_eq "12. --number 010 vale dez, nao octal oito" "010" "$(printf '%03d' "$((10#010))")"
 check_eq "12. --number 15 normaliza para 015" "015" "$(printf '%03d' "$((10#15))")"
 
