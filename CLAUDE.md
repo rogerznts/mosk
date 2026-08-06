@@ -40,9 +40,9 @@ When in doubt: "will a consumer of `npx degit` need this?" → `mosk/`.
 ```text
 mosk/                        # installable template (source of truth)
 ├── .claude/
-│   ├── agents/              # Claude Code agents (thin wrappers, synced)
+│   ├── agents/              # FONTE dos agentes (12) — definição completa,
+│   │                        # invocável por subagent_type. Shipa (ADR-0015).
 │   ├── mosk/
-│   │   ├── agents/          # persona prompts (10 agents; canonical)
 │   │   ├── tasks/           # executable workflows (specify, plan, tasks,
 │   │   │                    # implement, qa-gate, archive, boot, full-spec,
 │   │   │                    # index-docs, planner, clarify, analyze,
@@ -105,7 +105,8 @@ Brownfield projects are migrated in place via `bash .claude/mosk/scripts/migrate
 
 ## Agent Design
 
-Agents live in `mosk/.claude/mosk/agents/`.
+Agents live in `mosk/.claude/agents/` — the definition itself, not a
+wrapper. The skill under `mosk/.claude/skills/` is generated from it.
 
 Each agent should remain:
 

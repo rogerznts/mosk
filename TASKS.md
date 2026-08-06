@@ -199,6 +199,11 @@ On-demand security reviewer (inspired by Anthropic's `claude-code-security-revie
 | `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Run first; re-run when structure changes. (task: `boot`) |
 | `/mosk-handoff` | Compacts the current session into a handoff document saved to `docs/handoff/handoff-<YYYY-MM-DD>-<slug>.md` in the **current workspace** (never OS temp), anchored to the active spec/documentation. |
 | `/mosk-suggestion` | Reads the current session state (active spec, `current_phase`, on-disk artifacts, conversation focus) and suggests the **next** MOSK agent to call, with a ready-to-paste prompt. Suggest-only — never invokes another agent. |
+> **Agentes shipam em duas camadas** (ADR-0015): `.claude/agents/mosk-<n>.md` é a
+> definição (e o que torna o agente invocável por outro, em contexto isolado);
+> `.claude/skills/mosk-<n>/SKILL.md` é o wrapper gerado que dá o slash command.
+> Edite o agente — o wrapper é regenerado por `sync-agents-skills.sh`.
+
 | `/mosk-orq` (Mauro) | **Orchestrator over [Orca](https://www.onorca.dev/)** (optional external dependency). Drives one project's pipeline across panes, handing off automatically when the phase changes agent or when the agent hits the token ceiling (`/mosk-handoff` transports context). Graph-derived (`legal_moves.sh`), opt-in (`full-auto`/`semi-auto`), and **never crosses a human decision** — judgment guards, gate verdicts, and (in semi-auto) phase changes always pause. Requires the session to be **inside the Orca IDE**, not just the binary installed; degrades to single-pane otherwise (ADR-0014; facade `panes.sh` → `orca.sh`). |
 | `/mosk-write-skill` | Scaffolds a new MOSK skill (agent wrapper or direct support) with proper structure, a trigger-rich description, optional backing task, and the sync steps. |
 | `/mosk-update` | Updates the installed toolkit via `npx degit … --force` (clean-tree guarded), reads the latest `README.md`/`TASKS.md` from GitHub, and reports what changed. |

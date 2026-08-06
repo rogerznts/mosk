@@ -28,8 +28,9 @@ bash .claude/mosk/scripts/create-new-feature.sh \
   reservations**, local branches, active spec dirs, archived spec dirs)
   + 1` (base-10 forced to avoid octal traps).
 - **Duas armadilhas de numeração já corrigidas (spec 010) — não reintroduza:**
-  - O prefixo dos **branches locais** é lido **ancorado no início** do nome
-    (`git branch --format` + `^[0-9]{3}-`). Sem a âncora, qualquer branch comum
+  - O prefixo dos **branches locais** é lido **ancorado no início** do nome,
+    aceitando os dois formatos (`^([a-z][a-z-]*/)?([0-9]{3})-`, via `sed -nE`
+    com captura). Sem a âncora, qualquer branch comum
     com dígitos no meio — `docs/adr-0012-0014-x`, `fix/issue-123-foo` — é lido
     como spec e desvia a numeração. As outras quatro fontes sempre foram
     ancoradas; só esta não era.
@@ -61,8 +62,14 @@ bash .claude/mosk/scripts/create-new-feature.sh \
   `rogerznts/master`) while the base itself is checked out elsewhere. The
   blocked-pattern list and the `^[0-9]{3}-` spec-branch rule still apply
   on top.
-- Branch format: `{###}-{type}-{short-name}` (or `{###}-{short-name}`
-  for backward compat). Truncates to 244 bytes (GitHub limit).
+- **Branch format (ADR-0017): `{tipo}/{NNN}-{nome}`** — ex.: `feature/012-algo`.
+  A **pasta** continua plana: `docs/specs/{NNN}-{tipo}-{nome}`. Branch e pasta
+  deixaram de ser a mesma string; a ponte é o campo `branch` do `spec-meta.yaml`.
+  Formato legado `{NNN}-{tipo}-{nome}` continua sendo resolvido. Trunca em 244
+  bytes (limite do GitHub).
+- **`--type` é validado**: por extenso apenas. `feat`/`bug`/`hf`/`chore`/`docs`
+  recusados com mensagem — o tipo agora é segmento de caminho no branch, e valor
+  inválido produz branch estruturalmente errado.
 - Generates `spec-meta.yaml` with `status: active`,
   `current_phase: specify`, ISO 8601 timestamps.
 - On branch push rejection (rare, exact-name race): re-fetches,
@@ -73,9 +80,17 @@ bash .claude/mosk/scripts/create-new-feature.sh \
 
 ### `sync-agents-skills.sh`
 
-Synchronizes the three layers: source agents (`.claude/mosk/agents/`),
-skill wrappers (`.claude/skills/mosk-<name>/SKILL.md`), and Claude
-Code agent files (`.claude/agents/mosk-<name>.md`).
+Materializa a skill a partir do agente. **Uma direção só** desde a spec 011
+(ADR-0015): `.claude/agents/mosk-<name>.md` é a **fonte** — a definição completa
+— e `.claude/skills/mosk-<name>/SKILL.md` é o wrapper gerado.
+
+A camada intermediária `.claude/mosk/agents/` **deixou de existir**. Instalação
+anterior à 011 recebe um NOTE apontando o diretório antigo, em vez de falhar em
+silêncio quando a fonte some.
+
+`skills-to-agents` foi **removido** e falha com mensagem: depois da inversão ele
+sobrescreveria a definição completa do agente com um ponteiro de três linhas.
+`both` segue aceito como alias de `agents-to-skills`.
 
 **Usage:**
 ```bash
@@ -84,8 +99,8 @@ bash .claude/mosk/scripts/sync-agents-skills.sh \
 ```
 
 **Behavior:**
-- `agents-to-skills` (default direction): for each
-  `.claude/mosk/agents/<name>.md`, write `.claude/skills/mosk-<name>/SKILL.md`
+- `agents-to-skills` (única direção): para cada
+  `.claude/agents/mosk-<name>.md`, escreve `.claude/skills/mosk-<name>/SKILL.md`
   pointing back to the source. **Wrappers that already exist are edited in
   place — only the `description:` line is rewritten.** Extra front-matter keys
   (`argument-hint:` in `mosk-orq`) and hand-written bodies are preserved.
@@ -110,12 +125,12 @@ multi-linha, lida pelo modelo depois de carregada). Antes, o script derivava a
 description da Mission via `head -1` — o que truncava as 11 descriptions
 curadas do template no primeiro `sync`, sem erro visível.
 - `--clean`: removes orphan skills and CC agents whose source agent
-  no longer exists in `.claude/mosk/agents/`.
+  no longer exists in `.claude/agents/`.
 - Warns (non-blocking) when legacy `ctx-*` skills are still present;
   points to `migrate-ctx-skills-to-rules.sh`.
 
 **Run when:** adding/removing/renaming an agent under
-`.claude/mosk/agents/`, or whenever the three layers might drift.
+`.claude/agents/`, ou quando as duas camadas puderem divergir.
 
 ### `link-codex-skills.sh`
 

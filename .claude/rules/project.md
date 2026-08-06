@@ -35,8 +35,9 @@ runtime.
 | Path                  | Role                                                                                     |
 |-----------------------|------------------------------------------------------------------------------------------|
 | `mosk/`               | **Installable template** (source of truth). Everything here ships to consumer projects.  |
-| `mosk/.claude/mosk/`  | Canonical content: `agents/`, `tasks/`, `templates/`, `scripts/`, `checklists/`, etc.    |
-| `mosk/.claude/skills/`| Slash-command wrappers (e.g. `/mosk-po`) that delegate to agents/tasks under `mosk/`.    |
+| `mosk/.claude/agents/`| **Fonte dos 12 agentes** — definição completa, invocável por `subagent_type` (ADR-0015). |
+| `mosk/.claude/mosk/`  | Canonical content: `tasks/`, `templates/`, `scripts/`, `checklists/`, `data/`, etc.       |
+| `mosk/.claude/skills/`| Wrappers de slash command, **gerados** a partir dos agentes. Não editar à mão.          |
 | `.claude/` (root)     | **Local execution environment** for working on MOSK itself. Not shipped, not authoritative. |
 | `docs/`               | Discovery + specs about MOSK's own evolution. Not part of the installable template.       |
 | `CLAUDE.md`           | Project instructions (this repo). Distinct from `.claude/mosk/claude_boot.md` (shipped). |
@@ -45,9 +46,10 @@ runtime.
 
 Key layers inside `mosk/.claude/mosk/`:
 
-- `agents/` — 10 persona prompts (analyst, pm, architect, ux-expert,
-  ui-expert, po, sm, dev, qa, bench). Concise, low-menu, low-token.
-  `bench` (Bento) is the standalone workbench mode, not a pipeline agent.
+- `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 12 definições
+  (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security,
+  bench, orq). Concisas, low-menu, low-token. `bench` (Bento) é o modo workbench
+  standalone e `orq` (Mauro) o orquestrador — nenhum dos dois é fase do pipeline.
 - `tasks/` — executable workflows referenced by agents (e.g.
   `specify.md`, `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
   `archive.md`, `boot.md`, `full-spec.md`, `index-docs.md`, plus
@@ -78,8 +80,9 @@ Reference documents in `docs/architecture/` (numeric prefix optional — always 
 - **Never edit under root `.claude/`** expecting it to ship. That tree
   is the local exec environment only. All product changes go under
   `mosk/`.
-- New agent → add prompt at `mosk/.claude/mosk/agents/<name>.md` and a
-  thin skill wrapper at `mosk/.claude/skills/mosk-<name>/SKILL.md`.
+- New agent → escreva a definição em `mosk/.claude/agents/mosk-<name>.md`
+  (front-matter `name`/`description` + persona) e gere o wrapper com
+  `sync-agents-skills.sh`. Nunca escreva o wrapper à mão.
 - New task → add `mosk/.claude/mosk/tasks/<name>.md` and reference it
   from the relevant agent under `## Task mapping`.
 - New template → add `mosk/.claude/mosk/templates/<name>-tmpl.{md,yaml}`
@@ -275,7 +278,7 @@ Manual regeneration: `/mosk-dev index-docs`.
   references in `mosk/.claude/mosk/tasks/`. Cross-references must stay
   valid.
 - When changing a task, audit which agents reference it (`grep -r` in
-  `mosk/.claude/mosk/agents/`) and verify the descriptions still match.
+  `mosk/.claude/agents/`) and verify the descriptions still match.
 - Keep prompts **concise, direct, low-menu, low-token**. Menus are
   fallback for empty activation; the preferred UX is natural language
   → direct task mapping.

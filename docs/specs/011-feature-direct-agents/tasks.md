@@ -73,11 +73,11 @@ arquivos — abrir os 12 agentes duas vezes seria desperdício.*
 
 ## M3 — Docs
 
-- [ ] **T016** [P] `.claude/rules/scripts.md`: sync invertido, formato de branch,
+- [x] **T016** [P] `.claude/rules/scripts.md`: sync invertido, formato de branch,
   detecção dos dois formatos.
-- [ ] **T017** [P] `README.md` e `TASKS.md`: a camada de agentes passa a shipar;
+- [x] **T017** [P] `README.md` e `TASKS.md`: a camada de agentes passa a shipar;
   o que é agente e o que é skill.
-- [ ] **T018** [P] `CLAUDE.md` e `project-rule-tmpl.md`: a estrutura do template
+- [x] **T018** [P] `CLAUDE.md` e `project-rule-tmpl.md`: a estrutura do template
   ganhou `agents/` — o mapa do repo precisa refletir.
 
 ## M4 — Validação e fechamento
