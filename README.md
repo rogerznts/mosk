@@ -51,40 +51,29 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-pm` (João) | PRD, product scope, PRD delta |
 | `/mosk-architect` (Vinicius) | architecture, APIs, integrations, ADRs |
 | `/mosk-ux-expert` (Salete) | user flows, wireframes, front-end specs |
-| `/mosk-ui-expert` (Tiago) | premium UI, design system, visual acabamento — plus the **Hallmark** anti-slop flow |
+| `/mosk-ui-expert` (Tiago) | premium UI, design system — plus the **Hallmark** anti-slop flow |
 | `/mosk-po` (Sara) | specs, planning, task generation |
 | `/mosk-sm` (Roberto) | story readiness, sequencing |
 | `/mosk-dev` (Jaime) | implementation, QA fixes, archive |
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
-| `/mosk-security` (Heitor) | diff-aware vulnerability review, security audit, findings triage |
-| `/mosk-bench` (Bento) | workbench mode for non-technical users: build & iterate internal tools (Payload stack) |
-| `/mosk-deploy` (Bento) | publishes a `/mosk-bench` tool to a hosting provider (Railway) using the user's own account — remote build, managed DB, public URL, pt-BR |
-| `/mosk-orq` (Mauro) | orchestrator over Orca: drives one project's pipeline across panes with auto-handoff (opt-in; optional external dependency) |
+| `/mosk-security` (Heitor) | diff-aware vulnerability review, findings triage |
+| `/mosk-bench` (Bento) | workbench mode for non-technical users (Payload stack) |
+| `/mosk-orq` (Mauro) | orchestrator over Orca (opt-in, optional dependency) |
 
-**Agents ship as two layers.** `.claude/agents/mosk-<name>.md` is the **definition** — persona, task mapping, guardrails — and is what makes an agent invocable by another agent (`subagent_type`) in an isolated context. `.claude/skills/mosk-<name>/SKILL.md` is a thin generated wrapper that gives you the `/mosk-<name>` slash command. Editing happens in the agent; `sync-agents-skills.sh` regenerates the wrapper. The two are not redundant: only skills create slash commands, and only agents are invocable. See [ADR-0015](./docs/architecture/adr/adr-0015-agent-as-source-skill-as-wrapper.md).
+Each agent ships as **two layers**: `.claude/agents/mosk-<name>.md` is the
+definition — and what makes it invocable by another agent in an isolated context
+— while `.claude/skills/mosk-<name>/SKILL.md` is a generated wrapper that gives
+you the `/mosk-<name>` slash command. Edit the agent; the wrapper is regenerated.
 
-An agent may invoke another **to execute** work whose route a human already approved — never to decide where the pipeline goes. Preamble agents (`analyst`, `pm`, `architect`, `ux-expert`, `ui-expert`) are deliberately **not** auto-invocable: a missing ADR, flow or PRD is a routing signal, and the agent suspends and surfaces an escalation instead. See [ADR-0016](./docs/architecture/adr/adr-0016-agent-invocation-protocol.md).
+An agent may invoke another **to execute** work whose route a human already
+approved — never to decide where the pipeline goes.
 
-`/mosk-bench` is a **self-contained mode**, not a pipeline agent: it grills the user for a business briefing, then runs the SDD pipeline autonomously (Docker-based, pt-BR, zero technical decisions for the user). The active stack is Payload (pluggable adapter). **For a non-technical, plain-language walkthrough of everything it does, see [BENCH.md](./BENCH.md).**
+> **[docs/agents.md](./docs/agents.md)** — roster, the two layers, the invocation
+> protocol, and what is particular to `bench`, `deploy`, `security` and Hallmark.
+> **[TASKS.md](TASKS.md)** — every task each agent can run, with examples.
 
-`/mosk-deploy` is an **opt-in, separate** skill that publishes a bench tool to a hosting provider (Railway today) using the user's own account: the build runs **remotely** (so the local "zero build" invariant holds), managed Postgres/Redis are provisioned, and the user gets a public URL — all in pt-BR, deciding only account/token. See [ADR-0005](./docs/architecture/adr/adr-0005-deploy-skill-scoped-outside-local-invariants.md). The stack × provider model leaves room for PHP and other providers (Vercel/Fly) later.
-
-`/mosk-security` is an **on-demand reviewer** (inspired by Anthropic's [`claude-code-security-review`](https://github.com/anthropics/claude-code-security-review)): contextual, diff-aware analysis with a hard confidence threshold and an explicit false-positive exclusion list. It is not a pipeline phase — its report **feeds the `qa-gate`** (a `SECURITY: FAIL`/`CONCERNS` verdict informs the decision). Following the MOSK escalation contract, `implement` and `qa-gate` only **suggest** running it when the diff touches security-sensitive surface, and wait for your confirmation — never auto-invoke.
-
-UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure and behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
-
-`/mosk-ui-expert` ships **two** rule-sets. The built-in one governs *finish* — typography, palette, states, the named "AI tells". **Hallmark** governs *structure*: it picks one of 21 named macrostructures and one of 20 OKLCH themes per brief, then rotates nav and footer archetypes across runs (project memory in `.hallmark/log.json`) so two builds never share a fingerprint — the strongest tell of LLM-generated UI is not the wrong font, it's the repeated shape. Four ways in:
-
-```
-hallmark landing page do produto        # build (the default flow)
-hallmark audit src/App.tsx              # ranked punch list, zero edits
-hallmark redesign src/App.tsx           # same content, new fingerprint
-hallmark study https://example.com      # extract the DNA, never the pixels
-```
-
-Type it bare or behind `/mosk-ui-expert`. While Hallmark runs, **its rules override the built-in baseline** where they conflict (display serifs and plain HTML + CSS output are legal there). Hallmark is [vendored](https://github.com/Nutlope/hallmark) (MIT, by Nutlope / Together AI) into `.claude/mosk/data/hallmark/` — update it with `sync-hallmark.sh`, never by hand. See [ADR-0011](./docs/architecture/adr/adr-0011-vendor-hallmark.md).
-
-**Every task each agent (and standalone skill) can run — with a one-line description and usage examples — is catalogued in [TASKS.md](TASKS.md).** Natural language is the preferred UX: slash-activate the agent and describe what you want; you can also name the task directly.
+Natural language is the preferred UX: slash-activate the agent and describe what
+you want; you can also name the task directly.
 
 ## Flow
 
@@ -246,27 +235,6 @@ Agents never invoke each other automatically. The user decides: `go`, `escalate`
 Orca is **optional in the strong sense**: the pipeline runs end to end with no actuator at all, and without one Mauro degrades to the normal single-pane flow. Availability requires the session to be running **inside the Orca IDE** — having the binary on `PATH` proves installation, not context, and `spawn` creates terminals *inside the app*. `panes.sh driver` tells you which case you are in and what to do about it. See [ADR-0014](./docs/architecture/adr/adr-0014-orca-single-actuator.md) (which supersedes [ADR-0009](./docs/architecture/adr/adr-0009-herdr-orchestration.md) and revokes decision 7 of [ADR-0010](./docs/architecture/adr/adr-0010-orca-backend.md)).
 
 **Parallel work inside a phase (fan-out).** When `tasks.md` marks two or more units `[P]`, `implement` can dispatch them as a **wave**: each unit isolated, each verified, joined at the end. You approve the **fan-out plan once** — never branch by branch — and the join always returns to you; no wave chains into another on its own. It works in three tiers by detected capability (Orca orchestration → native subagent → sequential), so it needs no Orca: `panes.sh tier` reports which one applies. See [ADR-0012](./docs/architecture/adr/adr-0012-route-decision-vs-phase-execution.md), [ADR-0013](./docs/architecture/adr/adr-0013-fanout-seam-three-tiers.md).
-
-## Skills vs Agents
-
-MOSK agents can be invoked two ways inside Claude Code:
-
-**Skill (slash command)** — runs inside the current conversation and shares its context. This is the default and preferred way.
-
-```
-/mosk-dev implement a spec 012
-```
-
-**Agent (subagent)** — runs in a separate process with its own context. Does not see conversation history. Claude Code spawns these internally when needed.
-
-| | Skill | Agent |
-|---|---|---|
-| Shares conversation context | yes | no |
-| Parallel execution | no | yes |
-| Interactive with the user | yes | no |
-| Isolates heavy output | no | yes |
-
-For daily use, prefer skills.
 
 ## Spec Types
 

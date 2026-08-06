@@ -16,6 +16,7 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-architect**: Arquitetura: design de sistemas, stack, APIs e infraestrutura.
 - **mosk-bench**: Modo bench (persona Bento): workbench stack-agnóstico que leva um usuário leigo de 'quero uma ferramenta interna' a uma ferramenta rodando e testada em pt-BR, sem nenhuma decisão técnica. Stack ativa hoje: Payload (adapter). Use para criar do zero ou iterar sobre uma ferramenta interna.
 - **mosk-boot**: Bootstrap: gera .claude/rules/ com contexto compacto do projeto (project.md e, se houver frontend, frontend.md).
+- **mosk-deploy**: Publica no ar uma ferramenta criada pelo /mosk-bench, usando a conta do próprio usuário num provedor de deploy (Railway hoje; stack/provedor plugáveis). Fala em pt-BR simples na voz do Bento, sem expor nada técnico. Use quando o usuário quiser 'publicar', 'colocar no ar', 'subir para produção', 'hospedar', 'fazer deploy' ou 'gerar um link público' da ferramenta.
 - **mosk-dev**: Implementação: implement, archive, debugging, refatoração e apply-qa-fixes.
 - **mosk-handoff**: Handoff: compacta a sessão atual em um documento de transição salvo em docs/handoff/ do workspace, amarrado à spec/documentação ativa.
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
@@ -25,6 +26,7 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões.
 - **mosk-security**: Segurança: security review diff-aware, auditoria de vulnerabilidades e triagem de findings.
 - **mosk-sm**: Dev-Readiness: revisão de stories e clareza técnica para implementação.
+- **mosk-suggestion**: Suggestion: interpreta o ponto atual da sessão (spec ativa, current_phase, artefatos no disco e foco da conversa) e sugere o próximo agente MOSK a chamar, já com um prompt pronto para colar. Deriva as jogadas legais do pipeline-graph.yaml (fonte única) via legal_moves.sh — não há tabela hardcoded. Use quando o usuário perguntar 'e agora?', 'qual o próximo passo?', 'qual agente devo chamar?' ou quiser orientação para avançar no pipeline (specify → plan → tasks → implement → qa-gate → archive). Apenas sugere — nunca invoca outro agente automaticamente.
 - **mosk-ui-expert**: Design and build premium, non-generic digital interfaces — visual acabamento, design system, premium pages — plus the Hallmark anti-slop flow (hallmark · audit · redesign · study).
 - **mosk-update**: Update: atualiza o toolkit MOSK instalado via `npx degit --force`, lê o README e o TASKS.md direto do GitHub e resume as mudanças. Use ao atualizar/sincronizar a versão do MOSK no projeto.
 - **mosk-ux-expert**: UX: user flows, wireframes e front-end specs.
