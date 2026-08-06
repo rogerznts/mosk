@@ -214,3 +214,15 @@ formato legado ainda resolve.
   `lint-graph.sh` e `audit-docs-paths.sh`.
 - Fora de escopo: reconciliar o espelho local `.claude/mosk/` por inteiro
   (QA-010-004) e retomar o Tier 1 do Orca (QA-010-008, dispensado).
+
+---
+
+**Arquivado em:** 2026-08-05
+**Status final:** Concluído com waiver
+**Gate:** `WAIVED` · `quality_score: 70` (série 60 → 70)
+**Promoções aplicadas:** nenhuma — os ADR-0015/0016/0017 nasceram direto em
+`docs/architecture/adr/`, sem front-matter `promote:`.
+**Entregue:** 22 de 22 tarefas. 21/21 FRs. 6 de 8 critérios verificados, 1 parcial.
+**Dispensado:** três verificações que dependem de contexto externo — formato de
+branch ponta a ponta (a spec 012 resolve), degit real (o merge resolve) e a
+independência do gate.

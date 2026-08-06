@@ -1,7 +1,7 @@
 schema: 1
 story: "011"
 story_title: "Agentes diretos — o template ship a camada de agentes"
-gate: CONCERNS
+gate: WAIVED
 quality_score: 70
 status_reason: >-
   Os 21 requisitos funcionais passam, verificados contra o disco e — onde o grep
@@ -13,7 +13,22 @@ status_reason: >-
 reviewer: "Joaquim (mosk-qa)"
 updated: "2026-08-05T23:05:00Z"
 
-waiver: { active: false }
+waiver:
+  active: true
+  scope: "QA-011-002 (SC-005 parcial), QA-011-003 (degit simulado) e QA-011-004 (gate não independente)"
+  reason: >-
+    Nenhuma das três é defeito — são verificações que dependem de coisas fora
+    desta sessão, e todas já têm resolução natural identificada: o formato de
+    branch será exercitado quando a spec 012 nascer com ele; o degit real só
+    pode rodar depois do merge; e a independência do gate exige contexto limpo.
+    Manter a spec aberta não aproxima nenhuma delas de acontecer. Os 21 FRs
+    passam, 6 de 8 SCs estão verificados, `must_fix` está vazio e todos os NFRs
+    são PASS.
+  approved_by: "Roger (usuário)"
+  conditions:
+    - "A spec 012 deve nascer no formato `{tipo}/{NNN}-{nome}` — é o teste do SC-005, sem trabalho extra."
+    - "Depois do merge, rodar `npx degit rogerznts/mosk/mosk .` num diretório limpo e repetir as quatro checagens do T019."
+    - "O gap do espelho local (QA-011-005, herdado da 010) segue aberto e continua fora de escopo."
 
 top_issues:
   - id: "QA-011-002"
