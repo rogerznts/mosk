@@ -3,7 +3,10 @@ name: mosk-help
 description: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
 ---
 
-Output a concise MOSK guide. Do not activate any persona.
+Output a concise MOSK guide. Do not activate any persona. Write the guide
+in the project's communication language (field *Idioma de comunicação* in
+`.claude/rules/project.md`); default to **português (pt-BR)** when none is
+set. Keep skill names, commands and paths in their literal form.
 
 ## MOSK Fast Path
 
@@ -13,22 +16,22 @@ Use the agents directly with natural language:
 - `/mosk-dev implementar a spec 012`
 - `/mosk-qa revisar a spec 012`
 
-Default happy path:
+Fluxo padrão:
 
 `/mosk-po full-spec -> /mosk-dev implement -> /mosk-qa -> /mosk-dev archive`
 
-Optional steps when they add value:
+Passos opcionais, quando agregam:
 
 - `/mosk-analyst` for discovery and research
 - `/mosk-pm` for PRD and product scope
 - `/mosk-architect` for architecture and integrations
 - `/mosk-sm` for story readiness
 - `/mosk-ux-expert` for UX and front-end specs
-SpecKit core:
+Núcleo do pipeline:
 
 `full-spec -> implement -> qa-gate -> archive`
 
-Granular path:
+Passo a passo (quando quiser controlar cada fase):
 
 `specify -> plan -> tasks -> implement -> qa-gate -> archive`
 
@@ -37,6 +40,8 @@ Notes:
 - `clarify`, `analyze`, and `checklist` are optional.
 - `full-spec` stops at `tasks`; it does not implement.
 - Advanced `*commands` still work, but natural language is the preferred UX.
+- Em dúvida sobre o próximo passo? `/mosk-suggestion` lê a fase atual da
+  spec e sugere o próximo agente com um prompt pronto para colar.
 
 ## Tasks com nomes parecidos — qual quando?
 

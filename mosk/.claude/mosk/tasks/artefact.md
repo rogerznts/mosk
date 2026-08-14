@@ -29,12 +29,12 @@ work — without touching the parent spec's `spec.md`, `plan.md`,
 2. Read `<FEATURE_DIR>/spec-meta.yaml` and check `status:`.
    - **If `status: archived`** → **stop**, do **not** create files, do **not** change metadata. Emit the block below and exit:
 
-     > **Escalation suggested**
-     > - Signal: parent spec is archived; in-place addenda are not allowed (preserves archive immutability).
-     > - Recommended agent: `/mosk-po` (via `create-new-feature.sh`)
-     > - Suggested prompt: `bash .claude/mosk/scripts/create-new-feature.sh --type extension --extends <spec-id> "<descrição>"`
-     > - Scope: new `extension` spec linked to `<spec-id>` via `extends:` in `spec-meta.yaml`.
-     > - On return: resume `/mosk-po specify` on the new branch to detail the extension.
+     > **Esta spec já foi arquivada — precisamos abrir outra**
+     > - O que apareceu: a spec pai está arquivada, e arquivo não se altera. Um adendo aqui quebraria isso.
+     > - O caminho: abrir uma spec nova, ligada a esta.
+     > - Prompt pronto: `bash .claude/mosk/scripts/create-new-feature.sh --type extension --extends <spec-id> "<descrição>"`
+     > - Onde o resultado fica: uma spec `extension` nova, ligada a `<spec-id>` pelo campo `extends:` do `spec-meta.yaml`.
+     > - Quando voltar: `/mosk-po specify` no branch novo, para detalhar a extensão.
 
    - **If `status: active`** → continue.
 
@@ -131,7 +131,7 @@ work — without touching the parent spec's `spec.md`, `plan.md`,
 - Branch creation is **never** part of this task. The artefact reuses
   the parent spec's branch.
 - Never invoke another agent automatically. Always emit the
-  "Escalation suggested" block and wait for user confirmation.
+  escalation block (`../templates/escalation-block-tmpl.md`) and wait for user confirmation.
 
 ## Reference
 

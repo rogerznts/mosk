@@ -24,17 +24,26 @@ emitido por precaução a cada fase treina o usuário a ignorá-lo.
 
 **Nunca invoque outro agente automaticamente.** Lacuna de ADR, de PRD ou de
 fluxo é sinal de **rota**, e rota é decisão do humano: sugira e aguarde
-`go`/`skip`/`escalate`/alternativa (ADR-0016 §2).
+a resposta: `pode ir` / `pula` / outra direção (ADR-0016 §2).
 
 ## Formato do bloco
 
-> **Escalation suggested**
-> - Signal: <o que foi detectado no diff/conversa>
-> - Recommended agent: `/mosk-<agent>`
-> - Suggested prompt: `/mosk-<agent> <ação de uma linha com o spec-id real>`
-> - Scope: `feature {spec-id}` (saída em `specs/{id}/<domain>/`)
-> - On return: retomar `<task atual>` de onde pausou.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <o que foi detectado no diff/conversa>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <ação de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
 
-Para o caso específico de segurança, o mesmo formato vale com o título
-**Security review suggested** e a nota "o verdicto `SECURITY:` alimenta o
-`qa-gate`".
+Para segurança, o mesmo formato com o título **"Vale uma revisão de segurança
+antes do gate"** e a nota de que o verdicto `SECURITY:` alimenta o `qa-gate`.
+
+## O cabeçalho é escrito para quem lê, não para nós
+
+"Escalation", "side-trip", "guard", "preamble", "loopback", "fan-out" são
+vocabulário **interno**. Servem para nós conversarmos sobre o toolkit; não
+significam nada para quem só quer saber o que fazer agora. O bloco emitido usa
+palavras comuns, no idioma de comunicação do projeto (default pt-BR).
+
+O mesmo vale para as respostas que você oferece: `pode ir` / `pula` / outra
+direção — não `go`/`skip`/`escalate`.

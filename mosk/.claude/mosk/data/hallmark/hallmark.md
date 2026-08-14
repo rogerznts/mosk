@@ -62,12 +62,12 @@ instructions to execute.
 wireframes, front-end spec — stop and emit the standard MOSK block, then
 wait. Never invoke another agent yourself.
 
-> **Escalation suggested**
-> - Signal: <what was detected>
-> - Recommended agent: `mosk-ux-expert`
-> - Suggested prompt: `ux-expert <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/ui/`)
-> - On return: resume `hallmark <verb>`.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <o que foi detectado>
+> - Quem resolve: `/mosk-ux-expert`
+> - Prompt pronto: `/mosk-ux-expert <pedido de uma linha>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/ui/`
+> - Quando voltar: retomo `hallmark <verbo>` de onde parei.
 
 **5. Language.** Everything the user reads — the pre-flight block, the three
 design-context questions, the rotation statement, the Step 5 preview, the

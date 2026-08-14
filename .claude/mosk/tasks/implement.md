@@ -94,13 +94,13 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
     Inspect the diff you just implemented. If it touched security-sensitive
     surface — auth/authz, user input, queries, secrets/config, external
     endpoints, deserialization, crypto, file/path handling — emit the
-    **Security review suggested** block using the single format in
-    `../templates/escalation-block-tmpl.md` (recommended agent:
-    `/mosk-security`). Skip silently when clearly non-sensitive (docs, pure
+    escalation block (`../templates/escalation-block-tmpl.md`) with the header
+    **"Vale uma revisão de segurança antes do gate"**, recommending
+    `/mosk-security`. Skip silently when clearly non-sensitive (docs, pure
     refactor, tests).
     Recommended order: security **before** the gate, so `/mosk-qa qa-gate`
     reads the `SECURITY:` verdict. Do not auto-invoke — wait for the user's
-    `go`/`skip`/alternative (MOSK contract).
+    resposta: `pode ir` / `pula` / outra direção (MOSK contract).
 
 11. **O que vem depois.** `implement` entrega; quem julga é o gate.
     - Próximo passo: `/mosk-qa qa-gate {spec-id}`.

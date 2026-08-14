@@ -66,7 +66,7 @@ When `tasks.md` marks two or more units `[P]`, you may hand each one to a
 
 ## Escalation signals
 
-If during implementation you detect any of the signals below, **PAUSE and emit the "Escalation suggested" block; wait for the user's decision.** Never invoke another agent automatically.
+If during implementation you detect any of the signals below, **PAUSE and emit the escalation block (format: `.claude/mosk/templates/escalation-block-tmpl.md`); wait for the user's decision.** Never invoke another agent automatically.
 
 - Ambiguity in data model, contract, stack choice, or integration not covered by `plan.md` or `docs/architecture/` → `/mosk-architect`.
 - Missing UI behavior, flow, or interaction spec required to implement → `/mosk-ux-expert` (flow/wireframe) or `/mosk-ui-expert` (visual/design-system).
@@ -77,14 +77,18 @@ If during implementation you detect any of the signals below, **PAUSE and emit t
 
 ### Escalation block format
 
-> **Escalation suggested**
-> - Signal: <one line describing what you detected>
-> - Recommended agent: `<skill>`
-> - Suggested prompt: `<agent> <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
-> - On return: resume `<current task>` from where it paused.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <uma linha sobre o que você detectou>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <pedido de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
 
-Do not proceed until the user confirms `go`/`escalate`/`skip`/alternative.
+Write the block in the project's communication language (default pt-BR); the
+labels above are the pt-BR form. Never emit the internal vocabulary —
+"escalation", "side-trip", "guard", "preamble" are our words, not the user's.
+
+Só siga depois que o usuário responder: `pode ir` / `pula` / outra direção.
 
 ## Context loading
 

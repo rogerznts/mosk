@@ -102,7 +102,7 @@ A single pipeline with an optional preamble:
 
 ## Escalation Policy
 
-Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble agent mid-flight — an architectural ambiguity, a missing flow, a PRD conflict — and emit an **Escalation suggested** block. Agents never invoke each other automatically; the user decides whether to go, escalate, skip, or redirect.
+Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble agent mid-flight — an architectural ambiguity, a missing flow, a PRD conflict — and pause with a plain-language block naming who resolves it, plus a ready-to-paste prompt. Agents never invoke each other automatically; the user decides whether to go, skip, or redirect.
 
 When a preamble agent is invoked via escalation, it writes inside the active spec (`docs/specs/{id}/<domain>/`) and ends by suggesting the user return to the originating agent.
 

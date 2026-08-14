@@ -200,18 +200,22 @@ that a preamble agent (`analyst`, `pm`, `architect`, `ux-expert`,
 `ui-expert`) is needed to resolve an ambiguity.
 
 **Rule:** the agent **suggests** the handoff to the user in a
-standardized "Escalation suggested" block and **waits for confirmation**.
+standardized block (formato em `.claude/mosk/templates/escalation-block-tmpl.md`) and **waits for confirmation**.
 Agents NEVER invoke another agent autonomously. The user is the sole
 authority that decides whether to escalate, skip, or redirect.
 
 Block format:
 
-> **Escalation suggested**
-> - Signal: <what was detected>
-> - Recommended agent: `<skill>`
-> - Suggested prompt: `<agent> <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
-> - On return: resume `<current task>`.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <o que foi detectado>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <ação de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
+
+O cabeçalho e os rótulos vão no idioma de comunicação do projeto, em palavras
+comuns. "Escalation", "side-trip", "guard", "preamble" são vocabulário interno
+do MOSK — nunca aparecem na saída ao usuário.
 
 Preamble agents invoked via escalation write inside the current
 `specs/{id}/<domain>/` and end by suggesting the user return to the

@@ -58,12 +58,12 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - **If no security report exists and the change touched security-sensitive
      surface** (auth/authz, user input, queries, secrets/config, external
      endpoints, deserialization, crypto, file/path handling), emit the
-     **Security review suggested** block and **wait** before deciding the gate,
-     using the single format in `../templates/escalation-block-tmpl.md`
-     (recommended agent: `/mosk-security`; fill `Why now:` = "o gate deve ler um
-     verdicto `SECURITY:` antes de decidir"). Do not auto-invoke another agent
+     escalation block (`../templates/escalation-block-tmpl.md`) with the header
+     **"Vale uma revisão de segurança antes do gate"**, recommending
+     `/mosk-security`, and **wait** before deciding the gate — the gate should
+     read a `SECURITY:` verdict before ruling. Do not auto-invoke another agent
      (MOSK contract). Skip silently for clearly non-sensitive changes. Do not
-     proceed until the user confirms `go`/`skip`/alternative.
+     proceed until the user answers.
 
 4. Decide one status:
    - `PASS`
@@ -158,21 +158,26 @@ Produce a minimal gate artifact that answers one question clearly: can this move
 
 10. **Apresentar o estado e parar — nunca iterar sozinho.**
 
-    Se o gate foi `PASS`/`WAIVED`, a jogada é `/mosk-dev archive {spec-id}`.
+    Se o gate passou (`PASS`/`WAIVED`), o próximo passo é
+    `/mosk-dev archive {spec-id}`.
 
     Se ficou `CONCERNS`/`FAIL`, apresente as opções e **pare**:
 
     > **Gate `FAIL` · score 69** — série: 61 → 68 → 69
-    > - `corrigir` → `/mosk-dev apply-qa-fixes {spec-id}`
-    > - `escalar` → o problema é de design ou de story, não de execução
-    > - `waive` → aceitar com ressalva registrada
-    > - `parar`
+    > - **corrigir** — `/mosk-dev apply-qa-fixes {spec-id}`
+    > - **rever a origem** — o problema é de design ou da story, não da execução
+    > - **aceitar com ressalva** — segue como está, e o motivo fica registrado
+    > - **parar**
 
-    **Mostre a trajetória junto do veredito.** Leia `score_history` do
+    **Mostre como o score evoluiu, junto do veredito.** Leia `score_history` do
     `gate.yaml` e apresente a série. É ela que torna a decisão informada em vez
-    de arbitrária: um score parado diz que mais uma volta não vai resolver — o
-    problema está acima da execução, e a jogada honesta é `escalar`. Um score
-    subindo diz o contrário.
+    de arbitrária: um score parado entre duas voltas diz que mais uma não vai
+    resolver — o problema está acima da execução, e o honesto é rever a origem.
+    Um score subindo diz o contrário.
+
+    Escreva as opções em palavras, não em vocabulário interno: o usuário decide
+    entre corrigir, rever a origem, aceitar com ressalva ou parar. O valor
+    `WAIVED` é do YAML; para o humano, é "aceito com ressalva".
 
     **Não** auto-invoque `apply-qa-fixes` nem re-rode o gate. Quem decide a
     próxima volta é o humano.

@@ -16,22 +16,22 @@ Use the agents directly with natural language:
 - `/mosk-dev implementar a spec 012`
 - `/mosk-qa revisar a spec 012`
 
-Default happy path:
+Fluxo padrão:
 
 `/mosk-po full-spec -> /mosk-dev implement -> /mosk-qa -> /mosk-dev archive`
 
-Optional steps when they add value:
+Passos opcionais, quando agregam:
 
 - `/mosk-analyst` for discovery and research
 - `/mosk-pm` for PRD and product scope
 - `/mosk-architect` for architecture and integrations
 - `/mosk-sm` for story readiness
 - `/mosk-ux-expert` for UX and front-end specs
-SpecKit core:
+Núcleo do pipeline:
 
 `full-spec -> implement -> qa-gate -> archive`
 
-Granular path:
+Passo a passo (quando quiser controlar cada fase):
 
 `specify -> plan -> tasks -> implement -> qa-gate -> archive`
 

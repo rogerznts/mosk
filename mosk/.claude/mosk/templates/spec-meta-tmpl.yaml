@@ -18,7 +18,7 @@ created_by: "{{CREATED_BY}}"       # git user.name + email, or author hint
 
 status: active                     # active | archived
 current_phase: specify             # specify | plan | tasks | implement | qa-gate | archived
-                                   # (clarify NAO e fase — e side-trip opcional)
+                                   # (clarify NAO e fase — e um passo opcional)
 
 # Optional fields (populated as the spec progresses):
 # archived_at: "2026-05-15T10:00:00Z"

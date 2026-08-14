@@ -16,10 +16,9 @@ step the user can run immediately.
 > quando nenhum estiver definido. Mantenha em forma literal apenas nomes de
 > skill, comandos, caminhos e ids de spec.
 
-> **IMPORTANT — suggest only, never invoke.** This skill follows the MOSK
-> Escalation Policy: it **proposes** the next agent and **waits**. Never
-> activate another persona, run its task, or chain agents automatically.
-> The user decides whether to run the prompt, skip, or redirect.
+> **IMPORTANT — suggest only, never invoke.** It **proposes** the next agent
+> and **waits**. Never activate another persona, run its task, or chain agents
+> automatically. The user decides whether to run the prompt, skip, or redirect.
 
 ---
 
@@ -43,9 +42,13 @@ Use the mapping table below. Pick **one primary** suggestion; add at most two
 alternatives only when a real fork exists.
 
 If grounding is missing — no PRD/discovery/architecture/UX for a decision the
-next step depends on — recommend the matching **preamble** agent instead, in the
-same suggestion block. This mirrors the Escalation Policy: a gap in ADR, PRD or
-flow is a **routing** signal, and routing belongs to the user.
+next step depends on — recommend the agent that owns that ground instead, in the
+same suggestion block. A gap in ADR, PRD or flow is a **routing** signal, and
+routing belongs to the user.
+
+Escreva a sugestão em palavras comuns. "Preâmbulo", "side-trip", "escalação" e
+"fase" são vocabulário nosso: diga *o que fazer* e *por quê*, não em que caixa
+do modelo aquilo cai.
 
 ### Step 3 — Emit the suggestion block
 
@@ -76,14 +79,14 @@ para prosseguir (ou pedir outra direção). **Do not run anything.**
 | `current_phase: plan` (existe `plan.md`) | `/mosk-po` | `/mosk-po tasks {spec-id}` |
 | `current_phase: tasks`, stories ainda não revisadas | `/mosk-sm` *(opcional)* | `/mosk-sm revisar prontidão das stories da spec {spec-id}` |
 | `current_phase: tasks` (pronto para codar) | `/mosk-dev` | `/mosk-dev implement {spec-id}` |
-| `current_phase: implement`, diff tocou superfície sensível | `/mosk-security` *(side-trip)* | `/mosk-security review do diff da spec {spec-id}` |
+| `current_phase: implement`, diff tocou superfície sensível | `/mosk-security` *(opcional)* | `/mosk-security review do diff da spec {spec-id}` |
 | `current_phase: implement` (código entregue) | `/mosk-qa` | `/mosk-qa qa-gate {spec-id}` |
 | `current_phase: qa-gate`, gate `PASS`/`WAIVED` | `/mosk-dev` | `/mosk-dev archive {spec-id}` |
 | `current_phase: qa-gate`, gate `CONCERNS`/`FAIL`, score subindo | `/mosk-dev` | `/mosk-dev apply-qa-fixes {spec-id}` |
-| `current_phase: qa-gate`, gate `FAIL` com score parado entre voltas | preâmbulo (`/mosk-architect`, `/mosk-pm` ou `/mosk-sm`) | `/mosk-architect revisar a decisão X da spec {spec-id}` |
+| `current_phase: qa-gate`, gate `FAIL` com score parado entre voltas | quem é dono da origem: `/mosk-architect`, `/mosk-pm` ou `/mosk-sm` | `/mosk-architect revisar a decisão X da spec {spec-id}` |
 | `current_phase: archived` | `/mosk-po` | `/mosk-po full-spec <próxima demanda>` |
-| Interface entregue, sem acabamento visual | `/mosk-ui-expert` *(side-trip)* | `/mosk-ui-expert audit da tela X` |
-| Fluxo de usuário sem especificação | `/mosk-ux-expert` *(side-trip)* | `/mosk-ux-expert desenhar o fluxo de X` |
+| Interface entregue, sem acabamento visual | `/mosk-ui-expert` *(opcional)* | `/mosk-ui-expert audit da tela X` |
+| Fluxo de usuário sem especificação | `/mosk-ux-expert` *(opcional)* | `/mosk-ux-expert desenhar o fluxo de X` |
 
 **Sobre a penúltima linha do gate.** Score parado entre duas voltas é o sinal de
 que mais uma volta não resolve: o problema está acima da execução — design, PRD
@@ -97,9 +100,9 @@ entre as duas linhas.
 
 - `full-spec` cobre `specify → plan → tasks` de uma vez; depois dele o
   próximo passo é `/mosk-dev implement`.
-- `/mosk-sm` (readiness), `/mosk-security` (review), `/mosk-ui-expert` e
-  `/mosk-ux-expert` são **side-trips**: opcionais, sugeridos por sinal, nunca
-  no caminho padrão. Eles voltam para a fase de origem.
+- `/mosk-sm`, `/mosk-security`, `/mosk-ui-expert` e `/mosk-ux-expert` são
+  **desvios opcionais**: entram quando algum sinal os justifica, nunca no
+  caminho padrão, e devolvem o trabalho para a fase de onde saiu.
 - Se o usuário passou um argumento, trate-o como a intenção do próximo passo
   e enviese a sugestão para ela (sem abandonar a checagem de fase).
 

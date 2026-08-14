@@ -79,7 +79,7 @@ you want; you can also name the task directly.
 A single pipeline. An optional **preamble** runs first whenever the base of the project (or the feature) is not yet grounded.
 
 The pipeline is **consultative end to end**: every phase change, every gate
-verdict and every side-trip is the human's call. Agents suggest and wait; they
+verdict and every detour is the human's call. Agents suggest and wait; they
 never route on their own.
 
 ```mermaid
@@ -217,16 +217,18 @@ Preserve custom text between `<!-- custom -->` and `<!-- /custom -->` markers �
 
 ## Escalation Policy
 
-Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble agent mid-flight — a missing ADR, an unspecified flow, a PRD conflict — and emit a standardized **Escalation suggested** block:
+Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals they have no authority to resolve mid-flight — a missing ADR, an unspecified flow, a PRD conflict — and pause with a standard block:
 
-> **Escalation suggested**
-> - Signal: *what was detected*
-> - Recommended agent: `/mosk-architect`
-> - Suggested prompt: `/mosk-architect decide coupon service contract`
-> - Scope: `feature 005-feature-checkout-coupon` (outputs written to `specs/{id}/architecture/`)
-> - On return: resume `implement` from where it paused.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: *o que foi detectado*
+> - Quem resolve: `/mosk-architect`
+> - Prompt pronto: `/mosk-architect decidir o contrato do serviço de cupom`
+> - Onde o resultado fica: `docs/specs/005-feature-checkout-coupon/architecture/`
+> - Quando voltar: retomo o `implement` de onde parei.
 
-Agents never invoke each other automatically. The user decides: `go`, `escalate`, `skip`, or an alternative. Preamble agents invoked via escalation write inside the active spec and end by suggesting the user return to the originating agent.
+Agents never invoke each other automatically. The user answers `pode ir`, `pula`, or something else. The agent that is called writes inside the active spec and ends by pointing back to whoever was interrupted.
+
+**The block is written for the reader.** It is emitted in the project's communication language, in ordinary words, with a prompt that can be pasted as-is. `escalation`, `side-trip`, `guard`, `preamble` are the toolkit's internal vocabulary and never appear in output — the same rule that governs identifiers (see the output contract in `.claude/rules/project.md`).
 
 **What an agent may delegate.** Agents coordinate through the runtime's own
 subagents, under one rule: **execution delegates, routing does not.** A `dev` may
