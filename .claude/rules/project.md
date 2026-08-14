@@ -35,7 +35,7 @@ runtime.
 | Path                  | Role                                                                                     |
 |-----------------------|------------------------------------------------------------------------------------------|
 | `mosk/`               | **Installable template** (source of truth). Everything here ships to consumer projects.  |
-| `mosk/.claude/agents/`| **Fonte dos 12 agentes** — definição completa, invocável por `subagent_type` (ADR-0015). |
+| `mosk/.claude/agents/`| **Fonte dos 11 agentes** — definição completa, invocável por `subagent_type` (ADR-0015). |
 | `mosk/.claude/mosk/`  | Canonical content: `tasks/`, `templates/`, `scripts/`, `checklists/`, `data/`, etc.       |
 | `mosk/.claude/skills/`| Wrappers de slash command, **gerados** a partir dos agentes. Não editar à mão.          |
 | `.claude/` (root)     | **Local execution environment** for working on MOSK itself. Not shipped, not authoritative. |
@@ -59,7 +59,8 @@ Key layers inside `mosk/.claude/mosk/`:
 - `scripts/` — Bash helpers (`create-new-feature.sh`,
   `sync-agents-skills.sh`, `link-codex-skills.sh`,
   `migrate-docs-structure.sh`, `migrate-ctx-skills-to-rules.sh`,
-  `sync-hallmark.sh`, `common.sh`).
+  `sync-hallmark.sh`, `reset-install.sh`, `check-ship-ready.sh`,
+  `selftest-common.sh`, `common.sh`).
 - `checklists/` — quality checklists invoked by optional tasks.
 - `data/` — static reference material read by tasks (elicitation methods,
   test frameworks, …), plus `data/hallmark/`: a **vendored fork** of the
@@ -216,6 +217,25 @@ Preamble agents invoked via escalation write inside the current
 `specs/{id}/<domain>/` and end by suggesting the user return to the
 originating agent.
 
+## Spec Naming — branch e pasta são strings diferentes
+
+Isto confunde com frequência, então vale explícito (ADR-0017):
+
+```
+branch:  {tipo}/{NNN}-{nome}                  →  feature/012-checkout-coupon
+pasta:   docs/specs/{NNN}-{tipo}-{nome}       →  docs/specs/012-feature-checkout-coupon
+```
+
+O tipo aparece nos dois, **em posições diferentes**: no branch ele é um
+segmento de caminho (agrupa no `git branch`), na pasta ele é parte do nome
+(mantém `docs/specs/` plano, sem um nível de diretório por tipo).
+
+**A ponte entre os dois é o campo `branch` do `spec-meta.yaml`** — nunca
+igualdade de string. Código que assume `branch == nome da pasta` quebra.
+
+O formato antigo de branch (`012-feature-checkout-coupon`) continua sendo
+**resolvido** para trás, mas não é o que `create-new-feature.sh` cria.
+
 ## Spec Numbering and Concurrency
 
 Spec numbers are globally unique, three-digit, zero-padded (`001`,
@@ -235,7 +255,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature
-branch: "005-feature-checkout-coupon"
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "<name>"
 status: active             # active | archived

@@ -98,6 +98,30 @@ check_eq "2b. prefixo extraido do formato legado" "011" \
 check_eq "2c. --number 010 vale dez, nao octal oito" "010" "$(printf '%03d' "$((10#010))")"
 check_eq "2c. --number 15 normaliza para 015" "015" "$(printf '%03d' "$((10#15))")"
 
+# ─────────── caso 3: check_feature_branch aceita os DOIS formatos ───────────
+# O formato CANÔNICO do branch é `tipo/NNN-nome` (ADR-0017), mas esta função
+# validava com `^[0-9]{3}-`, que só casa o legado. Como `setup-plan.sh` e
+# `check-prerequisites.sh` a chamam, todo branch criado no formato canônico era
+# barrado na entrada de plan, tasks, implement e qa-gate.
+echo "selftest-common: validacao de branch de spec"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/common.sh"
+
+want_branch() {  # nome, branch, esperado(TRUE|FALSE)
+    local got
+    if check_feature_branch "$2" "true" 2>/dev/null; then got=TRUE; else got=FALSE; fi
+    check_eq "$1" "$3" "$got"
+}
+
+want_branch "3a. canonico feature/012-algo aceito"      "feature/012-algo"        TRUE
+want_branch "3b. canonico fix/013-bug aceito"           "fix/013-bug"             TRUE
+want_branch "3c. canonico hotfix/014-urgente aceito"    "hotfix/014-urgente"      TRUE
+want_branch "3d. legado 012-feature-algo aceito"        "012-feature-algo"        TRUE
+want_branch "3e. master recusado"                       "master"                  FALSE
+want_branch "3f. branch comum recusado"                 "chore/sync-042-pmo"      FALSE
+# A âncora continua sendo o que separa "tem número" de "tem spec":
+want_branch "3g. numero no meio do nome recusado"       "docs/adr-0012-0014-x"    FALSE
+
 # ─────────────────────────── relatório ───────────────────────────
 echo
 if [[ -n "$FAILURES" ]]; then

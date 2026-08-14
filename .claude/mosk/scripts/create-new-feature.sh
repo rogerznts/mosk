@@ -291,8 +291,10 @@ if [ "$HAS_GIT" = true ]; then
             is_allowed=false
         fi
 
-        # Block if on an existing feature branch (numeric prefix like 001-*)
-        if echo "$CURRENT_BRANCH" | grep -qE '^[0-9]{3}-'; then
+        # Block if already on a spec branch, nos dois formatos (ADR-0017):
+        # feature/012-algo (canônico) e 012-feature-algo (legado). Sem o
+        # segmento de tipo, criar uma spec a partir de outra passava batido.
+        if echo "$CURRENT_BRANCH" | grep -qE '^([a-z][a-z-]*/)?[0-9]{3}-'; then
             is_allowed=false
         fi
 

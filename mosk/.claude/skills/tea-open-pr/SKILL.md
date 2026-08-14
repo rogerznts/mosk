@@ -24,10 +24,15 @@ When run inside a git repository that has a Gitea remote, `tea` auto-detects the
 ### Step 1 — Identify the branches and type
 
 - Use the current git branch as the **source** (head).
-- Auto-detect the branch type from its name prefix:
-  - Starts with `feature/` → **Feature**
-  - Starts with `bugfix/` → **Bugfix**
-  - Starts with `hotfix/` → **Hotfix**
+- Auto-detect the branch type from its name prefix. MOSK spec branches are
+  `{tipo}/{NNN}-{nome}` (e.g. `fix/013-carrinho-vazio`), so the prefix **is**
+  the type:
+  - `feature/` → **Feature**
+  - `fix/` (or the legacy `bugfix/`) → **Bugfix**
+  - `hotfix/` → **Hotfix**
+  - `refactor/`, `gmud/`, `experimental/` → **Feature** (single PR to integration)
+  - Legacy MOSK shape `{NNN}-{tipo}-{nome}` (e.g. `013-fix-carrinho`) → read the
+    type from the **second** segment
   - Otherwise → treat as **Feature**
 - Based on the type, determine targets:
   - **Feature / Bugfix** → single PR to the integration branch (typically `hml` or `develop`)
@@ -166,4 +171,4 @@ tea pr create \
 - `tea` auto-detects server and repo from the git remote when run inside the repository.
 - For hotfixes, both PRs share the same title and label, but have different bodies and base branches.
 - Never skip label selection — always use `tea labels list` to validate names.
-- Branch type is always auto-detected from the branch name prefix — never ask.
+- Branch type is always auto-detected from the branch name — never ask. In MOSK spec branches the prefix is the type (`fix/013-…`); in the legacy shape it is the second segment (`013-fix-…`).

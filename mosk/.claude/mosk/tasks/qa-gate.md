@@ -2,6 +2,13 @@
 
 Create or update a quality gate decision for the active spec or story.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Goal
 
 Produce a minimal gate artifact that answers one question clearly: can this move forward?
@@ -106,15 +113,39 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - status_reason
    - reviewer
    - updated timestamp
-   - top_issues
+   - `top_issues` — each with `id`, `severity`, `title` (plain language),
+     `finding`, `contradicts` (the criterion **with its gloss**) and
+     `suggested_action`. Ids follow the canonical vocabulary
+     (`QA-#` here, `SEC-#` for security findings) and are **stable across
+     rounds**: `QA-1` on the second turn is the same defect as on the first.
    - waiver details when applicable
 
 7. If the reviewed artifact has a QA results section, append the gate reference there.
 
-8. Report:
-   - gate status **and `quality_score`**
-   - gate file path
-   - top issues only
+8. **Report the findings — follow `../data/output-contract.md`.**
+
+   Open with the verdict and a count, then one **block per finding**. Never a
+   table: a cell cannot hold both the claim and what the cited id means, and
+   that compression is what makes a gate unreadable.
+
+   ```markdown
+   **Gate: FAIL · score 20** — 6 achados: 2 altos, 4 médios.
+   Cinco dos seis são reescrita de texto; nenhum pede decisão de arquitetura.
+
+   ### QA-1 · alta · Busca não estreita por coleção
+
+   10 de 12 arquivos ignoram o filtro de collection.
+
+   - Contraria: SC-004 — "toda busca deve estreitar por collection" (spec.md:112)
+   - Também: FR-009, a mesma exigência do lado do requisito — corrigir um sem o
+     outro deixa a contradição pela metade
+   - Custo: reescrita de texto, não de código
+   ```
+
+   **Every id you cite carries its meaning the first time it appears**, and no
+   id is ever the subject of a claim. The reader must be able to act without
+   opening `spec.md`. Severity is written in the project's language (`alta`,
+   `média`, `baixa`); the YAML keeps `high`/`medium`/`low`.
 
 9. **Update spec metadata and refresh index.**
    ```bash

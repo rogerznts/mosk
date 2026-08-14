@@ -103,9 +103,16 @@ check_feature_branch() {
         return 0
     fi
 
-    if [[ ! "$branch" =~ ^[0-9]{3}- ]]; then
-        echo "ERROR: Not on a feature branch. Current branch: $branch" >&2
-        echo "Feature branches should be named like: 001-feature-name" >&2
+    # Aceita os DOIS formatos (ADR-0017), com a mesma âncora do resto do toolkit:
+    #   canônico : feature/012-algo      → segmento de tipo + NNN-
+    #   legado   : 012-feature-algo      → NNN- direto
+    # Sem o segmento opcional, TODO branch criado no formato canônico era
+    # rejeitado aqui — e como `setup-plan.sh` e `check-prerequisites.sh` chamam
+    # esta função, isso bloqueava plan, tasks, implement e qa-gate.
+    if [[ ! "$branch" =~ ^([a-z][a-z-]*/)?[0-9]{3}- ]]; then
+        echo "ERROR: Not on a spec branch. Current branch: $branch" >&2
+        echo "Spec branches look like: feature/012-checkout-coupon" >&2
+        echo "  (legacy 012-feature-checkout-coupon is still accepted)" >&2
         return 1
     fi
 

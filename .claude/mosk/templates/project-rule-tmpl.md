@@ -19,6 +19,45 @@
 
 {{ONE_PARAGRAPH_DESCRIBING_WHAT_THIS_PROJECT_IS_AND_ITS_PRIMARY_GOAL}}
 
+## Communication
+
+- **Idioma de comunicação:** {{COMMUNICATION_LANGUAGE}}
+
+Todos os agentes e skills do MOSK respondem nesse idioma. Para trocar o
+idioma do projeto, edite apenas o valor acima (o padrão é português / pt-BR).
+
+### Contrato de saída (MOSK-invariante)
+
+Um identificador é um **ponteiro**. Citá-lo sem o valor ao lado transfere
+trabalho de quem escreve para quem lê — e quem escreve é justamente quem acabou
+de olhar o artefato. Quatro regras, válidas para toda saída que um humano lê:
+
+1. **Primeira menção carrega o significado.** `SC-004 — "toda busca deve
+   estreitar por collection"`. Aspas = citação literal; sem aspas = paráfrase
+   de até ~12 palavras. Depois disso, no mesmo bloco, pode ser seco.
+2. **Id nunca é sujeito de uma afirmação.** Não: "SC-004 não satisfeito". Sim:
+   "A busca não estreita por coleção — contraria SC-004".
+3. **Caminho diz o que há lá.** Não: `spec.md:174–181`. Sim:
+   `spec.md:174–181 (seção "Medidas de sucesso")`.
+4. **Título se sustenta sozinho.** Quem lê só os títulos sai sabendo o que está
+   errado.
+
+**Vocabulário canônico — não invente prefixos.**
+Planejamento: `FR-###` requisito funcional · `NFR-###` requisito não-funcional ·
+`SC-###` critério de sucesso · `US-#` user story · `AC-#` critério de aceite ·
+`T###` tarefa · `ADR-####` decisão de arquitetura.
+Avaliação: `QA-#` achado de gate · `SEC-#` achado de segurança ·
+`RISK-<CAT>-#` risco (`CAT` ∈ `SEC` `PERF` `DATA` `BUS` `OPS` `TECH`).
+Ids de achado são **estáveis dentro da spec**: `QA-1` na segunda volta é o mesmo
+defeito da primeira.
+
+**Achado é bloco, não linha de tabela** — `### <id> · <severidade> · <título>`,
+um parágrafo de evidência com número concreto, e os marcadores `Contraria:` /
+`Também:` / `Onde:` / `Custo:` quando houver o que dizer. Tabela serve para
+inventário (matriz de risco, cobertura), não para achado.
+
+Contrato completo, com exemplos: `.claude/mosk/data/output-contract.md`.
+
 ## Stack
 
 - Language / runtime: {{LANGUAGE_RUNTIME}}
@@ -64,6 +103,7 @@ docs/
 ├── architecture/            # mosk-architect writes here (+ adr/)
 ├── ui/                      # mosk-ux-expert + mosk-ui-expert
 ├── qa/gates/                # mosk-qa writes gates here
+├── project/                 # mosk-pm planner writes here (plan.md + update-YYYYMMDD.md)
 └── specs/
     ├── {###}-{type}-{name}/
     │   ├── spec.md
@@ -74,8 +114,10 @@ docs/
     │   ├── discovery/          # optional, feature-specific research
     │   ├── architecture/       # optional, feature ADRs + data models
     │   ├── ui/                 # optional, feature flows/wireframes/components
+    │   ├── project/            # optional, planner tracking for this spec (non-technical: plan.md + update-YYYYMMDD.md)
     │   ├── stories/            # stories live HERE, not in a global docs/stories/
     │   ├── tests/              # dev-generated e2e checklists
+    │   ├── artefacts/          # optional, PO addenda within the spec scope
     │   └── gate.yaml           # qa-gate output
     └── archive/                # completed specs
 ```
@@ -110,13 +152,41 @@ Supported modes:
 Without `promote:`, the artifact freezes inside the archived spec and
 does not touch the base `docs/`.
 
+## Artefacts (per-spec addenda)
+
+Inside an **active** spec, `mosk-po` can create small, planned
+addenda — "artefacts" — that complement the parent spec without
+opening a new branch or new spec. They live at:
+
+```
+docs/specs/{id}/artefacts/{NNN}-{slug}.md         # the addendum
+docs/specs/{id}/artefacts/{NNN}-{slug}-tasks.md   # its own task list
+```
+
+Rules:
+
+- Each artefact is numbered locally (`001`, `002`, …) within its parent
+  spec's `artefacts/` folder.
+- Each artefact carries its own acceptance criteria, tasks, and dev →
+  QA cycle, independent of the parent's `tasks.md` / `gate.yaml`.
+- The parent spec's `current_phase` does NOT change when an artefact
+  is added. `spec-meta.yaml` gains an `artefacts:` list with
+  `{number, slug, created_at, status}` per entry.
+- Artefacts inherit the `promote:` convention. Use it when the
+  artefact yields canonical content (ADR, base flow, etc.).
+- **Archived specs reject in-place artefacts** to preserve archive
+  immutability. Use `--type extension --extends <spec-id>` to open a
+  new spec linked to the archived one instead.
+
+Created by `/mosk-po artefact "<description>"`.
+
 ## Agent Roles
 
 - `/mosk-analyst` (Maria) — discovery, research, brainstorming.
 - `/mosk-pm` (João) — PRD, product scope, PRD delta.
 - `/mosk-architect` (Vinicius) — architecture, APIs, integrations, ADRs.
 - `/mosk-ux-expert` (Salete) — user flows, wireframes, front-end specs, UX behavior.
-- `/mosk-ui-expert` (Tiago) — visual acabamento, design system, premium pages, taste system.
+- `/mosk-ui-expert` (Tiago) — visual acabamento, design system, premium pages, taste system + Hallmark (anti-slop: macroestrutura, temas, `audit`/`redesign`/`study`).
 - `/mosk-po` (Sara) — specs, planning, task generation (SpecKit pipeline).
 - `/mosk-sm` (Roberto) — story readiness, sequencing.
 - `/mosk-dev` (Jaime) — implementation, QA fixes, archive.
@@ -150,6 +220,25 @@ Preamble agents invoked via escalation write inside the current
 `specs/{id}/<domain>/` and end by suggesting the user return to the
 originating agent.
 
+## Spec Naming — branch e pasta são strings diferentes
+
+Isto confunde com frequência, então vale explícito (ADR-0017):
+
+```
+branch:  {tipo}/{NNN}-{nome}                  →  feature/012-checkout-coupon
+pasta:   docs/specs/{NNN}-{tipo}-{nome}       →  docs/specs/012-feature-checkout-coupon
+```
+
+O tipo aparece nos dois, **em posições diferentes**: no branch ele é um
+segmento de caminho (agrupa no `git branch`), na pasta ele é parte do nome
+(mantém `docs/specs/` plano, sem um nível de diretório por tipo).
+
+**A ponte entre os dois é o campo `branch` do `spec-meta.yaml`** — nunca
+igualdade de string. Código que assume `branch == nome da pasta` quebra.
+
+O formato antigo de branch (`012-feature-checkout-coupon`) continua sendo
+**resolvido** para trás, mas não é o que `create-new-feature.sh` cria.
+
 ## Spec Numbering and Concurrency
 
 Spec numbers are globally unique, three-digit, zero-padded (`001`,
@@ -157,7 +246,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 `.claude/mosk/scripts/create-new-feature.sh`:
 
 1. `git fetch --all --prune` to get fresh remote state.
-2. Compute `max(remote branches, local branches, spec dirs) + 1`.
+2. Compute `max(remote branches, number reservations, local branches, spec dirs) + 1`.
 3. Create branch + folder + initial `spec-meta.yaml` + commit.
 4. `git push -u origin <branch>` immediately.
 5. On push rejection (race): re-fetch, renumber, rename branch + folder,
@@ -168,16 +257,30 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 ```yaml
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
-type: feature
-branch: "005-feature-checkout-coupon"
+type: feature              # feature | fix | hotfix | gmud | refactor | experimental | extension
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "<name>"
 status: active             # active | archived
 current_phase: specify     # specify | plan | tasks | implement | qa-gate | archived
+# extends: "003-feature-checkout"   # only when type == extension
 ```
 
 Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
 `archive.md`) update `current_phase` when they run.
+
+**Spec types:**
+
+- `feature` — new capability.
+- `fix` — bug fix.
+- `hotfix` — urgent production fix.
+- `gmud` — change management / GMUD.
+- `refactor` — code reorganization without behavior change.
+- `experimental` — exploratory work (may be archived without promotion).
+- `extension` — extends an already-archived spec without breaking
+  archive immutability. **Requires** `extends: "<spec-id>"` pointing
+  at the parent spec. Created via
+  `create-new-feature.sh --type extension --extends <spec-id> "<desc>"`.
 
 ## docs/index.md as Entry Point
 
@@ -189,8 +292,8 @@ archived), and after `migrate-docs-structure.sh`.
 
 The index always contains:
 
-- **Overview** with links to the 5 base domains (discovery, prd,
-  architecture, ui, qa).
+- **Overview** with links to the 6 base domains (discovery, prd,
+  architecture, ui, qa, project).
 - **Active Specs** table (reading `spec-meta.yaml` from each
   `docs/specs/*/`).
 - **Archived Specs** list.
@@ -204,6 +307,10 @@ Manual regeneration: `/mosk-dev index-docs`.
 
 - Read this file and every other `.claude/rules/*.md` before starting
   any task. These are the durable project context.
+- **Idioma:** responda no idioma definido em *Idioma de comunicação*
+  (seção Communication, acima); o padrão é **português (pt-BR)**.
+  Mantenha em forma literal apenas identificadores de código, comandos,
+  caminhos e nomes de arquivo.
 - Respect the `docs/` layout above. Never create ad-hoc folders under
   `docs/` outside the canonical set without updating this rule file.
 - When in doubt whether an artifact belongs to the base or to a spec,

@@ -192,7 +192,7 @@ Each spec carries `spec-meta.yaml`:
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature
-branch: "005-feature-checkout-coupon"
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "Alice <alice@example.com>"
 status: active             # active | archived
@@ -250,11 +250,20 @@ serially.
 
 ## Spec Types
 
-Specs share a single pipeline; the type lives in the folder/branch name:
+Specs share a single pipeline; the type appears in both the branch and the
+folder — but **in different positions, on purpose** (ADR-0017):
 
 ```
-{###}-{type}-{short-name}
+branch:  {type}/{###}-{short-name}     e.g.  feature/012-checkout-coupon
+folder:  docs/specs/{###}-{type}-{short-name}
+                                       e.g.  docs/specs/012-feature-checkout-coupon
 ```
+
+The folder stays flat so that `docs/specs/` never grows a directory level per
+type. The bridge between the two strings is the `branch` field in
+`spec-meta.yaml` — never string equality. The old branch shape
+(`012-feature-checkout-coupon`) is still resolved, but is not what
+`create-new-feature.sh` creates.
 
 Supported types:
 
@@ -265,11 +274,6 @@ Supported types:
 - `refactor`
 - `experimental`
 
-Example:
-
-```
-012-feature-checkout-coupon
-```
 
 ## Migrating Existing Projects
 

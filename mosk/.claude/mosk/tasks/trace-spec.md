@@ -4,6 +4,13 @@
 
 Map story requirements to test cases using Given-When-Then patterns for comprehensive traceability.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Purpose
 
 Create a requirements traceability matrix that ensures every acceptance criterion has corresponding test coverage. This task helps identify gaps in testing and ensures all requirements are validated.

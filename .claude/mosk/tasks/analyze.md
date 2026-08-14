@@ -2,6 +2,13 @@
 
 Run a focused consistency review across the active spec artifacts.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## User Input
 
 ```text

@@ -2,6 +2,13 @@
 
 Full-codebase security audit. Same methodology and taxonomy as `security-review.md`, but the scope is the **whole repository**, not just the diff. On demand and outside the happy path — it is more expensive, so only run it when the user asks for a broad audit (new project onboarding, pre-release hardening, periodic review).
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Goal
 
 Produce a prioritized security report covering the codebase as it stands today, with the same high-signal / low-false-positive bar as the diff-aware review.

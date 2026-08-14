@@ -4,6 +4,13 @@
 
 Generate a comprehensive risk assessment matrix for a story implementation using probability × impact analysis.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Inputs
 
 ```yaml
@@ -81,7 +88,10 @@ For each category, identify specific risks:
 
 ```yaml
 risk:
-  id: 'SEC-001' # Use prefixes: SEC, PERF, DATA, BUS, OPS, TECH
+  id: 'RISK-SEC-001' # RISK-<CAT>-<n>; CAT: SEC, PERF, DATA, BUS, OPS, TECH
+  # O prefixo `RISK-` não é decorativo: sem ele, `SEC-001` significa RISCO aqui e
+  # ACHADO no qa-gate — duas coisas com ciclos de vida diferentes sob o mesmo
+  # nome. Ver `../data/output-contract.md` §1.
   category: security
   title: 'Insufficient input validation on user forms'
   description: 'Form inputs not properly sanitized could lead to XSS attacks'
@@ -124,9 +134,9 @@ Create risk matrix:
 
 | Risk ID  | Description             | Probability | Impact     | Score | Priority |
 | -------- | ----------------------- | ----------- | ---------- | ----- | -------- |
-| SEC-001  | XSS vulnerability       | High (3)    | High (3)   | 9     | Critical |
-| PERF-001 | Slow query on dashboard | Medium (2)  | Medium (2) | 4     | Medium   |
-| DATA-001 | Backup failure          | Low (1)     | High (3)   | 3     | Low      |
+| RISK-SEC-001  | XSS vulnerability       | High (3)   | High (3)   | 9  | Critical |
+| RISK-PERF-001 | Slow query on dashboard | Medium (2) | Medium (2) | 4  | Medium   |
+| RISK-DATA-001 | Backup failure          | Low (1)    | High (3)   | 3  | Low      |
 ```
 
 ### 4. Risk Mitigation Strategies
@@ -135,7 +145,7 @@ For each identified risk, provide mitigation:
 
 ```yaml
 mitigation:
-  risk_id: 'SEC-001'
+  risk_id: 'RISK-SEC-001'
   strategy: 'preventive' # preventive|detective|corrective
   actions:
     - 'Implement input validation library (e.g., validator.js)'
