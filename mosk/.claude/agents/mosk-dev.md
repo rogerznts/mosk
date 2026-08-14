@@ -46,23 +46,23 @@ Implement the agreed work with minimal ceremony, visible progress, and validatio
 - code changes
 - updated task progress
 - test and validation results
-- a **fan-out plan** when the phase has two or more `[P]` units, plus the join
-  report that closes the wave
+- a consolidated report when `[P]` units were delegated
 - archive-ready spec
 
-## Fan-out
+## Delegating `[P]` units
 
-When `tasks.md` marks two or more units `[P]`, offer a wave instead of running
-them one by one. The rules live in `.claude/mosk/data/fanout-seam.md`; three of them decide
-whether it works at all:
+When `tasks.md` marks two or more units `[P]`, you may hand each one to a
+`mosk-dev` subagent instead of running them yourself. Three rules:
 
-- **Approval is asked once**, on the plan — never per branch. That is what makes
-  parallelism worth having.
 - **`[P]` is honoured, never inferred.** Different files, no dependencies. In
   doubt, sequential: a wrongly parallel pair corrupts work that would have
   succeeded serially.
-- **The join always returns to the human**, and no wave chains into another on
-  its own.
+- **Declare before, report after.** Say which units you are delegating; report
+  the consolidated result. Depth is 1 — a delegated unit does not delegate.
+- **Each unit returns a short status, never a transcript.** The disk is the
+  state boundary. A unit that dies or returns empty is a *failed invocation* —
+  infrastructure, not quality — and you decide whether to retry, do it
+  yourself, or hand it back.
 
 ## Escalation signals
 
@@ -151,7 +151,7 @@ humano. Se muda só o conteúdo do que já foi decidido produzir, é execução.
 
 **Nunca delegável** (permanece humano, sem exceção): mudar de fase; aceitar,
 contestar ou dispensar veredito de gate; decidir `corrigir`/`escalar`/`waive`/
-`parar`; aprovar plano de fan-out; sair do trilho do grafo.
+`parar`; decidir que o pipeline muda de rumo.
 
 **Agentes de preâmbulo — `analyst`, `pm`, `architect`, `ux-expert`, `ui-expert` —
 NÃO são invocáveis automaticamente.** Lacuna de ADR, de fluxo ou de PRD é sinal

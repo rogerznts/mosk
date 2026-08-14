@@ -47,6 +47,19 @@ optional:
 - Locate story file in `{story_root}/{epic}.{story}.*.md`
   - HALT if missing and ask for correct story id/path
 
+### 0.5) Register the phase
+
+Applying QA fixes puts the spec back in `implement`. Record that, so the
+metadata says where the work actually is:
+
+```bash
+source .claude/mosk/scripts/common.sh
+update_spec_phase "$FEATURE_DIR" implement
+```
+
+This does **not** auto-iterate — you were routed here by a human decision, and
+you will hand back to `/mosk-qa qa-gate` when the fixes are in.
+
 ### 1) Collect QA Findings
 
 - Parse the latest gate YAML:

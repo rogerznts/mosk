@@ -6,7 +6,6 @@
 # Falha (exit 1) se a spec do branch tiver pontas soltas:
 #   - current_phase != archived (não passou pelo archive do pipeline);
 #   - artefatos com `promote:` (copy/append) cujo alvo ainda não existe;
-#   - pipeline-graph.yaml inválido (lint-graph);
 #   - working tree sujo (mudanças não commitadas).
 # Branch sem spec ativa (base branch / mudança não-spec) → passa (exit 0): o
 # gate é sobre specs MOSK, não sobre todo branch.
@@ -30,7 +29,6 @@ soltas (lista os motivos); exit 2 = erro de uso.
 Checagens (quando ha spec ativa):
   - current_phase == archived
   - nenhum artefato promote (copy/append) com alvo faltando
-  - lint-graph.sh limpo
   - working tree limpo
 
 Opcoes:
@@ -108,14 +106,7 @@ while IFS= read -r pf; do
     fi
 done < <(grep -rl '^promote:' "$FEATURE_DIR" 2>/dev/null || true)
 
-# 3. lint do grafo
-if [[ -x "$SCRIPT_DIR/lint-graph.sh" ]]; then
-    if ! "$SCRIPT_DIR/lint-graph.sh" --quiet >/dev/null 2>&1; then
-        add_fail "lint-graph.sh falhou (pipeline-graph.yaml invalido)"
-    fi
-fi
-
-# 4. working tree limpo
+# 3. working tree limpo
 if has_git && [[ -n "$(git -C "$REPO_ROOT" status --porcelain 2>/dev/null)" ]]; then
     add_fail "working tree sujo (mudancas nao commitadas)"
 fi

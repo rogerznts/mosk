@@ -54,15 +54,7 @@ project documentation, with the MOSK v2 layout as the default shape.
    folder, list its `.md` files (excluding `index.md`) alphabetically.
    Extract title from first `#` heading and a 1–2 line description.
 
-6. **Render the pipeline flow (derived from the graph)**: run
-   `bash .claude/mosk/scripts/graph_mermaid.sh` and embed its output as a
-   ```mermaid``` block inside the "Pipeline Flow" section, between the
-   `<!-- graph:begin -->` and `<!-- graph:end -->` markers. This is the
-   single source of the flow diagram (ADR-0006) — never hand-draw it here.
-   If the script or `pipeline-graph.yaml` is missing, skip the section with a
-   warning (do not fail the whole index).
-
-7. **Parse existing `docs/index.md`**: if present, preserve any block
+6. **Parse existing `docs/index.md`**: if present, preserve any block
    delimited by `<!-- custom -->` and `<!-- /custom -->`. Everything
    outside those markers is regenerated.
 
@@ -79,14 +71,6 @@ project documentation, with the MOSK v2 layout as the default shape.
 # Project Documentation Index
 
 Last updated: YYYY-MM-DDTHH:MM:SSZ
-
-## Pipeline Flow
-
-<!-- graph:begin -->
-```mermaid
-(output de graph_mermaid.sh — derivado de pipeline-graph.yaml)
-```
-<!-- graph:end -->
 
 ## Overview
 

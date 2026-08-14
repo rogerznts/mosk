@@ -83,7 +83,7 @@ humano. Se muda só o conteúdo do que já foi decidido produzir, é execução.
 
 **Nunca delegável** (permanece humano, sem exceção): mudar de fase; aceitar,
 contestar ou dispensar veredito de gate; decidir `corrigir`/`escalar`/`waive`/
-`parar`; aprovar plano de fan-out; sair do trilho do grafo.
+`parar`; decidir que o pipeline muda de rumo.
 
 **Agentes de preâmbulo — `analyst`, `pm`, `architect`, `ux-expert`, `ui-expert` —
 NÃO são invocáveis automaticamente.** Lacuna de ADR, de fluxo ou de PRD é sinal

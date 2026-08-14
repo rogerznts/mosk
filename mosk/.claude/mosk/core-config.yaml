@@ -23,8 +23,8 @@ qa:
   gatesDir: docs/qa/gates
   assessmentsDir: docs/qa/assessments
   # Corte de referência do `quality_score` do gate (0-100). É OBSERVAÇÃO, não
-  # gatilho: quem termina o delivery-loop é o `gate` (PASS/WAIVED), sempre
-  # (ADR-0008 §3). O corte serve para ler a trajetória entre voltas.
+  # gatilho: o veredito do gate (PASS/CONCERNS/FAIL/WAIVED) é que decide, sempre.
+  # O corte serve para ler a trajetória do score entre uma volta e a seguinte.
   score_threshold: 85
 project:
   root: docs/project
@@ -34,25 +34,6 @@ project:
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md
-orchestration:
-  graph: .claude/mosk/pipeline-graph.yaml
-  max_retries: 3
-  # /mosk-orq — orquestrador multi-pane. Dependência externa OPCIONAL: o pipeline
-  # roda ponta a ponta sem atuador nenhum (ADR-0014 §1).
-  driver: auto                    # auto | orca | none — atuador de panes
-  context_token_ceiling: 800000   # gatilho de handoff por contexto (~80% de 1M)
-  autonomy_default: semi-auto     # semi-auto | full-auto (quando o modo não é passado)
-  handoff_on_agent_change: true   # handoff quando a próxima fase muda de agente
-  handoff_on_context_ceiling: true # handoff (refresh) quando tokens ≥ ceiling
-  # Backend Orca (onorca.dev) — único suportado. Em `auto`, só é eleito quando a
-  # sessão roda DENTRO da IDE do Orca; ter o binário no PATH não basta
-  # (ADR-0014 §3.1). Instalações com `driver: herdr` falham com aviso de migração.
-  orca:
-    enabled: auto                 # auto | on | off
-    native_tasks: auto            # auto | on | off — orca orchestration
-                                  # (task DAG, dispatch, ask/reply, gates).
-                                  # `auto` liga quando o runtime suporta: sem ela
-                                  # não existe Tier 1 de fan-out (ADR-0013).
 promotion:
   defaults:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }
