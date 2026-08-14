@@ -40,7 +40,7 @@ When in doubt: "will a consumer of `npx degit` need this?" → `mosk/`.
 ```text
 mosk/                        # installable template (source of truth)
 ├── .claude/
-│   ├── agents/              # FONTE dos agentes (12) — definição completa,
+│   ├── agents/              # FONTE dos agentes (11) — definição completa,
 │   │                        # invocável por subagent_type. Shipa (ADR-0015).
 │   ├── mosk/
 │   │   ├── tasks/           # executable workflows (specify, plan, tasks,
@@ -60,7 +60,8 @@ mosk/                        # installable template (source of truth)
 │   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
 │   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,
 │   │   │                    # migrate-ctx-skills-to-rules.sh, sync-hallmark.sh,
-│   │   │                    # selftest-orca-driver.sh, common.sh
+│   │   │                    # reset-install.sh, check-ship-ready.sh,
+│   │   │                    # selftest-common.sh, common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)

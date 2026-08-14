@@ -1,0 +1,13 @@
+spec_number: "004"
+spec_id: "004-feature-orchestration-graph"
+type: "feature"
+branch: "004-feature-orchestration-graph"
+created_at: "2026-07-22T16:23:56Z"
+created_by: "Roger Santos <rogerznts@gmail.com>"
+status: archived
+current_phase: archived
+last_phase_change: "2026-07-22T16:45:00Z"
+archived_at: "2026-08-14T00:00:00Z"
+# Revertida, nao concluida: a camada de orquestracao que esta spec entregou foi
+# removida pelo ADR-0018. O ADR-0007 (schema do grafo) nunca foi promovido e
+# permanece aqui dentro, como registro.

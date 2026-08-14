@@ -46,10 +46,10 @@ runtime.
 
 Key layers inside `mosk/.claude/mosk/`:
 
-- `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 12 definições
+- `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 11 definições
   (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security,
-  bench, orq). Concisas, low-menu, low-token. `bench` (Bento) é o modo workbench
-  standalone e `orq` (Mauro) o orquestrador — nenhum dos dois é fase do pipeline.
+  bench). Concisas, low-menu, low-token. `bench` (Bento) é o modo workbench
+  standalone — o único que não é fase do pipeline.
 - `tasks/` — executable workflows referenced by agents (e.g.
   `specify.md`, `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
   `archive.md`, `boot.md`, `full-spec.md`, `index-docs.md`, plus

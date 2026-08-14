@@ -5,7 +5,7 @@ promote_mode: copy
 
 # ADR-0008 — Delivery-loop consultivo e limitado (per-spec, sinal único de gate)
 
-- Status: aceito
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-07-22
 - Autor: Sara (mosk-po), via `grill`
 - Contexto: spec `005-feature-delivery-loop` — introduzir um loop de convergência sobre `readiness → implement → qa → security` com teto `max_retries`.

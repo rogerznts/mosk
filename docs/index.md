@@ -3,51 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-07-26
-
-## Fluxo do Pipeline
-
-<!-- graph:begin -->
-```mermaid
-flowchart TD
-  __start__["__start__"] -->|base_ready| specify["specify"]
-  __start__["__start__"] -->|base_missing| discovery["discovery"]
-  discovery["discovery"] -->|request_vague| prd["prd"]
-  discovery["discovery"] --> specify["specify"]
-  prd["prd"] -->|architecture_heavy| architecture["architecture"]
-  prd["prd"] -->|ux_heavy| ux["ux"]
-  prd["prd"] -->|design_heavy| ui["ui"]
-  prd["prd"] --> specify["specify"]
-  architecture["architecture"] --> specify["specify"]
-  ux["ux"] --> specify["specify"]
-  ui["ui"] --> specify["specify"]
-  specify["specify"] --> plan["plan"]
-  plan["plan"] --> tasks["tasks"]
-  tasks["tasks"] -->|stories_need_review| readiness["readiness"]
-  tasks["tasks"] --> implement["implement"]
-  readiness["readiness"] --> implement["implement"]
-  implement["implement"] -->|diff_security_sensitive| security_review["security-review"]
-  security_review["security-review"] --> qa_gate["qa-gate"]
-  implement["implement"] --> qa_gate["qa-gate"]
-  qa_gate["qa-gate"] -->|gate_concerns_or_fail| implement["implement"]
-  qa_gate["qa-gate"] -->|gate_pass| archived["archived"]
-  plan["plan"] -.->|missing_adr| architecture["architecture"]
-  tasks["tasks"] -.->|missing_adr| architecture["architecture"]
-  implement["implement"] -.->|missing_adr| architecture["architecture"]
-  qa_gate["qa-gate"] -.->|missing_adr| architecture["architecture"]
-  specify["specify"] -.->|unspecified_flow| ux["ux"]
-  plan["plan"] -.->|unspecified_flow| ux["ux"]
-  implement["implement"] -.->|unspecified_flow| ux["ux"]
-  specify["specify"] -.->|design_gap| ui["ui"]
-  plan["plan"] -.->|design_gap| ui["ui"]
-  implement["implement"] -.->|design_gap| ui["ui"]
-  specify["specify"] -.->|prd_conflict| prd["prd"]
-  plan["plan"] -.->|prd_conflict| prd["prd"]
-  tasks["tasks"] -.->|prd_conflict| prd["prd"]
-  implement["implement"] -.->|prd_conflict| prd["prd"]
-  qa_gate["qa-gate"] -.->|prd_conflict| prd["prd"]
-```
-<!-- graph:end -->
+Last updated: 2026-08-14
 
 ## Visão geral
 
@@ -67,20 +23,21 @@ Corporativo).
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
   ADR-0003 golden starter versionado, ADR-0004 orquestração agnóstica de
   runtime — promovido no archive da spec 002; ADR-0005 deploy escopado;
-  ADR-0006 grafo de orquestração consultivo — spec 004;
-  ADR-0008 delivery-loop consultivo — promovido no archive da spec 005;
-  ADR-0009 orquestração multi-pane sobre Herdr — promovido no archive da spec 006;
-  ADR-0010 atuador plugável, Orca como segundo backend — promovido no archive da spec 007;
+  ADR-0006 grafo de orquestração consultivo (spec 004), ADR-0008 delivery-loop
+  consultivo (spec 005), ADR-0009 orquestração multi-pane sobre Herdr (spec 006)
+  e ADR-0010 Orca como backend (spec 007) — **todos superseded pelo ADR-0018**;
   ADR-0011 Hallmark vendorizado como corpo de referência do `mosk-ui-expert` —
   promovido no archive da spec 008;
-  ADR-0012 fronteira decisão-de-rota × execução-de-fase,
-  ADR-0013 seam de fan-out em três tiers,
-  ADR-0014 Orca como atuador único — spec 010, substitui o ADR-0009 e revoga a
-  decisão 7 do ADR-0010;
+  ADR-0012 fronteira decisão-de-rota × execução-de-fase (mantido — sustenta o
+  ADR-0016);
+  ADR-0013 seam de fan-out em três tiers e ADR-0014 Orca como atuador único
+  (spec 010) — **superseded pelo ADR-0018**;
   ADR-0015 agente como fonte, skill como wrapper (e o template passa a shipar
   as duas camadas),
   ADR-0016 protocolo de invocação entre agentes (execução delega, rota não),
-  ADR-0017 convenção de nome de branch `{tipo}/{NNN}-{nome}`) +
+  ADR-0017 convenção de nome de branch `{tipo}/{NNN}-{nome}`,
+  **ADR-0018 remoção da camada de orquestração** — o subagente nativo dos
+  runtimes tornou o atuador externo redundante) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -106,12 +63,13 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 004 | [feature-orchestration-graph](./specs/004-feature-orchestration-graph/) (grafo de orquestração consultivo) | implement | 004-feature-orchestration-graph | 2026-07-22 |
+| — | *(nenhuma spec ativa)* | — | — | — |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 004 | [feature-orchestration-graph](./specs/archive/004-feature-orchestration-graph/) (grafo de orquestração consultivo — **revertida** pelo ADR-0018) | archived | 004-feature-orchestration-graph | 2026-08-14 |
 | 011 | [feature-direct-agents](./specs/archive/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch — gate `WAIVED`) | archived | 011-feature-direct-agents | 2026-08-05 |
 | 010 | [feature-graph-loop-orca](./specs/archive/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único — gate `WAIVED`) | archived | 010-feature-graph-loop-orca | 2026-08-05 |
 | 009 | [fix-orca-driver-read-send](./specs/archive/009-fix-orca-driver-read-send/) (driver Orca: `read` cego, `send` sem prova de entrega; + `common.sh` em zsh) | archived | 009-fix-orca-driver-read-send | 2026-07-29 |

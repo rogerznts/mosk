@@ -1,6 +1,6 @@
 # ADR-0004 — Orquestração da Fase B: contrato de fases agnóstico de runtime + isolamento como capacidade
 
-- Status: aceito
+- Status: aceito — **emendado** por [adr-0018](./adr-0018-remove-orchestration-layer.md) §7 (2026-08-14): o RAPC e o seam continuam valendo, mas a premissa de que o Codex não tem subagente isolado caiu (`codex-cli 0.146.0`, feature `multi_agent` stable). Onde ela existir, o Codex é **Tier 1**, não Tier 2.
 - Data: 2026-07-19
 - Autor: Vinicius (mosk-architect)
 - Contexto: modo `/mosk-payload` — ver `../../../../architecture/mosk-payload-mode.md` §5 e `../../plan.md` §Open Architecture Decision.

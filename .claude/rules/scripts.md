@@ -58,7 +58,7 @@ bash .claude/mosk/scripts/create-new-feature.sh \
 - Refuses to create from environment/release/feature branches. Base
   branches allowed: `main master develop dev` — **or** any branch pointing
   at the *same commit* as one of them. That second rule is what makes it
-  work from an Orca/agent worktree whose branch is personal (e.g.
+  work from an agent worktree whose branch is personal (e.g.
   `rogerznts/master`) while the base itself is checked out elsewhere. The
   blocked-pattern list and the `^[0-9]{3}-` spec-branch rule still apply
   on top.
@@ -103,7 +103,7 @@ bash .claude/mosk/scripts/sync-agents-skills.sh \
   `.claude/agents/mosk-<name>.md`, escreve `.claude/skills/mosk-<name>/SKILL.md`
   pointing back to the source. **Wrappers that already exist are edited in
   place — only the `description:` line is rewritten.** Extra front-matter keys
-  (`argument-hint:` in `mosk-orq`) and hand-written bodies are preserved.
+  (`argument-hint:` in `mosk-suggestion`) and hand-written bodies are preserved.
 - `skills-to-agents`: generate `.claude/agents/mosk-<name>.md` when missing;
   when present, keep the body and refresh only the `description:` line.
 
@@ -250,134 +250,48 @@ bash .claude/mosk/scripts/check-prerequisites.sh \
 
 **Called by:** `plan`, `tasks`, `implement`, `qa-gate` tasks.
 
-### `legal_moves.sh`
-
-Computes the **legal next moves** from a pipeline phase, reading the single
-source of truth `pipeline-graph.yaml` (ADR-0006/0007). **Never takes an
-edge** — evaluates `fact` guards mechanically, flags `judgment` guards for
-the agent, and presents; the human decides.
-
-**Fan-out aware** (ADR-0012/0013): quando o nó declara `fanout`, a saída inclui
-o bloco `fan-out disponível` (e `"fanout"` no JSON). É o grafo que diz se a fase
-admite onda — o `implement.md` consulta, não decide sozinho, para o dado não
-virar segunda cópia (ADR-0006 §1). O tier **não** é resolvido aqui: isso é o
-atuador (`panes.sh tier`), e sondar o Orca daqui acoplaria cérebro e atuador.
-
-**Usage:**
-```bash
-bash .claude/mosk/scripts/legal_moves.sh <current_phase> [--json]
-bash .claude/mosk/scripts/legal_moves.sh __start__      # pre-spec routing
-```
-
-**Behavior:**
-- Lists edges leaving `<current_phase>` with the `default` marked; omits moves
-  whose `fact` guard failed; surfaces `judgment` guards with their question.
-- Lists escalations available from the phase (side-trips that return).
-- **Delivery-loop aware at `qa-gate`** (ADR-0008): labels the correction
-  loopback `tentativa N/max` while `N < max`; on the cap, swaps to the
-  exhaustion menu (`escalar`/`waive`/`parar`). The counter is derived from
-  `phase-history.log`; the cap from `resolve_max_retries`.
-
-**Called by:** `mosk-suggestion` skill; `implement`/`qa-gate` tasks.
-
-### `graph_mermaid.sh`
-
-Renders a deterministic Mermaid flowchart **from** `pipeline-graph.yaml` (the
-diagram is derived, not a parallel copy). Embedded into `docs/index.md` by
-`index-docs`. Usage: `bash .claude/mosk/scripts/graph_mermaid.sh`.
-
-### `lint-graph.sh`
-
-Validates the **form** of `pipeline-graph.yaml` (ADR-0007): every record
-(node/edge/escalation/guard) must be one line in flow style, so the `awk`
-projections in `common.sh` stay simple. Usage:
-`bash .claude/mosk/scripts/lint-graph.sh [--quiet]`. Exit 0 = clean;
-exit 1 lists `path:line :: detail`.
-
-### `panes.sh`
-
-**Fachada única do atuador de panes do `/mosk-orq`** (ADR-0010/0014). Resolve se
-há atuador e delega o argv inalterado ao driver. É o único script que o agente
-chama — o prompt nunca fala com a CLI do Orca.
-
-Sobrevive com **um backend só** de propósito: é onde vive a degradação `none`,
-que é requisito (o MOSK roda em projetos sem atuador nenhum), e é o ponto de
-resolução do tier de fan-out.
-
-**Usage:**
-```bash
-bash .claude/mosk/scripts/panes.sh driver [--json]   # há atuador? + motivo
-bash .claude/mosk/scripts/panes.sh tier [--json]     # tier de fan-out (ADR-0013)
-bash .claude/mosk/scripts/panes.sh <subcomando> ...  # delega ao orca.sh
-```
-
-**Precedência da escolha:** env `MOSK_ORQ_DRIVER` → `orchestration.driver` no
-`core-config.yaml` (`auto|orca|none`) → em `auto`, **sessão dentro da IDE do
-Orca `E` `check` passando** → `none`.
-
-**Ter o binário no PATH não basta.** Presença prova instalação, não contexto, e
-`spawn` cria terminais **dentro do app**: fora da IDE isso abriria painéis num
-aplicativo que o usuário não está usando. `driver: orca` explícito continua sendo
-honrado fora da IDE — quem força, assume. `driver: herdr` (backend removido)
-falha com aviso de migração, nunca degrada em silêncio.
-
-`panes.sh driver` distingue os quatro casos, porque a ação do usuário difere em
-cada um: binário ausente (instalar) · fora da IDE (abrir o projeto no Orca) ·
-orquestração experimental desligada (habilitar nas configurações) · desligado por
-config.
-
-`panes.sh tier` devolve `{tier, runtime_decides, reason, actionable}`. Reporta
-`2+` com `runtime_decides` quando o Tier 1 não se aplica: um shell não tem como
-saber se quem o chamou dispõe de subagente nativo, e não finge essa certeza.
-
-### `orca.sh`
-
-**Driver do atuador** ([onorca.dev](https://www.onorca.dev/)), único backend
-suportado (ADR-0014). O "pane" é o handle de terminal do Orca.
-
-**Resolução do executável (crítica):** `$ORCA_CLI_COMMAND` → `orca-dev` (quando
-`$ORCA_DEV_REPO_ROOT`) → `orca-ide` → `orca`, e **recusa** `/usr/bin/orca` ou
-`/bin/orca` — no Linux esse nome é o **leitor de tela do GNOME**, e executá-lo
-inicia síntese de voz na máquina do usuário. Nunca invoque `orca` cru.
-
-**Wrapper fino por decisão de arquitetura (ADR-0014 §6):** a grammar do Orca não
-é memorizada aqui nem no prompt — o guia é servido pelo binário
-(`orca skills get orchestration`) para evitar version drift. É a lição da spec
-009 elevada a regra.
-
-Limites absorvidos no wrapper: `--cwd` vira `--worktree path:<p>` (com fallback
-para `active`); `send` usa o `--enter` atômico; `--split`/`--workspace`/`--tab`
-não têm equivalente e são reportados em stderr; sem contador nativo de tokens,
-`tokens` faz parse da TUI (`over=unknown` quando não casa).
-
-**Camada nativa (`orchestration.orca.native_tasks: auto|on|off`, default
-`auto`):** `native | run | task-create | task-list | dispatch | worker-start |
-worker-read | await | delivery-id | ask | reply | gate-create | gate-resolve`.
-Em `auto`, sonda a capacidade real com `orchestration run-list` — **não** com
-`task-list`, que exige Run vinculada e responde `run_required` quando não há: uma
-falha que prova o contrário do que se quer medir.
-
-Três armadilhas codificadas no wrapper, que não devem ser desfeitas:
-
-- **`await` sem `--ack` reentrega o mesmo lote** a cada janela; alimente com o
-  `delivery-id` da rodada anterior.
-- **`question` faz parte dos tipos default**: sem ele, um worker que usa `ask`
-  fica bloqueado até o timeout, perguntando para quem não ouve.
-- **toda Task exige Run vinculada** — `ensure_run` roda antes do `task-create`.
-
-A invariante do ADR-0006 vale: o orquestrador **cria** o gate, o humano
-**resolve**, e `orchestration run` (coordinator loop autônomo) nunca é usado.
-
 ### `check-ship-ready.sh`
 
 **Guardrail de merge (fonte única de "spec fechada").** Valida se a spec ativa do
 branch está pronta pra abrir/mergear PR: `current_phase == archived`, nenhum
-artefato `promote:` (copy/append) com alvo faltando, `lint-graph` limpo, working
+artefato `promote:` (copy/append) com alvo faltando, working
 tree limpo. Branch sem spec ativa passa. Exit 0 = pronta; 1 = pontas soltas
 (lista os motivos). Usage:
 `bash .claude/mosk/scripts/check-ship-ready.sh [--json]`.
 **Consumido por** camadas de guardrail (hook do Claude Code em `gh pr merge`,
 CI/branch protection, `/tea-open-pr`).
+
+### `reset-install.sh`
+
+**Reinstala o toolkit do zero num projeto consumidor**: apaga a instalação
+anterior antes de copiar a nova. Consumido pela skill `/mosk-update`.
+
+Existe porque **`npx degit --force` sobrescreve arquivo por arquivo e nunca
+apaga**. Script, skill ou agente que deixou de existir upstream fica no disco do
+projeto para sempre — e os agentes MOSK continuam encontrando e tentando usar.
+Atualizar sem reset acumula o lixo de todas as versões passadas.
+
+**Usage:**
+```bash
+bash <tmp>/.claude/mosk/scripts/reset-install.sh \
+  --from <tmp> --to <raiz_do_projeto> [--dry-run] [--json]
+```
+
+**Rode sempre a cópia recém-baixada, nunca a instalada** — o script apaga o
+diretório onde ele mesmo mora. Rodar de `$TMP` também garante que a lógica de
+reset executada é a mais nova, não a da versão velha. Uma guarda recusa
+`--from` e `--to` apontando para o mesmo diretório.
+
+**O conjunto apagado é calculado, nunca adivinhado:** (1) `.claude/mosk/`
+inteiro; (2) cada skill/agente que o template novo possui, lido do `--from`;
+(3) os **órfãos** — `skills/mosk-*` e `agents/mosk-*.md` instalados que sumiram
+upstream. É a regra 3 que remove o que uma versão anterior deixou.
+
+**Nunca tocados:** `.claude/rules/`, `settings.json`, `settings.local.json`,
+`docs/`, `CLAUDE.md`, `AGENTS.md`, `.codex/` — e qualquer skill/agente fora do
+conjunto acima. Skill sem prefixo `mosk-` que sumiu upstream é **reportada como
+"possivelmente órfã" e deixada no disco**: varrer o namespace inteiro apagaria
+skills próprias do usuário, e o preço de não varrer é uma linha de relatório.
 
 ### `sync-hallmark.sh`
 
@@ -410,33 +324,25 @@ ponta de branch) — não depende de `npx`/degit. Requer `curl`, `git`, `tar`.
 ainda bate com o upstream pinado. **Nunca** copie o upstream por cima do
 diretório na mão: isso apaga a integração MOSK.
 
-### `selftest-orca-driver.sh`
+### `selftest-common.sh`
 
-**Exercita o parsing do driver Orca contra envelopes fixture, sem app Orca de pé.**
-Único verificador automatizável do repo além do `lint-graph.sh`.
+**Único verificador automatizado do repo.** Cobre as duas regras que já
+quebraram em produção e que nenhuma outra coisa checa:
 
-**Usage:**
-```bash
-bash .claude/mosk/scripts/selftest-orca-driver.sh [--verbose] [--help]
-```
+1. **Resolução do próprio diretório do `common.sh`, em bash E em zsh.** As tasks
+   mandam o agente rodar `source common.sh` no shell dele, e o shell padrão do
+   macOS é zsh — onde `BASH_SOURCE` não existe. O teste sourceia de um cwd
+   diferente de propósito: se a detecção usar o cwd por engano, ele falha.
+2. **As duas regras de numeração de spec** que o `create-new-feature.sh` aplica:
+   a regex ancorada no início do nome do branch e o `10#` que impede
+   `--number 010` de virar constante octal. Exercita as regras, não o script —
+   ele executa ao ser sourceado, então não dá para chamar suas funções offline.
 
-**Cobre (44 asserções):** os tipos default da espera (`question` presente — sem
-ele um worker que usa `ask` fica bloqueado até o timeout); a extração do
-`deliveryId` que alimenta o `--ack` (sem ack, cada janela reentrega o mesmo
-lote); a resolução de `native_tasks` (`on`/`off` sem tocar a rede); as duas
-regras de numeração de spec (regex ancorada e base-10 em `--number`); e, da
-spec 009: precedência de chaves do extrator (`tail` vence campo
-textual mais longo — a regra antiga era `max(len)`); `tail: []` como conteúdo vazio
-legítimo vs. envelope de erro; itens `dict` dentro de `tail`; o ramo de degradação
-sem `python3` (forçado por `MOSK_ORCA_NO_PY=1`), que deve **falhar explicitamente** e
-nunca emitir fragmento do envelope; o predicado de confirmação de entrega do `send`;
-e a resolução de caminho do `common.sh` **em bash e em zsh**.
+**Usage:** `bash .claude/mosk/scripts/selftest-common.sh [--verbose] [--help]`.
+Exit 0 = limpo; 1 lista `caso :: esperado :: obtido`. Hoje: 13 asserções.
 
-Funciona porque o `orca.sh` não executa nada ao ser sourceado (guard
-`[[ "${BASH_SOURCE[0]}" != "$0" ]] && return 0`).
-
-**Run when:** ao mexer em `_text_from_json`, `_has_py`, `cmd_send`, ou nos helpers de
-caminho do `common.sh`. Exit 0 = limpo; exit 1 lista `caso :: esperado :: obtido`.
+**Run when:** ao mexer nos helpers de caminho do `common.sh` ou na numeração de
+spec.
 
 ### `common.sh`
 
@@ -448,13 +354,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 **Resolução do próprio diretório (`MOSK_SCRIPTS_DIR`).** `common.sh` calcula uma
 única vez, no escopo de topo, o diretório onde ele mesmo vive, e os helpers de
-caminho (`get_repo_root`, `graph_file`, `core_config_file`) leem daí. A detecção
+caminho (`get_repo_root`, `core_config_file`) leem daí. A detecção
 cobre **bash e zsh**: `${BASH_SOURCE[0]}` no primeiro, `${(%):-%x}` no segundo.
 Isso importa porque as tasks mandam o agente rodar `source common.sh` **no shell
 dele**, e o shell padrão do macOS é zsh — onde `BASH_SOURCE` não existe. Antes,
 `dirname ""` virava `.` e todo caminho resolvia a partir do cwd, em silêncio: o
-`graph_file` apontava para fora do repo e **toda transição legal de fase era
-gravada como `off-graph`** (spec 009). Exporte `MOSK_SCRIPTS_DIR` para forçar o
+todo helper de caminho apontava para fora do repo sem que nada reclamasse
+(spec 009) — falha coberta hoje pelo `selftest-common.sh`, que sourceia este
+arquivo de um cwd diferente nos dois shells. Exporte `MOSK_SCRIPTS_DIR` para forçar o
 caminho; a lib avisa em stderr se não conseguir se localizar.
 
 **Provides:**
@@ -465,24 +372,11 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 - `spec-meta.yaml` helpers (top-level scalar keys only — no nested
   structures, no arrays): `read_spec_meta <dir> <key>`,
   `update_spec_phase <dir> <phase>` (also bumps `last_phase_change`,
-  **validates the transition against `pipeline-graph.yaml` and appends to
-  `<dir>/phase-history.log`** — off-graph warns but proceeds, never blocks;
-  ADR-0006). O log usa **três** rótulos, não dois: `legal`, `off-graph` (grafo
-  lido e a aresta não existe) e `unverified` (grafo ilegível — não deu para
-  checar). Conflacionar os dois últimos era o que transformava um erro de
-  caminho em histórico corrompido, já que `attempt_count` lê este arquivo,
+  registra apenas `current_phase` + `last_phase_change`, sem validar nada:
+  a autoridade sobre qual fase vem depois é humana, e o `spec-meta.yaml` é o
+  único lugar onde esse estado mora),
   `list_active_specs [<specs_root>]`,
-  `write_spec_meta <dir> <number> <id> <type> <branch>`.
-- **Graph projections** (ADR-0007, zero-dep awk): `graph_file`,
-  `graph_edges_from <phase>`, `graph_edge_exists <from> <to>`,
-  `guard_kind <name>`, `guard_question <name>`,
-  `graph_node_field <node> <field>` (lê um campo de nó; vazio = não declarado),
-  `graph_phase_fanout <phase>` (a fase admite onda? ecoa o modo, exit 0/1).
-  Todas assumem o schema de **um registro por linha** em flow style — é o que
-  mantém o awk trivial, e o que o `lint-graph.sh` protege.
-- **Delivery-loop helpers** (ADR-0008): `attempt_count <dir>` (gate loopbacks
-  derived from `phase-history.log`), `resolve_max_retries <dir>` (spec-meta
-  override → `core-config.yaml orchestration.max_retries` → 3),
+  `write_spec_meta <dir> <number> <id> <type> <branch>`,
   `core_config_file`.
 
 ---
@@ -517,9 +411,6 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
+| Atualizar o toolkit num projeto consumidor | `reset-install.sh` (via `/mosk-update`) |
+| Mexeu nos helpers de caminho do `common.sh` ou na numeração de spec | `selftest-common.sh` |
 | Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |
-| Mexeu no parsing do driver Orca ou nos caminhos do `common.sh` | `selftest-orca-driver.sh` |
-| Orchestrate agents over panes | `panes.sh` (via `/mosk-orq`) |
-| Descobrir se há atuador ativo (e por quê não) | `panes.sh driver --json` |
-| Saber qual tier de fan-out o ambiente oferece | `panes.sh tier --json` |
-| Entender o contrato de uma onda de fan-out | `.claude/mosk/data/fanout-seam.md` |

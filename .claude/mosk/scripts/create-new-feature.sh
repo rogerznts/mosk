@@ -271,9 +271,9 @@ if [ "$HAS_GIT" = true ]; then
 
         # Worktree pessoal / de agente: um branch que aponta para o MESMO
         # commit de uma base branch conhecida é, na prática, essa base. Cobre
-        # o padrão de ADEs como o Orca, em que cada worktree tem seu próprio
-        # branch (ex.: `rogerznts/master`) e a base fica ocupada por outro
-        # worktree. Os bloqueios abaixo continuam valendo por cima disto.
+        # o padrão de ambientes que dão um worktree por agente, cada um com
+        # seu próprio branch (ex.: `rogerznts/master`), enquanto a base fica
+        # ocupada por outro worktree. Os bloqueios abaixo continuam valendo.
         if [ "$is_allowed" = false ]; then
             current_sha=$(git rev-parse --verify --quiet HEAD 2>/dev/null || echo "")
             for allowed in $ALLOWED_BASE_BRANCHES; do

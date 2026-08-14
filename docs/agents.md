@@ -19,7 +19,6 @@ estão catalogadas em [TASKS.md](../TASKS.md).
 | `/mosk-qa` | Joaquim | quality gates, estratégia de testes, revisões |
 | `/mosk-security` | Heitor | revisão de vulnerabilidade diff-aware, triagem |
 | `/mosk-bench` | Bento | modo workbench para não-técnicos (stack Payload) |
-| `/mosk-orq` | Mauro | orquestrador sobre Orca (opt-in, dependência opcional) |
 
 `/mosk-deploy` fala na voz do Bento mas **não é agente**: é uma ação sobre o modo
 bench (publicar), não uma persona própria — ver "Agente ou skill?" abaixo.
@@ -47,10 +46,10 @@ wrapper é regenerado por `sync-agents-skills.sh`, numa direção só
 | Isola saída volumosa | não | sim |
 
 **No uso diário, prefira a skill**: `/mosk-dev implement a spec 012`. O agente
-entra quando o trabalho precisa de isolamento — uma onda de fan-out, ou uma
-verificação que não deve herdar o histórico de quem implementou. Desde a spec
-011 isso é explícito: um agente invoca outro pelo protocolo acima, não por
-mágica do runtime.
+entra quando o trabalho precisa de isolamento — unidades `[P]` rodando em
+paralelo, ou uma verificação que não deve herdar o histórico de quem
+implementou. Desde a spec 011 isso é explícito: um agente invoca outro pelo
+protocolo acima, não por mágica do runtime.
 
 ### Agente ou skill?
 

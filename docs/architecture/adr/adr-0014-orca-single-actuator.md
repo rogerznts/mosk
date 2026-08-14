@@ -1,6 +1,6 @@
 # ADR-0014 — Orca como atuador único (substitui ADR-0009 e a decisão 7 do ADR-0010)
 
-- Status: aceito
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-08-04
 - Autor: Vinicius (mosk-architect)
 - Contexto: brief `docs/discovery/graph-loop-engineering-brief.md` §3 — remover o Herdr e consolidar a orquestração multi-pane no Orca.
