@@ -4,6 +4,13 @@
 
 Perform a comprehensive test architecture review with quality gate decision. This adaptive, risk-aware review creates both a story update and a detailed gate file.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Inputs
 
 ```yaml

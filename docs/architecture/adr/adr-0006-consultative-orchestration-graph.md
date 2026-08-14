@@ -1,6 +1,6 @@
 # ADR-0006 — Grafo de orquestração explícito como fonte-de-verdade consultiva
 
-- Status: aceito
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-07-22
 - Autor: Vinicius (mosk-architect)
 - Contexto: sessão de `grill` sobre "loops e grafos" no pipeline MOSK — tornar explícito o grafo que hoje está implícito em prosa espalhada.

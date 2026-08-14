@@ -271,9 +271,9 @@ if [ "$HAS_GIT" = true ]; then
 
         # Worktree pessoal / de agente: um branch que aponta para o MESMO
         # commit de uma base branch conhecida é, na prática, essa base. Cobre
-        # o padrão de ADEs como o Orca, em que cada worktree tem seu próprio
-        # branch (ex.: `rogerznts/master`) e a base fica ocupada por outro
-        # worktree. Os bloqueios abaixo continuam valendo por cima disto.
+        # o padrão de ambientes que dão um worktree por agente, cada um com
+        # seu próprio branch (ex.: `rogerznts/master`), enquanto a base fica
+        # ocupada por outro worktree. Os bloqueios abaixo continuam valendo.
         if [ "$is_allowed" = false ]; then
             current_sha=$(git rev-parse --verify --quiet HEAD 2>/dev/null || echo "")
             for allowed in $ALLOWED_BASE_BRANCHES; do
@@ -291,8 +291,10 @@ if [ "$HAS_GIT" = true ]; then
             is_allowed=false
         fi
 
-        # Block if on an existing feature branch (numeric prefix like 001-*)
-        if echo "$CURRENT_BRANCH" | grep -qE '^[0-9]{3}-'; then
+        # Block if already on a spec branch, nos dois formatos (ADR-0017):
+        # feature/012-algo (canônico) e 012-feature-algo (legado). Sem o
+        # segmento de tipo, criar uma spec a partir de outra passava batido.
+        if echo "$CURRENT_BRANCH" | grep -qE '^([a-z][a-z-]*/)?[0-9]{3}-'; then
             is_allowed=false
         fi
 

@@ -4,6 +4,13 @@
 
 Quick NFR validation focused on the core four: security, performance, reliability, maintainability.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Inputs
 
 ```yaml

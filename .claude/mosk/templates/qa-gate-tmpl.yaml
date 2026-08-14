@@ -14,27 +14,36 @@ story: "{{epic_num}}.{{story_num}}"
 story_title: "{{story_title}}"
 gate: "{{gate_status}}" # PASS|CONCERNS|FAIL|WAIVED
 quality_score: {{quality_score}} # 0-100. OBSERVAÇÃO, não gatilho: ver abaixo.
+score_history: [{{score_history}}] # série das voltas, do primeiro gate ao atual
 status_reason: "{{status_reason}}" # 1-2 sentence summary of why this gate decision
 reviewer: "Quinn (Test Architect)"
 updated: "{{iso_timestamp}}"
 
-# Sobre `quality_score` (obrigatório desde a spec 010):
+# Sobre `quality_score`:
 # - CALCULADO, não estimado, pela fórmula canônica do toolkit — a mesma de
 #   review-story.md e assess-nfr.md:
 #       quality_score = 100 - (20 × FAILs) - (10 × CONCERNS), limitado a [0,100]
 #   Pesos customizados em technical-preferences.md sobrescrevem.
-# - `gate` continua sendo o ÚNICO árbitro de terminação do delivery-loop
-#   (ADR-0008 §3). O score não decide nada sozinho.
+# - `gate` é o ÚNICO árbitro. O score não decide nada sozinho.
 # - Ele existe para tornar a TRAJETÓRIA visível entre voltas: dois FAIL com
 #   score parado sinalizam estagnação — hora de escalar, não de tentar de novo;
 #   dois FAIL com score subindo sinalizam convergência lenta. Isso só funciona
 #   porque o número vem de contagem, não de nova apreciação a cada rodada.
 # - O corte de referência vem de `qa.score_threshold` no core-config (default 85).
+#
+# Sobre `score_history`: este arquivo é REESCRITO a cada volta do gate, então um
+# score que não for acumulado aqui se perde. Faça append do score da rodada —
+# é essa série que a task apresenta ao humano junto do veredito. Ex.: [61, 68, 69]
 
 # Always present but only active when WAIVED
 waiver: { active: false }
 
 # Issues (if any) - Use fixed severity: low | medium | high
+#
+# Cada issue carrega `title` (linguagem simples) e `contradicts` (o criterio
+# violado COM a glossa). Sem a glossa, `contradicts: SC-004` obriga quem le a
+# abrir a spec para saber se aquilo importa — ver `../data/output-contract.md`.
+# Ids sao ESTAVEIS dentro da spec: QA-1 na 2a volta e o mesmo defeito da 1a.
 top_issues: []
 
 # Risk summary (from assess-risk task if run)
@@ -48,14 +57,18 @@ risk_summary:
 examples:
   with_issues: |
     top_issues:
-      - id: "SEC-001"
-        severity: high  # ONLY: low|medium|high
-        finding: "No rate limiting on login endpoint"
-        suggested_action: "Add rate limiting middleware before production"
-      - id: "TEST-001"  
+      - id: "QA-1"                 # vocabulario canonico: QA-# (gate), SEC-# (seguranca)
+        severity: high             # ONLY: low|medium|high (schema nao se traduz)
+        title: "Login aceita tentativas sem limite"   # linguagem simples, se sustenta sozinho
+        finding: "Nenhum rate limit no endpoint de login (auth/login.ts:42-68)"
+        contradicts: 'NFR-002 - "resistir a forca bruta em autenticacao"'  # id + GLOSSA
+        suggested_action: "Adicionar middleware de rate limiting antes de producao"
+      - id: "QA-2"
         severity: medium
-        finding: "Missing integration tests for auth flow"
-        suggested_action: "Add test coverage for critical paths"
+        title: "Fluxo de auth nunca exercitado de ponta a ponta"
+        finding: "Zero testes de integracao cobrindo login -> sessao -> logout"
+        contradicts: 'SC-002 - "fluxo de auth verificado automaticamente"'
+        suggested_action: "Cobrir os caminhos criticos com teste de integracao"
 
   when_waived: |
     waiver:

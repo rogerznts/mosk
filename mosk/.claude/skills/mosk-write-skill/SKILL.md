@@ -23,7 +23,7 @@ MOSK has two kinds of skills. Decide first:
 
 | Archetype | When | Pattern |
 |---|---|---|
-| **Agent wrapper** (`mosk-<persona>`) | The skill activates one of the 12 personas (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security, bench, orq). | A thin `SKILL.md` that points to `.claude/agents/mosk-<name>.md` as the single source of truth. Do not duplicate the persona content. Since spec 011 (ADR-0015) the CC agent IS the definition — the wrapper only carries front-matter and the pointer. |
+| **Agent wrapper** (`mosk-<persona>`) | The skill activates one of the 11 personas (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security, bench). | A thin `SKILL.md` that points to `.claude/agents/mosk-<name>.md` as the single source of truth. Do not duplicate the persona content. Since spec 011 (ADR-0015) the CC agent IS the definition — the wrapper only carries front-matter and the pointer. |
 | **Direct support skill** (e.g. `mosk-handoff`, `mosk-boot`, `tea-*`) | A self-contained utility/command with its own workflow, not tied to a persona. | A standalone `SKILL.md` containing the full workflow inline. |
 
 If unsure which one the user needs, ask once.

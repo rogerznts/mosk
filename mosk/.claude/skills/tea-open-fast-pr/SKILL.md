@@ -30,6 +30,11 @@ Ask the user **two questions in a single message**:
 
 Compose the full branch name as `<type>/<name>` (e.g., `hotfix/login-fix`).
 
+> **For a MOSK spec, do not name the branch by hand.** Run
+> `bash .claude/mosk/scripts/create-new-feature.sh` instead — it reserves the
+> spec number atomically and produces `{tipo}/{NNN}-{nome}` plus the matching
+> flat folder. This skill is for ordinary branches that are not specs.
+
 Also confirm the branch conventions with the user if unknown:
 - **Stable branch** (production): typically `main` or `master`
 - **Integration branch** (staging/QA): typically `hml`, `develop`, or `staging`

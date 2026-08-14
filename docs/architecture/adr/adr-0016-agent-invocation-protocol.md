@@ -1,6 +1,6 @@
 # ADR-0016 — Protocolo de invocação entre agentes: execução delega, rota não
 
-- Status: aceito
+- Status: aceito — a linha `orq` da matriz foi atualizada por [adr-0019](./adr-0019-autonomous-delivery-runner.md) §8; o resto permanece.
 - Data: 2026-08-05
 - Autor: Vinicius (mosk-architect)
 - Contexto: com o CC agent shipando ([adr-0015](./adr-0015-agent-as-source-skill-as-wrapper.md)), agentes passam a poder invocar agentes. Falta dizer **quem chama quem, para quê, e o que continua sendo do humano**.
@@ -51,7 +51,7 @@ só o conteúdo do que já foi decidido produzir, é execução.
 | `dev` | `security` | **reportar** achados de um diff | decidir se o gate reprova |
 | `qa` | `security` | insumo para o gate (relatório) | resolver o veredito |
 | `po` | `sm` | checar clareza de story antes de gerar tasks | pular readiness |
-| `orq` | qualquer agente de fase | conduzir a fase corrente | trocar de fase em `semi-auto` |
+| `orq` | `dev`, `qa`, `security` | conduzir o arco de entrega de uma corrida consentida (ADR-0019) | invocar preâmbulo; dispensar gate; arquivar; agir sem consentimento explícito |
 | qualquer | `analyst`/`pm`/`architect`/`ux`/`ui` | **nada automático** — são preâmbulo | invocar por escalação |
 
 A última linha é a mais importante e a mais tentadora de violar: uma lacuna de

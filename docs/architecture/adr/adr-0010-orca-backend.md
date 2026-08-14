@@ -5,7 +5,7 @@ promote_mode: copy
 
 # ADR-0010 — Atuador plugável do `/mosk-orq`: Orca como segundo backend
 
-- Status: aceito
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-07-25
 - Autor: spec `007-feature-mosk-orca`
 - Contexto: destravar o `/mosk-orq` em ambientes Orca sem duplicar o orquestrador nem relaxar a invariante consultiva.

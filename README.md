@@ -58,7 +58,7 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
 | `/mosk-security` (Heitor) | diff-aware vulnerability review, findings triage |
 | `/mosk-bench` (Bento) | workbench mode for non-technical users (Payload stack) |
-| `/mosk-orq` (Mauro) | orchestrator over Orca (opt-in, optional dependency) |
+| `/mosk-orq` (Mauro) | **autonomous delivery run** — parallel agents, opt-in per run |
 
 Each agent ships as **two layers**: `.claude/agents/mosk-<name>.md` is the
 definition — and what makes it invocable by another agent in an isolated context
@@ -79,9 +79,9 @@ you want; you can also name the task directly.
 
 A single pipeline. An optional **preamble** runs first whenever the base of the project (or the feature) is not yet grounded.
 
-The pipeline is formalized as data in [`mosk/.claude/mosk/pipeline-graph.yaml`](mosk/.claude/mosk/pipeline-graph.yaml) — the **single source of truth** for phases, transitions, and escalations. It is **consultative**: `legal_moves.sh` computes the legal next moves from the current phase and the human decides (`go`/`escalate`/`skip`/override) — nothing auto-executes (see [ADR-0006](docs/architecture/adr/adr-0006-consultative-orchestration-graph.md)).
-
-<!-- Este diagrama é mantido À MÃO — mantenha-o em sincronia com pipeline-graph.yaml (fonte da verdade). A versão renderizada a partir do grafo vive em docs/index.md. -->
+The pipeline is **consultative end to end**: every phase change, every gate
+verdict and every detour is the human's call. Agents suggest and wait; they
+never route on their own.
 
 ```mermaid
 flowchart TD
@@ -101,8 +101,7 @@ flowchart TD
     H -. if security-sensitive .-> S[/mosk-security<br/>review/]
     H --> I[/mosk-qa qa-gate/]
     S --> I
-    I -->|CONCERNS or FAIL · attempt < max_retries| H
-    I -->|max_retries reached| K[escalate / waive / stop]
+    I -->|CONCERNS or FAIL| H
     I -->|PASS or WAIVED| J[/mosk-dev archive/]
 ```
 
@@ -116,15 +115,15 @@ Defaults:
 
 `full-spec` stops at `tasks`. Implementation stays with `/mosk-dev`.
 
-### Delivery-loop (bounded, consultative)
+### The correction cycle
 
-The `implement ↔ qa-gate` cycle is a **bounded, consultative delivery-loop** (see [ADR-0008](docs/architecture/adr/adr-0008-consultative-delivery-loop.md)). When the gate returns `CONCERNS`/`FAIL`, `legal_moves.sh qa-gate` presents the correction loopback labeled `tentativa N/max` (default `apply-qa-fixes`) — **you** decide each turn; it never iterates on its own.
+When the gate returns `CONCERNS`/`FAIL`, the work goes back to `/mosk-dev apply-qa-fixes` and then to the gate again. **You decide each turn** — the cycle never iterates on its own.
 
-- **Termination** is the single gate verdict `PASS`/`WAIVED` (task checkboxes feed the gate, they are not a parallel exit).
-- **Attempt count** is derived from each spec's `phase-history.log` (no new state); the cap `max_retries` defaults to `3` in `core-config.yaml` (`orchestration.max_retries`) and is overridable per-spec in `spec-meta.yaml`.
-- On **exhaustion** the loopback is withdrawn and the loop offers `escalate` / `waive` / `stop` — never a silent give-up, never an auto-retry.
+- **Termination** is the single gate verdict `PASS`/`WAIVED`. Task checkboxes feed the gate; they are not a parallel exit.
+- **`quality_score`** is *computed* (`100 − 20×FAIL − 10×CONCERNS`), never estimated, and accumulated in `score_history` inside `gate.yaml`. The gate presents the series — `61 → 68 → 69` — alongside the verdict.
+- That series is what makes the decision informed: a **flat** score across turns says another round will not help, and the honest move is to escalate to whoever owns the design or the story. A **rising** score says the opposite.
 
-It is distinct from the bench's automated `loop-until-green`: the delivery-loop serves a **technical operator** and pauses for questions; the bench serves a layperson and never does.
+It is distinct from the bench's automated `loop-until-green`: this cycle serves a **technical operator** and pauses for questions; the bench serves a layperson and never does.
 
 ## Document Organization
 
@@ -194,7 +193,7 @@ Each spec carries `spec-meta.yaml`:
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature
-branch: "005-feature-checkout-coupon"
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "Alice <alice@example.com>"
 status: active             # active | archived
@@ -219,30 +218,85 @@ Preserve custom text between `<!-- custom -->` and `<!-- /custom -->` markers �
 
 ## Escalation Policy
 
-Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals that require a preamble agent mid-flight — a missing ADR, an unspecified flow, a PRD conflict — and emit a standardized **Escalation suggested** block:
+Pipeline agents (`po`, `sm`, `dev`, `qa`) detect signals they have no authority to resolve mid-flight — a missing ADR, an unspecified flow, a PRD conflict — and pause with a standard block:
 
-> **Escalation suggested**
-> - Signal: *what was detected*
-> - Recommended agent: `/mosk-architect`
-> - Suggested prompt: `/mosk-architect decide coupon service contract`
-> - Scope: `feature 005-feature-checkout-coupon` (outputs written to `specs/{id}/architecture/`)
-> - On return: resume `implement` from where it paused.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: *o que foi detectado*
+> - Quem resolve: `/mosk-architect`
+> - Prompt pronto: `/mosk-architect decidir o contrato do serviço de cupom`
+> - Onde o resultado fica: `docs/specs/005-feature-checkout-coupon/architecture/`
+> - Quando voltar: retomo o `implement` de onde parei.
 
-Agents never invoke each other automatically. The user decides: `go`, `escalate`, `skip`, or an alternative. Preamble agents invoked via escalation write inside the active spec and end by suggesting the user return to the originating agent.
+Agents never invoke each other automatically. The user answers `pode ir`, `pula`, or something else. The agent that is called writes inside the active spec and ends by pointing back to whoever was interrupted.
 
-**Opt-in exception — `/mosk-orq` (Mauro, the maestro).** For users running [Orca](https://www.onorca.dev/) — an **optional external dependency** — Mauro drives one project's pipeline across panes, handing off automatically when the phase changes agent or when an agent hits its token ceiling (transporting context via `/mosk-handoff`). The actuator sits behind a single facade (`panes.sh`), so the agent prompt never talks to the CLI directly. It automates only **transport** (spawn/handoff/close) and the graph's **happy path**; every **human decision** — judgment guards, `qa-gate` verdicts, and (in `semi-auto`) any phase/agent change — still pauses and returns to you.
+**The block is written for the reader.** It is emitted in the project's communication language, in ordinary words, with a prompt that can be pasted as-is. `escalation`, `side-trip`, `guard`, `preamble` are the toolkit's internal vocabulary and never appear in output — the same rule that governs identifiers (see the output contract in `.claude/rules/project.md`).
 
-Orca is **optional in the strong sense**: the pipeline runs end to end with no actuator at all, and without one Mauro degrades to the normal single-pane flow. Availability requires the session to be running **inside the Orca IDE** — having the binary on `PATH` proves installation, not context, and `spawn` creates terminals *inside the app*. `panes.sh driver` tells you which case you are in and what to do about it. See [ADR-0014](./docs/architecture/adr/adr-0014-orca-single-actuator.md) (which supersedes [ADR-0009](./docs/architecture/adr/adr-0009-herdr-orchestration.md) and revokes decision 7 of [ADR-0010](./docs/architecture/adr/adr-0010-orca-backend.md)).
+**What an agent may delegate.** Agents coordinate through the runtime's own
+subagents, under one rule: **execution delegates, routing does not.** A `dev` may
+hand `[P]` units to other `dev` subagents, or ask `qa` to verify a result in a
+clean context; a `qa` may ask `security` for a report. None of them may change a
+phase, rule on a gate, or call a preamble agent — those are routing, and routing
+is yours. Every delegation is declared before and reported after, and never nests
+more than one level deep. See [ADR-0012](./docs/architecture/adr/adr-0012-route-decision-vs-phase-execution.md)
+and [ADR-0016](./docs/architecture/adr/adr-0016-agent-invocation-protocol.md).
 
-**Parallel work inside a phase (fan-out).** When `tasks.md` marks two or more units `[P]`, `implement` can dispatch them as a **wave**: each unit isolated, each verified, joined at the end. You approve the **fan-out plan once** — never branch by branch — and the join always returns to you; no wave chains into another on its own. It works in three tiers by detected capability (Orca orchestration → native subagent → sequential), so it needs no Orca: `panes.sh tier` reports which one applies. See [ADR-0012](./docs/architecture/adr/adr-0012-route-decision-vs-phase-execution.md), [ADR-0013](./docs/architecture/adr/adr-0013-fanout-seam-three-tiers.md).
+**Parallel work inside a phase.** When `tasks.md` marks two or more units `[P]`,
+`implement` may run them as separate `mosk-dev` subagents. `[P]` means *different
+files, no dependencies* — it is **honoured as written, never inferred**. Where it
+is absent, work runs sequentially: the cost is asymmetric, since a wrongly
+parallel pair writing the same file corrupts work that would have succeeded
+serially.
+
+### Running a spec unattended — `/mosk-orq`
+
+Everything above pauses and waits for you. `/mosk-orq` is the one place that does
+not: it takes a spec that already has `spec.md`, `plan.md` and `tasks.md`, opens
+one `mosk-dev` **per user story in its own git worktree**, merges, has `mosk-qa`
+and `mosk-security` verify the result, and repeats until the gate passes.
+
+```bash
+/mosk-orq 012          # entrega a spec 012 sozinho
+```
+
+- **Opt-in per run.** No configuration value turns this on. You consent each time,
+  after a preflight that states what it will do alone and what will stop it —
+  including how strong the verification is (no test suite = the gate's judgment
+  only, and it says so).
+- **It stops on doubt and on anything irreversible**: ambiguous acceptance
+  criteria, a decision the plan does not cover, a business-rule gap, a merge
+  conflict, the attempt cap, a flat score — and always before a migration, a
+  deploy, a push, or waiving a gate.
+- **Every autonomous decision is logged** to `docs/specs/{id}/run-log.md`,
+  versioned. You did not watch it happen, so it has to be readable afterwards.
+- **`archive` stays yours.** It promotes artifacts and closes the spec.
+
+See [ADR-0019](./docs/architecture/adr/adr-0019-autonomous-delivery-runner.md).
+It is the second scoped exception to the consultative rule — the first being the
+bench's `loop-until-green` (ADR-0002) — and it rests on a different ground:
+**consent**, not audience. That difference is why this runner, unlike the bench,
+may never call a preamble agent on its own.
+
+> MOSK once shipped a *different* `/mosk-orq`: a multi-terminal orchestrator over
+> an external actuator, removed once both runtimes gained native subagents
+> ([ADR-0018](./docs/architecture/adr/adr-0018-remove-orchestration-layer.md)).
+> This one is not that one — it does what that one could not.
 
 ## Spec Types
 
-Specs share a single pipeline; the type lives in the folder/branch name:
+Specs share a single pipeline; the type appears in both the branch and the
+folder — but **in different positions, on purpose** (ADR-0017):
 
 ```
-{###}-{type}-{short-name}
+branch:  {type}/{###}-{short-name}     e.g.  feature/012-checkout-coupon
+folder:  docs/specs/{###}-{type}-{short-name}
+                                       e.g.  docs/specs/012-feature-checkout-coupon
 ```
+
+The folder stays flat so that `docs/specs/` never grows a directory level per
+type. The bridge between the two strings is the `branch` field in
+`spec-meta.yaml` — never string equality. The old branch shape
+(`012-feature-checkout-coupon`) is still resolved, but is not what
+`create-new-feature.sh` creates.
 
 Supported types:
 
@@ -253,11 +307,6 @@ Supported types:
 - `refactor`
 - `experimental`
 
-Example:
-
-```
-012-feature-checkout-coupon
-```
 
 ## Migrating Existing Projects
 
@@ -292,8 +341,8 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
 ```text
 your-project/
 ├── .claude/
+│   ├── agents/           # the 11 agent definitions (source of truth)
 │   ├── mosk/
-│   │   ├── agents/
 │   │   ├── tasks/
 │   │   ├── templates/
 │   │   ├── checklists/
@@ -301,21 +350,15 @@ your-project/
 │   │   │   └── hallmark/   # vendored Hallmark (MIT) — see VENDOR.md
 │   │   ├── scripts/
 │   │   └── core-config.yaml
-│   ├── rules/            # generated by /mosk-boot
-│   └── skills/
-│       ├── mosk-analyst/
-│       ├── mosk-architect/
-│       ├── mosk-boot/
-│       ├── mosk-dev/
-│       ├── mosk-handoff/
-│       ├── mosk-help/
-│       ├── mosk-pm/
-│       ├── mosk-po/
-│       ├── mosk-qa/
-│       ├── mosk-sm/
-│       ├── mosk-suggestion/
-│       ├── mosk-ui-expert/
-│       └── mosk-ux-expert/
+│   ├── rules/            # generated by /mosk-boot — never touched by updates
+│   └── skills/           # generated wrappers: /mosk-<name>
+│       ├── mosk-analyst/    mosk-architect/   mosk-bench/
+│       ├── mosk-boot/       mosk-deploy/      mosk-dev/
+│       ├── mosk-handoff/    mosk-help/        mosk-pm/
+│       ├── mosk-po/         mosk-qa/          mosk-security/
+│       ├── mosk-sm/         mosk-suggestion/  mosk-ui-expert/
+│       ├── mosk-update/     mosk-ux-expert/   mosk-write-skill/
+│       └── tea-*/           # git/Gitea helpers
 └── docs/
     ├── index.md
     ├── discovery/
@@ -341,6 +384,9 @@ Under `.claude/mosk/scripts/`:
 - `migrate-docs-structure.sh` — migrates a legacy `docs/` layout to the current one (idempotent).
 - `migrate-ctx-skills-to-rules.sh` — converts legacy `ctx-*` context skills to `.claude/rules/*.md`.
 - `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
+- `reset-install.sh` — reinstalls the toolkit from scratch: deletes the previous install (including files that no longer exist upstream) before copying the new one. Used by `/mosk-update`, because `degit --force` overwrites but **never deletes**. Preserves `.claude/rules/`, settings, `docs/` and your own skills. Accepts `--from`, `--to`, `--dry-run`, `--json`.
+- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, `promote:` artifacts applied, clean working tree. Accepts `--json`.
+- `selftest-common.sh` — the repo's automated check: spec numbering rules and `common.sh` path resolution in **bash and zsh**. Both have broken in production before.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
 ## Optional Environment Tools

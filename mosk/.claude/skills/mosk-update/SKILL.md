@@ -1,18 +1,23 @@
 ---
 name: mosk-update
-description: "Update: atualiza o toolkit MOSK instalado via `npx degit --force`, lê o README e o TASKS.md direto do GitHub e resume as mudanças. Use ao atualizar/sincronizar a versão do MOSK no projeto."
+description: "Update: reinstala o toolkit MOSK do zero (reset + degit), apagando órfãos de versões anteriores, lê o README e o TASKS.md direto do GitHub e resume as mudanças. Use ao atualizar/sincronizar a versão do MOSK no projeto."
 ---
 
 # Update MOSK
 
-Pull the latest MOSK toolkit into this project, then report what changed.
+Reinstall the MOSK toolkit from scratch, then report what changed.
 
-> **IMPORTANT — `--force` overwrites files.** `degit --force` replaces the
-> installed MOSK files (`.claude/mosk/`, `.claude/skills/mosk-*`,
-> `.claude/agents/`) with the upstream versions, discarding any local
-> edits to them. It does **not** touch generated `.claude/rules/` or your
-> `docs/`. Only run it from a clean git tree so the change is reviewable
+> **IMPORTANT — this is a reset, not an overwrite.** `.claude/mosk/`, the
+> `mosk-*` skills and the `mosk-*` agents are **deleted and reinstalled**. Your
+> `.claude/rules/`, `.claude/settings.json`, `docs/` and your own skills are
+> **not touched**. Only run it from a clean git tree so the change is reviewable
 > and reversible.
+
+**Why a reset and not just `degit --force`:** `degit --force` overwrites file by
+file and **never deletes**. A script, skill or agent that stopped existing
+upstream would stay on disk forever — and MOSK agents would keep finding it and
+trying to use it. Updating without a reset accumulates the debris of every past
+version.
 
 ---
 
@@ -20,58 +25,101 @@ Pull the latest MOSK toolkit into this project, then report what changed.
 
 ### Step 1 — Preflight (safety)
 
-1. Confirm this is a git repository. If not, warn the user that the
-   overwrite will not be reversible and ask whether to proceed.
-2. Run `git status --short`. If the tree is dirty, **stop** and ask the
-   user to commit or stash first — otherwise `--force` may clobber
-   uncommitted work and bury the update in unrelated changes.
-3. State plainly that you are about to overwrite the installed MOSK files
-   and wait for the user's confirmation before continuing.
+1. Confirm this is a git repository. If not, warn the user that the reset will
+   not be reversible and ask whether to proceed.
+2. Run `git status --short`. If the tree is dirty, **stop** and ask the user to
+   commit or stash first — otherwise the reset may clobber uncommitted work and
+   bury the update in unrelated changes.
 
-### Step 2 — Update the toolkit
-
-Run from the project root:
+### Step 2 — Download without touching the project
 
 ```bash
-npx degit rogerznts/mosk/mosk . --force
+TMP="$(mktemp -d)"
+npx degit rogerznts/mosk/mosk "$TMP"
 ```
 
-This copies the contents of the upstream `mosk/` directory over the
-current install.
+Nothing in the project has changed yet.
 
-### Step 3 — Read the latest docs from GitHub
+### Step 3 — Preview (mandatory)
 
-Fetch the current toolkit docs straight from the repo (they live at the
-repo root and are **not** installed by degit), to learn the current
-capabilities and task catalog:
+```bash
+bash "$TMP/.claude/mosk/scripts/reset-install.sh" --dry-run --from "$TMP" --to .
+```
+
+> **Run the freshly-downloaded copy, never the installed one.** The script
+> deletes the very directory it lives in. Running it from `$TMP` also means you
+> always execute the newest reset logic, not the old version's.
+
+The output separates *substituídos* · *órfãos removidos* · *preservados* ·
+*possivelmente órfãos*.
+
+### Step 4 — Warn and wait
+
+Show the user the preview and state plainly, in one sentence, that
+`.claude/mosk/`, the `mosk-*` skills and the `mosk-*` agents will be **deleted
+and reinstalled**, while `rules/`, `docs/`, settings and their own skills are
+preserved. Call out the **orphans** by name — those are the files disappearing
+for good.
+
+**Stop and wait for confirmation.** Do not continue on a "maybe".
+
+### Step 5 — Execute
+
+```bash
+bash "$TMP/.claude/mosk/scripts/reset-install.sh" --from "$TMP" --to .
+```
+
+### Step 6 — Codex parity
+
+```bash
+bash .claude/mosk/scripts/link-codex-skills.sh --force
+```
+
+This clears orphan symlinks under `.codex/` and regenerates `AGENTS.md`. Skip it
+if the project has no `.codex/` and does not want one.
+
+### Step 7 — Read the latest docs from GitHub
+
+Fetch the current toolkit docs straight from the repo (they live at the repo
+root and are **not** installed by degit), to learn the current capabilities and
+task catalog:
 
 - `https://raw.githubusercontent.com/rogerznts/mosk/master/README.md`
 - `https://raw.githubusercontent.com/rogerznts/mosk/master/TASKS.md`
 
-If `master` 404s, retry with `main`. Use these to understand what the
-updated toolkit now offers (new agents, skills, tasks, conventions).
+If `master` 404s, retry with `main`.
 
-### Step 4 — Specify the changes
+### Step 8 — Report
 
-Report at the end, concisely:
+Concisely:
 
-1. **What the update changed locally** — run `git status --short` and
-   `git diff --stat` to list the MOSK files that were added, modified, or
-   removed by the overwrite.
-2. **What's new in the toolkit** — cross-reference the diff with the
-   freshly-read `README.md` / `TASKS.md`: new or renamed agents, skills,
-   tasks, or conventions, each in one line.
-3. **Follow-ups the user may need**:
+1. **Orphans removed** — list them. These are capabilities that no longer exist;
+   if the user had workflows built on them, this is the line that tells them.
+2. **What changed locally** — `git status --short` and `git diff --stat`.
+3. **What's new in the toolkit** — cross-reference the diff with the freshly-read
+   `README.md` / `TASKS.md`: new or renamed agents, skills, tasks, conventions,
+   one line each.
+4. **Possibly orphaned** — anything the script flagged as ambiguous (outside the
+   `mosk-` namespace and absent upstream). It was **left on disk**; the user
+   decides.
+5. **Follow-ups**:
    - Re-run `/mosk-boot` if the rules/templates structure changed.
-   - Run `bash .claude/mosk/scripts/link-codex-skills.sh` for Codex parity
-     (regenerates `AGENTS.md`).
-   - Review the diff before committing the update.
+   - Review the diff before committing.
+
+Finally, remove the temp directory: `rm -rf "$TMP"`.
 
 ## Rules
 
-- Never run `degit --force` on a dirty tree without explicit confirmation.
+- **Never reset a dirty tree** without explicit confirmation.
+- **Always show the `--dry-run` preview before deleting**, and wait for the
+  user's `ok`. The preview is the warning — a generic "this will overwrite
+  files" is not.
+- **Run `reset-install.sh` from the downloaded copy** (`$TMP`), never the
+  installed one.
+- `degit --force` **overwrites but never deletes** — orphan removal is done by
+  `reset-install.sh`, and only there.
 - Do not auto-commit the update — leave the diff for the user to review.
 - Read `README.md`/`TASKS.md` from GitHub, not from disk (degit does not
   install them).
-- Report removed files too — a `--force` update can delete toolkit files
-  that no longer exist upstream.
+- Never delete anything outside the set the script computes. Skills and agents
+  the user wrote are not MOSK's to remove.

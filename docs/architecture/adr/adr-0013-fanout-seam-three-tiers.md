@@ -1,6 +1,6 @@
 # ADR-0013 — Seam de fan-out em três tiers (Orca · subagente · sequencial)
 
-- Status: aceito
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-08-04
 - Autor: Vinicius (mosk-architect)
 - Contexto: brief `docs/discovery/graph-loop-engineering-brief.md` §5 (D2) — o fan-out não pode acoplar o pipeline ao Orca, e não pode nivelar por baixo.

@@ -5,7 +5,7 @@ promote_mode: copy
 
 # ADR-0009 — Orquestração multi-pane sobre Herdr (`/mosk-orq`)
 
-- Status: **substituído** por [adr-0014](./adr-0014-orca-single-actuator.md) (2026-08-04) — o Herdr deixou de ser atuador suportado; o Orca é o único. As decisões estruturais deste ADR (o `/mosk-orq` como executor opt-in do grafo, os gatilhos de handoff, o sensor por contagem de tokens, a degradação graciosa) permanecem válidas e foram herdadas pelo backend Orca via [adr-0010](./adr-0010-orca-backend.md). O que caiu foi o **backend**, não o desenho.
+- Status: **superseded** por [adr-0018](./adr-0018-remove-orchestration-layer.md) (2026-08-14) — o subagente nativo dos runtimes tornou a camada de orquestração redundante. Preservado como registro.
 - Data: 2026-07-22
 - Autor: spec `006-feature-mosk-orq`
 - Contexto: dar um **executor** ao `mode: skill|agent` que o grafo já declara, usando o Herdr (multiplexer de agentes) como atuador.

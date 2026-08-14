@@ -47,7 +47,7 @@ Make upcoming work implementation-ready by tightening story quality, sequence, a
 
 ## Escalation signals
 
-If during readiness review you detect any of the signals below, **PAUSE and emit the "Escalation suggested" block; wait for the user's decision.** Never invoke another agent automatically.
+If during readiness review you detect any of the signals below, **PAUSE and emit the escalation block (format: `.claude/mosk/templates/escalation-block-tmpl.md`); wait for the user's decision.** Never invoke another agent automatically.
 
 - Story depends on a flow/wireframe that was never specified → `/mosk-ux-expert`.
 - Story has an unresolved technical dependency or architectural gap → `/mosk-architect`.
@@ -55,14 +55,18 @@ If during readiness review you detect any of the signals below, **PAUSE and emit
 
 ### Escalation block format
 
-> **Escalation suggested**
-> - Signal: <one line describing what you detected>
-> - Recommended agent: `<skill>`
-> - Suggested prompt: `<agent> <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
-> - On return: resume `<current task>` from where it paused.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <uma linha sobre o que você detectou>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <pedido de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
 
-Do not proceed until the user confirms `go`/`escalate`/`skip`/alternative.
+Write the block in the project's communication language (default pt-BR); the
+labels above are the pt-BR form. Never emit the internal vocabulary —
+"escalation", "side-trip", "guard", "preamble" are our words, not the user's.
+
+Só siga depois que o usuário responder: `pode ir` / `pula` / outra direção.
 
 ## Context loading
 
@@ -83,7 +87,7 @@ humano. Se muda só o conteúdo do que já foi decidido produzir, é execução.
 
 **Nunca delegável** (permanece humano, sem exceção): mudar de fase; aceitar,
 contestar ou dispensar veredito de gate; decidir `corrigir`/`escalar`/`waive`/
-`parar`; aprovar plano de fan-out; sair do trilho do grafo.
+`parar`; decidir que o pipeline muda de rumo.
 
 **Agentes de preâmbulo — `analyst`, `pm`, `architect`, `ux-expert`, `ui-expert` —
 NÃO são invocáveis automaticamente.** Lacuna de ADR, de fluxo ou de PRD é sinal

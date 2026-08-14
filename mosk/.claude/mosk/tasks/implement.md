@@ -12,13 +12,6 @@ $ARGUMENTS
 
 Implement the current spec phase by phase, validate the result, and keep `tasks.md` accurate.
 
-## Dependencies
-
-```yaml
-data:
-  - fanout-seam.md # dispatch_wave contract, tier selection, join rules
-```
-
 ## Workflow
 
 1. Run `.claude/mosk/scripts/check-prerequisites.sh --json --require-tasks --include-tasks` once.
@@ -30,18 +23,7 @@ data:
 3. Scan `FEATURE_DIR/checklists/` if it exists.
    - If there are incomplete checklist items, warn once and continue unless the user tells you to stop.
 
-4. **Choose how to execute: sequential, or a fan-out wave.**
-
-   Ask the graph whether this phase admits a wave at all — it is the single
-   source of that fact, not this prompt:
-
-   ```bash
-   bash .claude/mosk/scripts/legal_moves.sh implement
-   ```
-
-   A `fan-out disponível` block means the phase declares `fanout` in
-   `pipeline-graph.yaml`. Then read the `[P]` markers in `tasks.md`: two or more
-   `[P]` units → offer a **wave**; otherwise go sequential and skip to 4b.
+4. **Choose how to execute: sequential, or delegated units.**
 
    **Never infer parallelism.** `[P]` means *different files, no dependencies*.
    Honour the marker as written — do not derive it by reasoning about the code,
@@ -49,48 +31,22 @@ data:
    absent, run sequentially. The cost is asymmetric: a wrongly parallel pair
    writing the same file corrupts work that would have succeeded serially.
 
-   **4a. Fan-out wave.** Resolve the tier with
-   `bash .claude/mosk/scripts/panes.sh tier --json`, then present the **fan-out
-   plan** and **wait for approval**:
+   **4a. Delegating `[P]` units (optional).** When `tasks.md` marks two or more
+   units `[P]`, you may hand each one to a `mosk-dev` subagent instead of doing
+   them yourself — the runtime's own isolation, nothing else involved. Say which
+   units you are delegating before you call, and report the consolidated result
+   after (ADR-0016 §4). Depth is 1: a delegated unit does not delegate further.
 
-   > **Fan-out plan** — onda de N unidades, tier T
-   > - Unidades: `T0xx`, `T0yy`, … (arquivos distintos, sem dependência)
-   > - Agrupamento: o que corre junto, o que depende de quê
-   > - Critério de aceite por unidade: …
-   > - Teto de tentativas: N
-   > - Equivalente sequencial: se preferir, executo em série (mesmo resultado,
-   >   mais tempo)
-
-   Approval is asked **once**, here. After it, dispatch and run **without asking
-   again per branch** — that is the whole point of approving a plan instead of a
-   step (ADR-0012 §3). Follow `../data/fanout-seam.md` for the tier mechanics.
-
-   In Tier 3 say plainly that the parallelism is organisational, not temporal:
-   the gain is isolated verification per unit, not wall-clock time.
+   Each unit returns a **short status**, never a transcript — the disk is the
+   state boundary. A unit that dies or comes back empty is a **failed
+   invocation**, not a quality failure: you decide whether to retry it, do it
+   yourself, or hand it back to the user.
 
    **4b. Execute:**
    - complete the current phase
    - run relevant tests or validations
    - mark completed tasks as `[x]`
    - report blockers only when they are real blockers
-
-   **4c. Join (waves only).** The wave closes when **every** unit settles —
-   converged, failed, or suspended. A wait timeout is a checkpoint, not a
-   failure. Then report to the human: what converged, what failed and why, what
-   is suspended and on what, what remains open.
-
-   Three signals suspend **the branch that raised them**, never the whole wave: a
-   `judgment` guard, an escalation, exhaustion of that unit's cap. The other
-   branches keep going — halting everything would turn any local doubt into a
-   global barrier and throw away the parallelism.
-
-   **No wave starts another on its own**, and a wave never self-corrects: if the
-   approved plan stops describing what is happening, report and ask for a new
-   plan. Chaining is a route decision, and those stay with the human.
-
-   Record **one entry per wave** in the phase history, never one per unit. The
-   `tentativa N/max` counter is derived from that log (ADR-0008 §4); an entry per
-   unit would inflate it and declare exhaustion on the first wave.
 
 5. **After each completed phase, story, or chore — record, do not judge.**
    - Go back to the originating artifact (`tasks.md`, story file, or spec) and
@@ -125,61 +81,35 @@ data:
    - validations run
    - blockers or follow-up work
 
-9. **Update spec metadata and refresh index.** Move the phase through the
-   reducer so it is validated against the graph and audited:
+9. **Update spec metadata and refresh index.**
    ```bash
    source .claude/mosk/scripts/common.sh
    update_spec_phase "$FEATURE_DIR" implement
    ```
-   `update_spec_phase` bumps `last_phase_change`, appends to the spec's
-   `phase-history.log`, and — if the transition is off-graph — **warns but
-   proceeds** (never blocks; ADR-0006). Then execute `../tasks/index-docs.md`
-   to refresh `docs/index.md`. Automatic — no extra prompt.
+   It records `current_phase` and bumps `last_phase_change`. Then execute
+   `../tasks/index-docs.md` to refresh `docs/index.md`. Automatic — no extra
+   prompt.
 
-10. **Side-trip / security-review suggestion (conditional, graph-derived).**
-    Inspect the diff you just implemented, then ask the graph what side-trips
-    leave `implement`:
-    ```bash
-    bash .claude/mosk/scripts/legal_moves.sh implement
-    ```
-    If the `diff_security_sensitive` judgment guard holds (auth/authz,
-    user input, queries, secrets/config, external endpoints, deserialization,
-    crypto, file/path), emit the **Security review suggested** block using the
-    single format in `../templates/escalation-block-tmpl.md`, filled from the
-    graph (`security-review` → `mosk-security`). Same for any escalation the
-    graph lists for this phase (e.g. `missing_adr → architecture`). Skip
-    silently when clearly non-sensitive (docs, pure refactor, tests).
+10. **Security-review suggestion (conditional).**
+    Inspect the diff you just implemented. If it touched security-sensitive
+    surface — auth/authz, user input, queries, secrets/config, external
+    endpoints, deserialization, crypto, file/path handling — emit the
+    escalation block (`../templates/escalation-block-tmpl.md`) with the header
+    **"Vale uma revisão de segurança antes do gate"**, recommending
+    `/mosk-security`. Skip silently when clearly non-sensitive (docs, pure
+    refactor, tests).
     Recommended order: security **before** the gate, so `/mosk-qa qa-gate`
     reads the `SECURITY:` verdict. Do not auto-invoke — wait for the user's
-    `go`/`skip`/alternative (MOSK contract).
+    resposta: `pode ir` / `pula` / outra direção (MOSK contract).
 
-11. **Delivery-loop: fronteira do ciclo (ADR-0008).** `implement` faz parte
-    de um loop de convergência **consultivo e limitado**:
-    - **1ª volta:** `implement` (este passo). **Voltas seguintes:** você chega
-      aqui via `apply-qa-fixes` (que registra o loopback `qa-gate → implement`
-      no `phase-history.log` — é o que alimenta o contador `tentativa N/max`).
-    - `security-review` roda **entre** implement e gate, só se o diff tocar
-      superfície sensível (passo 10).
-    - `readiness` é **porta de entrada** (antes da 1ª volta), **não** se repete
-      a cada volta. Só volte a `readiness` como **escalação**, quando um FAIL
-      revelar que a *story* estava ambígua (não como parte do ciclo).
-    - O loop **nunca itera sozinho**: quem decide cada volta (corrigir /
-      escalar / waive / parar) é o humano, guiado pelo `qa-gate`.
-
-    **Falha de dispatch não é volta do loop.** O atuador tem disjuntor próprio:
-    três falhas seguidas numa task e o dispatch é interrompido. O `max_retries`
-    do MOSK conta outra coisa — voltas do gate, por spec. A coincidência do
-    número 3 é acidental:
-
-    | Contador | Mede | Nível |
-    |---|---|---|
-    | disjuntor do atuador | falha de despacho: o worker não produziu resultado | infra |
-    | `max_retries` (ADR-0008) | não-convergência de qualidade: há resultado e o gate reprovou | produto |
-
-    Uma unidade que estoura o disjuntor volta ao join como **unidade falha**, e o
-    humano decide. **Não** consome tentativa do delivery-loop — senão uma
-    instabilidade de terminal comeria o orçamento de correção da spec
-    (ADR-0013 §6).
+11. **O que vem depois.** `implement` entrega; quem julga é o gate.
+    - Próximo passo: `/mosk-qa qa-gate {spec-id}`.
+    - Se o gate reprovar, a correção volta por `/mosk-dev apply-qa-fixes`.
+    - Quem decide cada volta — corrigir, escalar, dispensar ou parar — é o
+      **humano**, lendo o gate. Não re-rode o gate nem se auto-corrija.
+    - `readiness` (`/mosk-sm`) é **porta de entrada**, antes da primeira volta.
+      Só volte a ela como escalação, quando um FAIL revelar que a *story*
+      estava ambígua.
 
 ## Rules
 

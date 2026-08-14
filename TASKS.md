@@ -204,16 +204,16 @@ On-demand security reviewer (inspired by Anthropic's `claude-code-security-revie
 > `.claude/skills/mosk-<n>/SKILL.md` é o wrapper gerado que dá o slash command.
 > Edite o agente — o wrapper é regenerado por `sync-agents-skills.sh`.
 
-| `/mosk-orq` (Mauro) | **Orchestrator over [Orca](https://www.onorca.dev/)** (optional external dependency). Drives one project's pipeline across panes, handing off automatically when the phase changes agent or when the agent hits the token ceiling (`/mosk-handoff` transports context). Graph-derived (`legal_moves.sh`), opt-in (`full-auto`/`semi-auto`), and **never crosses a human decision** — judgment guards, gate verdicts, and (in semi-auto) phase changes always pause. Requires the session to be **inside the Orca IDE**, not just the binary installed; degrades to single-pane otherwise (ADR-0014; facade `panes.sh` → `orca.sh`). |
+| `/mosk-orq` (Mauro) | **Corrida autônoma de entrega.** Recebe uma spec com `tasks.md` pronto e a leva ao gate verde sozinho: um `mosk-dev` por user story em worktree isolado, merge, `mosk-qa` + `mosk-security` verificando, correção, repetição. **Opt-in por corrida** — nenhuma config liga isso. Para em dúvida real e em tudo irreversível; registra cada decisão autônoma em `run-log.md`. Não roda o `archive` (ADR-0019). |
 | `/mosk-write-skill` | Scaffolds a new MOSK skill (agent wrapper or direct support) with proper structure, a trigger-rich description, optional backing task, and the sync steps. |
-| `/mosk-update` | Updates the installed toolkit via `npx degit … --force` (clean-tree guarded), reads the latest `README.md`/`TASKS.md` from GitHub, and reports what changed. |
+| `/mosk-update` | **Reinstalls** the toolkit from scratch (clean-tree guarded): downloads to a temp dir, shows an exact `--dry-run` preview of what will be deleted, waits for your `ok`, then resets and installs. Removes orphans left by past versions — `degit --force` overwrites but never deletes. Preserves `.claude/rules/`, settings, `docs/` and your own skills. |
 | `/mosk-help` | Short MOSK guide: recommended flow, natural-language usage, and when to call each agent. |
 
 ```
 /mosk-boot
 /mosk-handoff próxima sessão vai implementar o checkout (spec 012)
 /mosk-suggestion qual o próximo passo?
-/mosk-orq semi-auto 006          # orquestra o pipeline do projeto em panes do Orca
+/mosk-orq 012                    # entrega a spec 012 sozinho, com agentes paralelos
 /mosk-write-skill uma skill para exportar specs em PDF
 /mosk-update
 /mosk-help

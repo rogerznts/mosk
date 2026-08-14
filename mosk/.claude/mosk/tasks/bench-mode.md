@@ -205,14 +205,17 @@ Tudo que **determina a saída** (sequência de fases, loop, teto 3, `decisions-l
 Todo passo que precisa de um agente MOSK (`po`/`dev`/`qa`, e destes para `architect`/`pm`)
 passa por **um único adaptador**. Dois tiers (ADR-0004):
 
-- **Tier 1 — isolamento estrutural (preferido; Claude Code):** lance a tool nativa de
-  subagente (`Agent`, `subagent_type: mosk-<role>`). Entrada = caminho do `spec_dir` + a
-  fase; a instrução manda o subagente **ler/escrever no disco** e **devolver só um status
-  curto**. O barulho de build **fisicamente não entra** no contexto do Bento.
-- **Tier 2 — isolamento lógico (Codex default):** rode a **mesma** task de fase na sessão,
-  sob **disciplina de supressão de output** — nada de streaming de tool-output/raciocínio
-  verboso ao usuário; o log verboso é **redirecionado para `build-log.md`** no `spec_dir`
-  (auditável, nunca exibido). O disco continua sendo a fronteira de estado.
+- **Tier 1 — isolamento estrutural (preferido, onde houver subagente nativo):** lance a
+  tool nativa de subagente (no Claude Code, `Agent` com `subagent_type: mosk-<role>`).
+  Entrada = caminho do `spec_dir` + a fase; a instrução manda o subagente **ler/escrever
+  no disco** e **devolver só um status curto**. O barulho de build **fisicamente não
+  entra** no contexto do Bento. O Codex também oferece subagente hoje (`multi_agent`) —
+  quando estiver disponível, ele é Tier 1 igual (ADR-0018 emenda o ADR-0004 nesse ponto).
+- **Tier 2 — isolamento lógico (fallback, sem subagente nativo):** rode a **mesma** task
+  de fase na sessão, sob **disciplina de supressão de output** — nada de streaming de
+  tool-output/raciocínio verboso ao usuário; o log verboso é **redirecionado para
+  `build-log.md`** no `spec_dir` (auditável, nunca exibido). O disco continua sendo a
+  fronteira de estado.
 - **Tier 1' (opcional, Codex):** onde `codex exec` (não-interativo) existir, cada fase pode
   virar **processo filho headless** com stdout capturado em `build-log.md`. É reforço, não
   requisito de paridade.

@@ -26,6 +26,38 @@
 Todos os agentes e skills do MOSK respondem nesse idioma. Para trocar o
 idioma do projeto, edite apenas o valor acima (o padrão é português / pt-BR).
 
+### Contrato de saída (MOSK-invariante)
+
+Um identificador é um **ponteiro**. Citá-lo sem o valor ao lado transfere
+trabalho de quem escreve para quem lê — e quem escreve é justamente quem acabou
+de olhar o artefato. Quatro regras, válidas para toda saída que um humano lê:
+
+1. **Primeira menção carrega o significado.** `SC-004 — "toda busca deve
+   estreitar por collection"`. Aspas = citação literal; sem aspas = paráfrase
+   de até ~12 palavras. Depois disso, no mesmo bloco, pode ser seco.
+2. **Id nunca é sujeito de uma afirmação.** Não: "SC-004 não satisfeito". Sim:
+   "A busca não estreita por coleção — contraria SC-004".
+3. **Caminho diz o que há lá.** Não: `spec.md:174–181`. Sim:
+   `spec.md:174–181 (seção "Medidas de sucesso")`.
+4. **Título se sustenta sozinho.** Quem lê só os títulos sai sabendo o que está
+   errado.
+
+**Vocabulário canônico — não invente prefixos.**
+Planejamento: `FR-###` requisito funcional · `NFR-###` requisito não-funcional ·
+`SC-###` critério de sucesso · `US-#` user story · `AC-#` critério de aceite ·
+`T###` tarefa · `ADR-####` decisão de arquitetura.
+Avaliação: `QA-#` achado de gate · `SEC-#` achado de segurança ·
+`RISK-<CAT>-#` risco (`CAT` ∈ `SEC` `PERF` `DATA` `BUS` `OPS` `TECH`).
+Ids de achado são **estáveis dentro da spec**: `QA-1` na segunda volta é o mesmo
+defeito da primeira.
+
+**Achado é bloco, não linha de tabela** — `### <id> · <severidade> · <título>`,
+um parágrafo de evidência com número concreto, e os marcadores `Contraria:` /
+`Também:` / `Onde:` / `Custo:` quando houver o que dizer. Tabela serve para
+inventário (matriz de risco, cobertura), não para achado.
+
+Contrato completo, com exemplos: `.claude/mosk/data/output-contract.md`.
+
 ## Stack
 
 - Language / runtime: {{LANGUAGE_RUNTIME}}
@@ -159,6 +191,9 @@ Created by `/mosk-po artefact "<description>"`.
 - `/mosk-sm` (Roberto) — story readiness, sequencing.
 - `/mosk-dev` (Jaime) — implementation, QA fixes, archive.
 - `/mosk-qa` (Joaquim) — gates, test strategy, reviews.
+- `/mosk-orq` (Mauro) — corrida autônoma de entrega, com agentes paralelos.
+  **Opt-in por corrida**: nenhuma configuração liga esse modo. É a única parte do
+  MOSK que não pausa a cada decisão, e existe sob exceção escopada (ADR-0019).
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus:
 UX owns structure/behavior (`flows/`, `wireframes/`), UI owns visual
@@ -171,22 +206,45 @@ that a preamble agent (`analyst`, `pm`, `architect`, `ux-expert`,
 `ui-expert`) is needed to resolve an ambiguity.
 
 **Rule:** the agent **suggests** the handoff to the user in a
-standardized "Escalation suggested" block and **waits for confirmation**.
+standardized escalation block (formato único em `.claude/mosk/templates/escalation-block-tmpl.md`) and **waits for confirmation**.
 Agents NEVER invoke another agent autonomously. The user is the sole
 authority that decides whether to escalate, skip, or redirect.
 
 Block format:
 
-> **Escalation suggested**
-> - Signal: <what was detected>
-> - Recommended agent: `<skill>`
-> - Suggested prompt: `<agent> <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
-> - On return: resume `<current task>`.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <o que foi detectado>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <ação de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
+
+O cabeçalho e os rótulos vão no idioma de comunicação do projeto, em palavras
+comuns. "Escalation", "side-trip", "guard", "preamble" são vocabulário interno
+do MOSK — nunca aparecem na saída ao usuário.
 
 Preamble agents invoked via escalation write inside the current
 `specs/{id}/<domain>/` and end by suggesting the user return to the
 originating agent.
+
+## Spec Naming — branch e pasta são strings diferentes
+
+Isto confunde com frequência, então vale explícito (ADR-0017):
+
+```
+branch:  {tipo}/{NNN}-{nome}                  →  feature/012-checkout-coupon
+pasta:   docs/specs/{NNN}-{tipo}-{nome}       →  docs/specs/012-feature-checkout-coupon
+```
+
+O tipo aparece nos dois, **em posições diferentes**: no branch ele é um
+segmento de caminho (agrupa no `git branch`), na pasta ele é parte do nome
+(mantém `docs/specs/` plano, sem um nível de diretório por tipo).
+
+**A ponte entre os dois é o campo `branch` do `spec-meta.yaml`** — nunca
+igualdade de string. Código que assume `branch == nome da pasta` quebra.
+
+O formato antigo de branch (`012-feature-checkout-coupon`) continua sendo
+**resolvido** para trás, mas não é o que `create-new-feature.sh` cria.
 
 ## Spec Numbering and Concurrency
 
@@ -195,7 +253,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 `.claude/mosk/scripts/create-new-feature.sh`:
 
 1. `git fetch --all --prune` to get fresh remote state.
-2. Compute `max(remote branches, local branches, spec dirs) + 1`.
+2. Compute `max(remote branches, number reservations, local branches, spec dirs) + 1`.
 3. Create branch + folder + initial `spec-meta.yaml` + commit.
 4. `git push -u origin <branch>` immediately.
 5. On push rejection (race): re-fetch, renumber, rename branch + folder,
@@ -207,7 +265,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature              # feature | fix | hotfix | gmud | refactor | experimental | extension
-branch: "005-feature-checkout-coupon"
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "<name>"
 status: active             # active | archived

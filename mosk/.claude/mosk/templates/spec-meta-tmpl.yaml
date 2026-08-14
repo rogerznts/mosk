@@ -6,18 +6,21 @@
 spec_number: "{{SPEC_NUMBER}}"     # zero-padded 3 digits (e.g. "005")
 spec_id: "{{SPEC_ID}}"             # full folder name (e.g. "005-feature-checkout-coupon")
 type: "{{SPEC_TYPE}}"              # feature | fix | hotfix | gmud | refactor | experimental
-branch: "{{SPEC_BRANCH}}"          # git branch associated with this spec
+branch: "{{SPEC_BRANCH}}"          # git branch da spec — `{tipo}/{NNN}-{nome}`,
+                                   # ex.: feature/012-checkout-coupon (ADR-0017).
+                                   # NAO e igual ao spec_id: a pasta e plana
+                                   # ({NNN}-{tipo}-{nome}). Este campo e a UNICA
+                                   # ponte entre as duas strings — nunca assuma
+                                   # que branch == nome da pasta.
 
 created_at: "{{CREATED_AT}}"       # ISO 8601 UTC timestamp
 created_by: "{{CREATED_BY}}"       # git user.name + email, or author hint
 
 status: active                     # active | archived
 current_phase: specify             # specify | plan | tasks | implement | qa-gate | archived
-                                   # (clarify NAO e fase — e side-trip; ver pipeline-graph.yaml / ADR-0006)
+                                   # (clarify NAO e fase — e um passo opcional)
 
 # Optional fields (populated as the spec progresses):
 # archived_at: "2026-05-15T10:00:00Z"
 # last_phase_change: "2026-04-25T14:20:00Z"
 # owners: ["alice@…", "bob@…"]
-# max_retries: 5   # delivery-loop: override do teto de voltas do gate desta spec
-#                  # (default global em core-config.yaml orchestration.max_retries; ADR-0008)

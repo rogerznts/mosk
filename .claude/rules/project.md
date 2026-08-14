@@ -48,8 +48,9 @@ Key layers inside `mosk/.claude/mosk/`:
 
 - `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 12 definições
   (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security,
-  bench, orq). Concisas, low-menu, low-token. `bench` (Bento) é o modo workbench
-  standalone e `orq` (Mauro) o orquestrador — nenhum dos dois é fase do pipeline.
+  bench, orq). Concisas, low-menu, low-token. Dois não são fase do pipeline:
+  `bench` (Bento), o workbench standalone, e `orq` (Mauro), a corrida autônoma
+  de entrega — a segunda exceção escopada à política consultiva (ADR-0019).
 - `tasks/` — executable workflows referenced by agents (e.g.
   `specify.md`, `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
   `archive.md`, `boot.md`, `full-spec.md`, `index-docs.md`, plus
@@ -59,7 +60,8 @@ Key layers inside `mosk/.claude/mosk/`:
 - `scripts/` — Bash helpers (`create-new-feature.sh`,
   `sync-agents-skills.sh`, `link-codex-skills.sh`,
   `migrate-docs-structure.sh`, `migrate-ctx-skills-to-rules.sh`,
-  `sync-hallmark.sh`, `common.sh`).
+  `sync-hallmark.sh`, `reset-install.sh`, `check-ship-ready.sh`,
+  `selftest-common.sh`, `common.sh`).
 - `checklists/` — quality checklists invoked by optional tasks.
 - `data/` — static reference material read by tasks (elicitation methods,
   test frameworks, …), plus `data/hallmark/`: a **vendored fork** of the
@@ -199,22 +201,45 @@ that a preamble agent (`analyst`, `pm`, `architect`, `ux-expert`,
 `ui-expert`) is needed to resolve an ambiguity.
 
 **Rule:** the agent **suggests** the handoff to the user in a
-standardized "Escalation suggested" block and **waits for confirmation**.
+standardized block (formato em `.claude/mosk/templates/escalation-block-tmpl.md`) and **waits for confirmation**.
 Agents NEVER invoke another agent autonomously. The user is the sole
 authority that decides whether to escalate, skip, or redirect.
 
 Block format:
 
-> **Escalation suggested**
-> - Signal: <what was detected>
-> - Recommended agent: `<skill>`
-> - Suggested prompt: `<agent> <one-line ask>`
-> - Scope: `feature {spec-id}` (outputs written to `specs/{id}/<domain>/`)
-> - On return: resume `<current task>`.
+> **Preciso de outro agente antes de seguir**
+> - O que apareceu: <o que foi detectado>
+> - Quem resolve: `/mosk-<agente>`
+> - Prompt pronto: `/mosk-<agente> <ação de uma linha, com o spec-id real>`
+> - Onde o resultado fica: `docs/specs/{spec-id}/<domínio>/`
+> - Quando voltar: retomo `<task atual>` de onde parei.
+
+O cabeçalho e os rótulos vão no idioma de comunicação do projeto, em palavras
+comuns. "Escalation", "side-trip", "guard", "preamble" são vocabulário interno
+do MOSK — nunca aparecem na saída ao usuário.
 
 Preamble agents invoked via escalation write inside the current
 `specs/{id}/<domain>/` and end by suggesting the user return to the
 originating agent.
+
+## Spec Naming — branch e pasta são strings diferentes
+
+Isto confunde com frequência, então vale explícito (ADR-0017):
+
+```
+branch:  {tipo}/{NNN}-{nome}                  →  feature/012-checkout-coupon
+pasta:   docs/specs/{NNN}-{tipo}-{nome}       →  docs/specs/012-feature-checkout-coupon
+```
+
+O tipo aparece nos dois, **em posições diferentes**: no branch ele é um
+segmento de caminho (agrupa no `git branch`), na pasta ele é parte do nome
+(mantém `docs/specs/` plano, sem um nível de diretório por tipo).
+
+**A ponte entre os dois é o campo `branch` do `spec-meta.yaml`** — nunca
+igualdade de string. Código que assume `branch == nome da pasta` quebra.
+
+O formato antigo de branch (`012-feature-checkout-coupon`) continua sendo
+**resolvido** para trás, mas não é o que `create-new-feature.sh` cria.
 
 ## Spec Numbering and Concurrency
 
@@ -235,7 +260,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature
-branch: "005-feature-checkout-coupon"
+branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "<name>"
 status: active             # active | archived

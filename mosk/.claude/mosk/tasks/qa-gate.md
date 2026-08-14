@@ -2,6 +2,13 @@
 
 Create or update a quality gate decision for the active spec or story.
 
+## Dependencies
+
+```yaml
+data:
+  - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+```
+
 ## Goal
 
 Produce a minimal gate artifact that answers one question clearly: can this move forward?
@@ -11,11 +18,10 @@ Produce a minimal gate artifact that answers one question clearly: can this move
 1. Read `.claude/mosk/core-config.yaml` and resolve the gate location.
    - **Spec-level gate (default):** write to the per-spec `specs.gateFile`
      → `docs/specs/{id}/gate.yaml`. **This is the location the per-spec
-     pipeline, `index-docs`, and the delivery-loop (`legal_moves`) read** —
-     writing elsewhere makes the loop blind to the verdict (QA-1, ADR-0008).
+     pipeline and `index-docs` read** — writing elsewhere leaves the verdict
+     where nothing looks for it.
    - **Story-level gate:** for a specific story, `{qa.qaLocation}/gates/`
-     remains valid (BMAD lineage). `legal_moves` falls back to the newest file
-     there when no per-spec `gate.yaml` exists.
+     remains valid (BMAD lineage).
 
 2. **Verify the acceptance criteria yourself — this is the gate's job, not the
    implementer's (spec 010 US2).**
@@ -36,9 +42,10 @@ Produce a minimal gate artifact that answers one question clearly: can this move
      substitute for checking. An unmet AC under a ticked box is exactly the
      failure this gate exists to catch.
 
-   When the runtime offers isolation, run this step through
-   `invoke_phase_agent` so the verification really starts from a clean context
-   rather than merely being asked to.
+   When the runtime offers isolation, run this step in a **`mosk-qa` subagent**
+   so the verification really starts from a clean context rather than merely
+   being asked to (ADR-0016). Where it does not, the discipline above still
+   applies — it is just weaker, and you should say so in `status_reason`.
 
 3. Gather the rest of the review evidence:
    - review findings
@@ -51,14 +58,12 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - **If no security report exists and the change touched security-sensitive
      surface** (auth/authz, user input, queries, secrets/config, external
      endpoints, deserialization, crypto, file/path handling), emit the
-     **Security review suggested** block and **wait** before deciding the gate.
-     Derive it from the graph — `bash .claude/mosk/scripts/legal_moves.sh
-     implement` surfaces the `security-review` side-trip — using the single
-     format in `../templates/escalation-block-tmpl.md` (fill `Why now:` = "o
-     gate deve ler um verdicto `SECURITY:` antes de decidir"). Do not
-     auto-invoke another agent (MOSK contract). Skip silently for clearly
-     non-sensitive changes. Do not proceed until the user confirms
-     `go`/`skip`/alternative.
+     escalation block (`../templates/escalation-block-tmpl.md`) with the header
+     **"Vale uma revisão de segurança antes do gate"**, recommending
+     `/mosk-security`, and **wait** before deciding the gate — the gate should
+     read a `SECURITY:` verdict before ruling. Do not auto-invoke another agent
+     (MOSK contract). Skip silently for clearly non-sensitive changes. Do not
+     proceed until the user answers.
 
 4. Decide one status:
    - `PASS`
@@ -90,63 +95,92 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    Read `qa.score_threshold` from `.claude/mosk/core-config.yaml` (default 85) as
    the reference cut.
 
-   **The score never decides anything.** `gate` remains the sole terminator of
-   the delivery-loop (ADR-0008 §3) — a score of 92 does not turn a `FAIL` into a
-   pass, and a score of 40 does not overrule a `PASS`. What the score buys is a
-   readable trajectory across loop turns: two `FAIL`s with a flat score mean the
-   loop is stuck and the honest move is to escalate; two `FAIL`s with a rising
-   score mean it is converging slowly and one more turn is reasonable. Without
-   it, every `FAIL` looks identical and the decision at the retry cap is blind.
+   **The score never decides anything.** The `gate` verdict is the sole ruling —
+   a score of 92 does not turn a `FAIL` into a pass, and a score of 40 does not
+   overrule a `PASS`. What the score buys is a readable trajectory across turns:
+   two `FAIL`s with a flat score mean the work is stuck and the honest move is to
+   escalate; two `FAIL`s with a rising score mean it is converging slowly and one
+   more turn is reasonable. Without it, every `FAIL` looks identical.
 
 6. Write a short YAML file with:
    - identifier
    - gate
    - `quality_score`
+   - `score_history` — **append this round's score** to the list already in the
+     file (start it on the first round). This is what makes the trajectory
+     readable on the next turn; the gate file is overwritten each round, so a
+     score that is not accumulated here is a score that is lost.
    - status_reason
    - reviewer
    - updated timestamp
-   - top_issues
+   - `top_issues` — each with `id`, `severity`, `title` (plain language),
+     `finding`, `contradicts` (the criterion **with its gloss**) and
+     `suggested_action`. Ids follow the canonical vocabulary
+     (`QA-#` here, `SEC-#` for security findings) and are **stable across
+     rounds**: `QA-1` on the second turn is the same defect as on the first.
    - waiver details when applicable
 
 7. If the reviewed artifact has a QA results section, append the gate reference there.
 
-8. Report:
-   - gate status **and `quality_score`**
-   - gate file path
-   - top issues only
+8. **Report the findings — follow `../data/output-contract.md`.**
 
-9. **Update spec metadata and refresh index.** Move the phase through the
-   reducer so it is validated against the graph and audited:
+   Open with the verdict and a count, then one **block per finding**. Never a
+   table: a cell cannot hold both the claim and what the cited id means, and
+   that compression is what makes a gate unreadable.
+
+   ```markdown
+   **Gate: FAIL · score 20** — 6 achados: 2 altos, 4 médios.
+   Cinco dos seis são reescrita de texto; nenhum pede decisão de arquitetura.
+
+   ### QA-1 · alta · Busca não estreita por coleção
+
+   10 de 12 arquivos ignoram o filtro de collection.
+
+   - Contraria: SC-004 — "toda busca deve estreitar por collection" (spec.md:112)
+   - Também: FR-009, a mesma exigência do lado do requisito — corrigir um sem o
+     outro deixa a contradição pela metade
+   - Custo: reescrita de texto, não de código
+   ```
+
+   **Every id you cite carries its meaning the first time it appears**, and no
+   id is ever the subject of a claim. The reader must be able to act without
+   opening `spec.md`. Severity is written in the project's language (`alta`,
+   `média`, `baixa`); the YAML keeps `high`/`medium`/`low`.
+
+9. **Update spec metadata and refresh index.**
    ```bash
    source .claude/mosk/scripts/common.sh
    update_spec_phase "$FEATURE_DIR" qa-gate
    ```
-   It bumps `last_phase_change`, appends to the spec's `phase-history.log`,
-   and warns-but-proceeds on an off-graph transition (never blocks; ADR-0006).
-   Then execute `../tasks/index-docs.md` to refresh `docs/index.md`.
-   Automatic — no extra prompt.
+   It records `current_phase` and bumps `last_phase_change`. Then execute
+   `../tasks/index-docs.md` to refresh `docs/index.md`. Automatic — no extra
+   prompt.
 
-10. **Delivery-loop: apresentar o estado, nunca iterar sozinho (ADR-0008).**
-    Se o gate ficou `CONCERNS`/`FAIL`, apresente as jogadas do loop e **pare**:
-    ```bash
-    bash .claude/mosk/scripts/legal_moves.sh qa-gate
-    ```
-    A saída traz `tentativa N/max` no loopback de correção (`apply-qa-fixes`,
-    default) enquanto `N < max`; ao atingir o teto, troca para o **menu de
-    esgotamento** (`escalar`/`waive`/`parar`). O contador vem do
-    `phase-history.log` (não persista nada). O humano decide a próxima volta —
-    **não** auto-invoque `apply-qa-fixes` nem re-rode o gate. Se o gate foi
-    `PASS`/`WAIVED`, o loop convergiu: a jogada é `archive`.
+10. **Apresentar o estado e parar — nunca iterar sozinho.**
 
-    **Mostre a trajetória junto do contador.** Leia o `quality_score` dos gates
-    anteriores desta spec e apresente a série ao lado de `tentativa N/max`:
+    Se o gate passou (`PASS`/`WAIVED`), o próximo passo é
+    `/mosk-dev archive {spec-id}`.
 
-    > tentativa 3/3 — score: 61 → 68 → 69 (FAIL nas três)
+    Se ficou `CONCERNS`/`FAIL`, apresente as opções e **pare**:
 
-    É essa série que torna a decisão no teto informada em vez de arbitrária: um
-    score parado diz que mais uma volta não vai resolver — o problema é de design
-    ou de story, e a jogada honesta é `escalar`. Um score subindo diz o
-    contrário. Apresente a leitura; **quem decide segue sendo o humano**.
+    > **Gate `FAIL` · score 69** — série: 61 → 68 → 69
+    > - **corrigir** — `/mosk-dev apply-qa-fixes {spec-id}`
+    > - **rever a origem** — o problema é de design ou da story, não da execução
+    > - **aceitar com ressalva** — segue como está, e o motivo fica registrado
+    > - **parar**
+
+    **Mostre como o score evoluiu, junto do veredito.** Leia `score_history` do
+    `gate.yaml` e apresente a série. É ela que torna a decisão informada em vez
+    de arbitrária: um score parado entre duas voltas diz que mais uma não vai
+    resolver — o problema está acima da execução, e o honesto é rever a origem.
+    Um score subindo diz o contrário.
+
+    Escreva as opções em palavras, não em vocabulário interno: o usuário decide
+    entre corrigir, rever a origem, aceitar com ressalva ou parar. O valor
+    `WAIVED` é do YAML; para o humano, é "aceito com ressalva".
+
+    **Não** auto-invoque `apply-qa-fixes` nem re-rode o gate. Quem decide a
+    próxima volta é o humano.
 
 ## Rules
 

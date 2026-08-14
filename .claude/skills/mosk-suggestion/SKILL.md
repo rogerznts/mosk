@@ -1,6 +1,6 @@
 ---
 name: mosk-suggestion
-description: "Suggestion: interpreta o ponto atual da sessão (spec ativa, current_phase, artefatos no disco e foco da conversa) e sugere o próximo agente MOSK a chamar, já com um prompt pronto para colar. Deriva as jogadas legais do pipeline-graph.yaml (fonte única) via legal_moves.sh — não há tabela hardcoded. Use quando o usuário perguntar 'e agora?', 'qual o próximo passo?', 'qual agente devo chamar?' ou quiser orientação para avançar no pipeline (specify → plan → tasks → implement → qa-gate → archive). Apenas sugere — nunca invoca outro agente automaticamente."
+description: "Suggestion: interpreta o ponto atual da sessão (spec ativa, current_phase, artefatos no disco e foco da conversa) e sugere o próximo agente MOSK a chamar, já com um prompt pronto para colar. Use quando o usuário perguntar 'e agora?', 'qual o próximo passo?', 'qual agente devo chamar?' ou quiser orientação para avançar no pipeline (specify → plan → tasks → implement → qa-gate → archive). Apenas sugere — nunca invoca outro agente automaticamente."
 argument-hint: "O que você quer fazer a seguir? (opcional)"
 ---
 
@@ -11,20 +11,14 @@ agent** to call, with a ready-to-paste prompt. This is the inverse of a
 handoff: instead of writing a document, you produce one concrete next
 step the user can run immediately.
 
-As jogadas possíveis **derivam do grafo** (`pipeline-graph.yaml`), a fonte
-única de verdade — computadas por `legal_moves.sh`. Este skill não carrega
-nenhuma tabela "estado → agente": ela seria uma cópia que divergiria do
-grafo (ver ADR-0006).
-
 > **Idioma:** responda no idioma de comunicação do projeto (campo *Idioma de
 > comunicação* em `.claude/rules/project.md`); o padrão é **português (pt-BR)**
 > quando nenhum estiver definido. Mantenha em forma literal apenas nomes de
 > skill, comandos, caminhos e ids de spec.
 
-> **IMPORTANT — suggest only, never invoke.** This skill follows the MOSK
-> Escalation Policy: it **proposes** the next agent and **waits**. Never
-> activate another persona, run its task, or chain agents automatically.
-> The user decides whether to run the prompt, skip, or redirect.
+> **IMPORTANT — suggest only, never invoke.** It **proposes** the next agent
+> and **waits**. Never activate another persona, run its task, or chain agents
+> automatically. The user decides whether to run the prompt, skip, or redirect.
 
 ---
 
@@ -37,42 +31,24 @@ grafo (ver ADR-0006).
    - Run `bash .claude/mosk/scripts/check-prerequisites.sh --json --paths-only` (when available) to resolve `BRANCH`, `FEATURE_DIR`, and `AVAILABLE_DOCS`.
    - If a `FEATURE_DIR` resolves, read its `spec-meta.yaml`: `spec_id`, `type`, `status`, `current_phase`.
    - Note which artifacts exist on disk: `spec.md`, `plan.md`, `tasks.md`, `stories/`, `tests/`, `gate.yaml`.
-   - If `current_phase` is `qa-gate`, read `gate.yaml` to learn the verdict (`PASS` | `CONCERNS` | `FAIL` | `WAIVED`).
-   - **If there is no active spec yet**, treat the phase as `__start__` (pre-spec routing).
+   - If `current_phase` is `qa-gate`, read `gate.yaml` to learn the verdict (`PASS` | `CONCERNS` | `FAIL` | `WAIVED`) and the `score_history`.
+   - **If there is no active spec yet**, route from the table's first two rows.
 3. Read the **conversation focus**: what was just completed or discussed this session. The chat is authoritative when it is clearly ahead of the metadata (e.g. the user just finished implementing but `current_phase` still says `tasks`).
 4. Reconcile: when the conversation and `current_phase` disagree, trust what actually happened in the session and say so in the suggestion.
 
-### Step 2 — Compute the legal moves from the graph
+### Step 2 — Locate the position in the MOSK lifecycle
 
-Run the single source of truth instead of guessing from a table:
+Use the mapping table below. Pick **one primary** suggestion; add at most two
+alternatives only when a real fork exists.
 
-```bash
-bash .claude/mosk/scripts/legal_moves.sh <current_phase>
-# ex.: legal_moves.sh implement   |   legal_moves.sh __start__
-```
+If grounding is missing — no PRD/discovery/architecture/UX for a decision the
+next step depends on — recommend the agent that owns that ground instead, in the
+same suggestion block. A gap in ADR, PRD or flow is a **routing** signal, and
+routing belongs to the user.
 
-The script reads `pipeline-graph.yaml` and returns:
-
-- **moves** — edges leaving `<current_phase>`, with the `default` (happy
-  path) marked. Each move maps to the node's owning agent/skill in the graph
-  (`nodes:` → `agent`).
-- Guards of kind **`fact`** are already evaluated (disk-checked) — moves whose
-  fact guard failed are omitted.
-- Guards of kind **`judgment`** are surfaced with their `question` — **you**
-  evaluate them against the conversation focus and the diff (e.g.
-  `diff_security_sensitive`, `request_vague`). Offer the move only when your
-  judgment says the guard holds.
-- **escalations** — side-trips to a preamble agent available from this phase
-  (`missing_adr → architecture`, `prd_conflict → prd`, …), each returning to
-  the current phase.
-
-Pick **one primary** suggestion — normally the `default` move. Add at most two
-alternatives only when a real fork exists (a satisfied judgment guard, an
-optional `readiness` pass, or a relevant escalation).
-
-To map a move's target node to its agent/skill, read `nodes:` in
-`pipeline-graph.yaml` (`agent:` field). Fill the ready-to-paste prompt with
-the **real** `spec_id` / description.
+Escreva a sugestão em palavras comuns. "Preâmbulo", "side-trip", "escalação" e
+"fase" são vocabulário nosso: diga *o que fazer* e *por quê*, não em que caixa
+do modelo aquilo cai.
 
 ### Step 3 — Emit the suggestion block
 
@@ -84,7 +60,7 @@ description, not placeholders:
 > - Onde estamos: <fase atual ou o que acabou de ser concluído>
 > - Próximo agente: `/mosk-<x>`
 > - Prompt pronto: `/mosk-<x> <ação com o spec-id/descrição reais>`
-> - Por quê: <uma linha justificando, citando o guard/escala quando relevante>
+> - Por quê: <uma linha justificando>
 > - Alternativas: <0–2 opções, ou "nenhuma">
 ```
 
@@ -93,17 +69,40 @@ para prosseguir (ou pedir outra direção). **Do not run anything.**
 
 ---
 
+## Mapping — estado → próximo agente
+
+| Estado detectado | Próximo agente | Prompt pronto (modelo) |
+|---|---|---|
+| Sem spec ativa **e** ideia ainda não aterrada (sem PRD/discovery) | `/mosk-analyst` ou `/mosk-pm` | `/mosk-pm criar PRD para <ideia>` |
+| Sem spec ativa, escopo claro | `/mosk-po` | `/mosk-po full-spec <descrição>` |
+| `current_phase: specify` (existe `spec.md`) | `/mosk-po` | `/mosk-po plan {spec-id}` |
+| `current_phase: plan` (existe `plan.md`) | `/mosk-po` | `/mosk-po tasks {spec-id}` |
+| `current_phase: tasks`, stories ainda não revisadas | `/mosk-sm` *(opcional)* | `/mosk-sm revisar prontidão das stories da spec {spec-id}` |
+| `current_phase: tasks` (pronto para codar) | `/mosk-dev` | `/mosk-dev implement {spec-id}` |
+| `current_phase: implement`, diff tocou superfície sensível | `/mosk-security` *(opcional)* | `/mosk-security review do diff da spec {spec-id}` |
+| `current_phase: implement` (código entregue) | `/mosk-qa` | `/mosk-qa qa-gate {spec-id}` |
+| `current_phase: qa-gate`, gate `PASS`/`WAIVED` | `/mosk-dev` | `/mosk-dev archive {spec-id}` |
+| `current_phase: qa-gate`, gate `CONCERNS`/`FAIL`, score subindo | `/mosk-dev` | `/mosk-dev apply-qa-fixes {spec-id}` |
+| `current_phase: qa-gate`, gate `FAIL` com score parado entre voltas | quem é dono da origem: `/mosk-architect`, `/mosk-pm` ou `/mosk-sm` | `/mosk-architect revisar a decisão X da spec {spec-id}` |
+| `current_phase: archived` | `/mosk-po` | `/mosk-po full-spec <próxima demanda>` |
+| Interface entregue, sem acabamento visual | `/mosk-ui-expert` *(opcional)* | `/mosk-ui-expert audit da tela X` |
+| Fluxo de usuário sem especificação | `/mosk-ux-expert` *(opcional)* | `/mosk-ux-expert desenhar o fluxo de X` |
+
+**Sobre a penúltima linha do gate.** Score parado entre duas voltas é o sinal de
+que mais uma volta não resolve: o problema está acima da execução — design, PRD
+ou story ambígua. Sugerir `apply-qa-fixes` de novo ali é o erro que a série de
+score existe para evitar. Leia `score_history` no `gate.yaml` antes de decidir
+entre as duas linhas.
+
+---
+
 ## Notes
 
 - `full-spec` cobre `specify → plan → tasks` de uma vez; depois dele o
   próximo passo é `/mosk-dev implement`.
-- `/mosk-sm` (readiness) e `/mosk-security` (security-review) são
-  **side-trips** no grafo: opcionais e sugeridos por guard, nunca no
-  ponteiro. Sugira-os quando o guard correspondente vale.
-- Se `legal_moves.sh` não estiver disponível (instalação antiga) ou o grafo
-  faltar, degrade para o caminho feliz textual
-  `specify → plan → tasks → implement → qa-gate → archive` e avise que o
-  grafo não foi encontrado — mas prefira sempre o script.
+- `/mosk-sm`, `/mosk-security`, `/mosk-ui-expert` e `/mosk-ux-expert` são
+  **desvios opcionais**: entram quando algum sinal os justifica, nunca no
+  caminho padrão, e devolvem o trabalho para a fase de onde saiu.
 - Se o usuário passou um argumento, trate-o como a intenção do próximo passo
   e enviese a sugestão para ela (sem abandonar a checagem de fase).
 
@@ -113,10 +112,8 @@ para prosseguir (ou pedir outra direção). **Do not run anything.**
 
 - **Apenas sugere.** Nunca ative outra persona nem rode a task dela. Pare
   após emitir o bloco e aguarde a decisão do usuário.
-- **Deriva do grafo.** A fonte das jogadas é `legal_moves.sh` /
-  `pipeline-graph.yaml` — nunca uma tabela mantida à mão aqui.
-- **Uma sugestão primária.** Evite menus: escolha o passo mais provável (o
-  `default`) e ofereça no máximo duas alternativas reais.
+- **Uma sugestão primária.** Evite menus: escolha o passo mais provável e
+  ofereça no máximo duas alternativas reais.
 - **Prompt pronto, com dados reais.** Preencha `{spec-id}` e a descrição
   com o que foi detectado — o usuário deve conseguir copiar e colar.
 - **A conversa vence a metadata** quando estiver claramente à frente; diga
