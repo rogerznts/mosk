@@ -325,3 +325,62 @@ core_config_file() {
     fi
     echo "$MOSK_SCRIPTS_DIR/../core-config.yaml"
 }
+
+# ---------- runner autônomo (/mosk-orq) ----------
+# Estes dois helpers existem porque o precedente — o loop-until-green do bench —
+# deixou as duas pontas soltas: ninguém escrevia o log de decisões (o formato só
+# existia em prosa, num plan arquivado) e o teto de tentativas era convenção de
+# prompt, sem constante em lugar nenhum. Um processo que roda desacompanhado não
+# pode depender de o prompt lembrar.
+
+# Resolve o teto de voltas por unidade: core-config `runner.max_attempts` → 3.
+# Valor não-numérico cai no default COM aviso — nunca em silêncio, porque um teto
+# lido errado é um loop que não termina. Usage: resolve_max_attempts
+resolve_max_attempts() {
+    local cc v
+    cc="$(core_config_file)"
+    if [[ -f "$cc" ]]; then
+        v=$(awk '
+            /^[^[:space:]#]/ { in_runner = ($0 ~ /^runner:/) }
+            in_runner && /^[[:space:]]+max_attempts[[:space:]]*:/ {
+                sub(/^[[:space:]]+max_attempts[[:space:]]*:[[:space:]]*/, "")
+                sub(/[[:space:]]*#.*$/, "")
+                gsub(/["'\'' ]/, "")
+                print; exit
+            }
+        ' "$cc")
+    fi
+    if ! [[ "$v" =~ ^[0-9]+$ ]]; then
+        [[ -n "$v" ]] && echo "aviso: runner.max_attempts inválido ('$v'); usando 3" >&2
+        v=3
+    fi
+    echo "$v"
+}
+
+# Registra uma decisão tomada sem supervisão. Append-only, versionado — é o preço
+# da autonomia: você não viu acontecer, então precisa poder ler depois.
+# Usage: append_run_log <spec_dir> <onda> <unidade> <agente> <decisão> <porquê>
+append_run_log() {
+    local spec_dir="$1" wave="$2" unit="$3" agent="$4" decision="$5" why="$6"
+    if [[ -z "$spec_dir" || ! -d "$spec_dir" ]]; then
+        echo "erro: append_run_log precisa de um spec_dir existente (obtido: '$spec_dir')" >&2
+        return 1
+    fi
+    local log="$spec_dir/run-log.md" now
+    now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    if [[ ! -f "$log" ]]; then
+        cat > "$log" <<'HDR'
+# Run log — decisões tomadas sem supervisão
+
+Registro append-only do `/mosk-orq`. Cada linha é uma decisão que a corrida tomou
+sozinha, e o motivo. É o que torna a autonomia auditável depois do fato.
+
+| quando | onda | unidade | agente | decisão | por quê |
+|---|---|---|---|---|---|
+HDR
+    fi
+    # Pipe quebraria a tabela; escapa antes de escrever.
+    printf '| %s | %s | %s | %s | %s | %s |\n' \
+        "$now" "${wave//|/\\|}" "${unit//|/\\|}" "${agent//|/\\|}" \
+        "${decision//|/\\|}" "${why//|/\\|}" >> "$log"
+}

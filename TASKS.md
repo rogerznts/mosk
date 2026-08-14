@@ -204,6 +204,7 @@ On-demand security reviewer (inspired by Anthropic's `claude-code-security-revie
 > `.claude/skills/mosk-<n>/SKILL.md` é o wrapper gerado que dá o slash command.
 > Edite o agente — o wrapper é regenerado por `sync-agents-skills.sh`.
 
+| `/mosk-orq` (Mauro) | **Corrida autônoma de entrega.** Recebe uma spec com `tasks.md` pronto e a leva ao gate verde sozinho: um `mosk-dev` por user story em worktree isolado, merge, `mosk-qa` + `mosk-security` verificando, correção, repetição. **Opt-in por corrida** — nenhuma config liga isso. Para em dúvida real e em tudo irreversível; registra cada decisão autônoma em `run-log.md`. Não roda o `archive` (ADR-0019). |
 | `/mosk-write-skill` | Scaffolds a new MOSK skill (agent wrapper or direct support) with proper structure, a trigger-rich description, optional backing task, and the sync steps. |
 | `/mosk-update` | **Reinstalls** the toolkit from scratch (clean-tree guarded): downloads to a temp dir, shows an exact `--dry-run` preview of what will be deleted, waits for your `ok`, then resets and installs. Removes orphans left by past versions — `degit --force` overwrites but never deletes. Preserves `.claude/rules/`, settings, `docs/` and your own skills. |
 | `/mosk-help` | Short MOSK guide: recommended flow, natural-language usage, and when to call each agent. |
@@ -212,6 +213,7 @@ On-demand security reviewer (inspired by Anthropic's `claude-code-security-revie
 /mosk-boot
 /mosk-handoff próxima sessão vai implementar o checkout (spec 012)
 /mosk-suggestion qual o próximo passo?
+/mosk-orq 012                    # entrega a spec 012 sozinho, com agentes paralelos
 /mosk-write-skill uma skill para exportar specs em PDF
 /mosk-update
 /mosk-help

@@ -20,6 +20,7 @@ The following skills are linked in `.codex/skills/`:
 - **mosk-dev**: Implementação: implement, archive, debugging, refatoração e apply-qa-fixes.
 - **mosk-handoff**: Handoff: compacta a sessão atual em um documento de transição salvo em docs/handoff/ do workspace, amarrado à spec/documentação ativa.
 - **mosk-help**: Guia curto do MOSK com fluxo recomendado, uso em linguagem natural e quando chamar cada agente.
+- **mosk-orq**: Entrega autônoma: conduz o arco implement → security → qa → correção sozinho, com agentes paralelos em worktrees isolados, até o gate passar. Use ao pedir 'roda a spec X sozinho', 'modo autônomo', 'entrega isso pra mim', 'chama o Mauro'. Para em dúvida real e em tudo irreversível.
 - **mosk-pm**: Produto: criação de PRD e estratégia de produto.
 - **mosk-po**: Backlog & SpecKit: épicos, stories com AC e pipeline de spec, incluindo full-spec (specify -> plan -> tasks).
 - **mosk-qa**: Qualidade: quality gates, arquitetura de testes, NFR e revisões.

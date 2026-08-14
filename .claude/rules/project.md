@@ -35,7 +35,7 @@ runtime.
 | Path                  | Role                                                                                     |
 |-----------------------|------------------------------------------------------------------------------------------|
 | `mosk/`               | **Installable template** (source of truth). Everything here ships to consumer projects.  |
-| `mosk/.claude/agents/`| **Fonte dos 11 agentes** — definição completa, invocável por `subagent_type` (ADR-0015). |
+| `mosk/.claude/agents/`| **Fonte dos 12 agentes** — definição completa, invocável por `subagent_type` (ADR-0015). |
 | `mosk/.claude/mosk/`  | Canonical content: `tasks/`, `templates/`, `scripts/`, `checklists/`, `data/`, etc.       |
 | `mosk/.claude/skills/`| Wrappers de slash command, **gerados** a partir dos agentes. Não editar à mão.          |
 | `.claude/` (root)     | **Local execution environment** for working on MOSK itself. Not shipped, not authoritative. |
@@ -46,10 +46,11 @@ runtime.
 
 Key layers inside `mosk/.claude/mosk/`:
 
-- `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 11 definições
+- `agents/` (em `mosk/.claude/agents/`, fora de `mosk/mosk/`) — 12 definições
   (analyst, pm, architect, ux-expert, ui-expert, po, sm, dev, qa, security,
-  bench). Concisas, low-menu, low-token. `bench` (Bento) é o modo workbench
-  standalone — o único que não é fase do pipeline.
+  bench, orq). Concisas, low-menu, low-token. Dois não são fase do pipeline:
+  `bench` (Bento), o workbench standalone, e `orq` (Mauro), a corrida autônoma
+  de entrega — a segunda exceção escopada à política consultiva (ADR-0019).
 - `tasks/` — executable workflows referenced by agents (e.g.
   `specify.md`, `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
   `archive.md`, `boot.md`, `full-spec.md`, `index-docs.md`, plus

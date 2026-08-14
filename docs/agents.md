@@ -19,6 +19,7 @@ estão catalogadas em [TASKS.md](../TASKS.md).
 | `/mosk-qa` | Joaquim | quality gates, estratégia de testes, revisões |
 | `/mosk-security` | Heitor | revisão de vulnerabilidade diff-aware, triagem |
 | `/mosk-bench` | Bento | modo workbench para não-técnicos (stack Payload) |
+| `/mosk-orq` | Mauro | entrega autônoma com agentes paralelos (opt-in por corrida) |
 
 `/mosk-deploy` fala na voz do Bento mas **não é agente**: é uma ação sobre o modo
 bench (publicar), não uma persona própria — ver "Agente ou skill?" abaixo.

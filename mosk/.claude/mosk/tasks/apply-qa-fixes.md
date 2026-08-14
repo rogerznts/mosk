@@ -26,8 +26,15 @@ optional:
 
 ## QA Sources to Read
 
-- Gate (YAML): `{qa_root}/gates/{epic}.{story}-*.yml`
-  - If multiple, use the most recent by modified time
+- **Gate (YAML) — resolve in this order, and stop at the first hit:**
+  1. **`{FEATURE_DIR}/gate.yaml`** — the per-spec gate. This is where `qa-gate`
+     writes by default, and where the pipeline reads. **Look here first.**
+  2. `{qa_root}/gates/{epic}.{story}-*.yml` — the story-level gate (BMAD
+     lineage). If multiple, use the most recent by modified time.
+
+  > Checking only the story-level path is what used to make this task HALT in the
+  > normal spec-level flow: the gate existed, in the place `qa-gate` documents,
+  > and this task reported it missing.
 - Assessments (Markdown):
   - Test Design: `{qa_root}/assessments/{epic}.{story}-design-tests-*.md`
   - Traceability: `{qa_root}/assessments/{epic}.{story}-trace-*.md`
@@ -126,7 +133,8 @@ Status Rule:
 
 - Missing `.claude/mosk/core-config.yaml`
 - Story file not found for `story_id`
-- No QA artifacts found (neither gate nor assessments)
+- No QA artifacts found — **neither** `{FEATURE_DIR}/gate.yaml` **nor**
+  `{qa_root}/gates/{epic}.{story}-*.yml` nor any assessment
   - HALT and request QA to generate at least a gate file (or proceed only with clear developer-provided fix list)
 
 ## Completion Checklist

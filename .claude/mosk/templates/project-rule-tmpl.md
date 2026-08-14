@@ -191,6 +191,9 @@ Created by `/mosk-po artefact "<description>"`.
 - `/mosk-sm` (Roberto) — story readiness, sequencing.
 - `/mosk-dev` (Jaime) — implementation, QA fixes, archive.
 - `/mosk-qa` (Joaquim) — gates, test strategy, reviews.
+- `/mosk-orq` (Mauro) — corrida autônoma de entrega, com agentes paralelos.
+  **Opt-in por corrida**: nenhuma configuração liga esse modo. É a única parte do
+  MOSK que não pausa a cada decisão, e existe sob exceção escopada (ADR-0019).
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus:
 UX owns structure/behavior (`flows/`, `wireframes/`), UI owns visual

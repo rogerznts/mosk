@@ -378,6 +378,20 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
   `list_active_specs [<specs_root>]`,
   `write_spec_meta <dir> <number> <id> <type> <branch>`,
   `core_config_file`.
+- **Helpers do runner autônomo** (ADR-0019, consumidos pelo `/mosk-orq`):
+  - `resolve_max_attempts` — teto de voltas por unidade: `runner.max_attempts` do
+    `core-config.yaml` → 3. Valor não-numérico **avisa em stderr** e cai no
+    default; um teto lido errado em silêncio é um loop que não termina.
+  - `append_run_log <spec_dir> <onda> <unidade> <agente> <decisão> <porquê>` —
+    append-only em `<spec_dir>/run-log.md`, escreve o cabeçalho da tabela na
+    primeira chamada e escapa `|` no texto (um pipe cru quebraria a tabela
+    inteira). Falha explicitamente se o `spec_dir` não existir.
+
+  Existem como **função**, e não como convenção de prompt, porque o precedente —
+  o `loop-until-green` do bench — deixou as duas pontas soltas: o
+  `decisions-log.md` nunca teve escritor nem template, e o `MAX_FIX_ATTEMPTS`
+  nunca foi constante. Um processo que roda desacompanhado não pode depender de
+  o prompt lembrar.
 
 ---
 

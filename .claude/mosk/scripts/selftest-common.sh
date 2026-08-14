@@ -122,6 +122,47 @@ want_branch "3f. branch comum recusado"                 "chore/sync-042-pmo"    
 # A âncora continua sendo o que separa "tem número" de "tem spec":
 want_branch "3g. numero no meio do nome recusado"       "docs/adr-0012-0014-x"    FALSE
 
+# ─────────── caso 4: helpers do runner autônomo ───────────
+# Um processo que roda desacompanhado não pode depender de o prompt lembrar do
+# teto nem do log. Estes dois são a diferença entre "convenção" e "garantia".
+echo "selftest-common: helpers do runner"
+
+check_eq "4a. max_attempts default do core-config" "3" "$(resolve_max_attempts)"
+
+_tmpcfg="$(mktemp)"
+printf 'runner:\n  max_attempts: 7\n  max_parallel: 2\n' > "$_tmpcfg"
+check_eq "4a. le max_attempts do core-config" "7" "$(MOSK_CORE_CONFIG="$_tmpcfg" resolve_max_attempts)"
+printf 'runner:\n  max_attempts: abacaxi\n' > "$_tmpcfg"
+check_eq "4a. valor nao-numerico cai no default" "3" "$(MOSK_CORE_CONFIG="$_tmpcfg" resolve_max_attempts 2>/dev/null)"
+got="$(MOSK_CORE_CONFIG="$_tmpcfg" resolve_max_attempts 2>&1 >/dev/null)"
+case "$got" in
+    *aviso*) ok "4a. valor invalido avisa em stderr, nao cai em silencio" ;;
+    *) fail "4a. valor invalido avisa em stderr" "aviso no stderr" "$got" ;;
+esac
+rm -f "$_tmpcfg"
+
+_tmpspec="$(mktemp -d)"
+append_run_log "$_tmpspec" "1" "US-1" "dev-us1" "seguiu com o default X" "plan.md nao decidia"
+check_eq "4b. run-log criado com cabecalho de tabela" "1" \
+    "$(grep -c '^| quando | onda |' "$_tmpspec/run-log.md")"
+append_run_log "$_tmpspec" "1" "US-2" "dev-us2" "outra decisao" "outro motivo"
+check_eq "4b. append nao sobrescreve (2 entradas)" "2" \
+    "$(grep -c '^| 20' "$_tmpspec/run-log.md")"
+# Pipe no texto quebraria a tabela markdown inteira. São DUAS ocorrências numa
+# linha só — conte ocorrências, não linhas.
+append_run_log "$_tmpspec" "2" "US-3" "dev-us3" "usou a|b" "porque a|b"
+check_eq "4b. os dois pipes do texto sao escapados" "2" \
+    "$(grep -o '\\|' "$_tmpspec/run-log.md" | wc -l | tr -d ' ')"
+# E a linha resultante tem exatamente 7 separadores reais (6 colunas).
+check_eq "4b. a tabela nao quebra: 7 separadores na linha" "7" \
+    "$(grep 'US-3' "$_tmpspec/run-log.md" | sed 's/\\|//g' | grep -o '|' | wc -l | tr -d ' ')"
+if append_run_log "/caminho/que/nao/existe" 1 x y z w 2>/dev/null; then
+    fail "4b. spec_dir inexistente falha" "exit != 0" "exit 0"
+else
+    ok "4b. spec_dir inexistente falha explicitamente"
+fi
+rm -rf "$_tmpspec"
+
 # ─────────────────────────── relatório ───────────────────────────
 echo
 if [[ -n "$FAILURES" ]]; then

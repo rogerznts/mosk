@@ -34,6 +34,17 @@ project:
 index:
   file: docs/index.md
   template: .claude/mosk/templates/docs-index-tmpl.md
+runner:
+  # /mosk-orq — execução autônoma do arco de entrega.
+  #
+  # ATENÇÃO: nada aqui liga o modo autônomo. Ele é opt-in POR INVOCAÇÃO, e o
+  # consentimento não se herda de config — é dado a cada corrida, depois de ler
+  # o preflight. Estes valores só dizem COMO a corrida se comporta quando você
+  # já mandou rodar.
+  max_attempts: 3      # voltas por unidade antes de parar e devolver
+  max_parallel: 3      # worktrees simultâneos numa onda
+  test_command: ""     # oráculo mecânico (ex.: "npm test"). Vazio = só o gate
+                       # julga — garantia mais fraca, e o preflight avisa.
 promotion:
   defaults:
     "specs/*/architecture/adr-*.md": { target: docs/architecture/adr/, mode: copy }

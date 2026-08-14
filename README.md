@@ -58,6 +58,7 @@ Restart Claude Code after install so the new skills load.
 | `/mosk-qa` (Joaquim) | quality gates, test strategy, reviews |
 | `/mosk-security` (Heitor) | diff-aware vulnerability review, findings triage |
 | `/mosk-bench` (Bento) | workbench mode for non-technical users (Payload stack) |
+| `/mosk-orq` (Mauro) | **autonomous delivery run** — parallel agents, opt-in per run |
 
 Each agent ships as **two layers**: `.claude/agents/mosk-<name>.md` is the
 definition — and what makes it invocable by another agent in an isolated context
@@ -246,9 +247,39 @@ is absent, work runs sequentially: the cost is asymmetric, since a wrongly
 parallel pair writing the same file corrupts work that would have succeeded
 serially.
 
-> MOSK once shipped a multi-terminal orchestrator (`/mosk-orq`) over an external
-> actuator. It was removed once both runtimes gained native subagents —
-> see [ADR-0018](./docs/architecture/adr/adr-0018-remove-orchestration-layer.md).
+### Running a spec unattended — `/mosk-orq`
+
+Everything above pauses and waits for you. `/mosk-orq` is the one place that does
+not: it takes a spec that already has `spec.md`, `plan.md` and `tasks.md`, opens
+one `mosk-dev` **per user story in its own git worktree**, merges, has `mosk-qa`
+and `mosk-security` verify the result, and repeats until the gate passes.
+
+```bash
+/mosk-orq 012          # entrega a spec 012 sozinho
+```
+
+- **Opt-in per run.** No configuration value turns this on. You consent each time,
+  after a preflight that states what it will do alone and what will stop it —
+  including how strong the verification is (no test suite = the gate's judgment
+  only, and it says so).
+- **It stops on doubt and on anything irreversible**: ambiguous acceptance
+  criteria, a decision the plan does not cover, a business-rule gap, a merge
+  conflict, the attempt cap, a flat score — and always before a migration, a
+  deploy, a push, or waiving a gate.
+- **Every autonomous decision is logged** to `docs/specs/{id}/run-log.md`,
+  versioned. You did not watch it happen, so it has to be readable afterwards.
+- **`archive` stays yours.** It promotes artifacts and closes the spec.
+
+See [ADR-0019](./docs/architecture/adr/adr-0019-autonomous-delivery-runner.md).
+It is the second scoped exception to the consultative rule — the first being the
+bench's `loop-until-green` (ADR-0002) — and it rests on a different ground:
+**consent**, not audience. That difference is why this runner, unlike the bench,
+may never call a preamble agent on its own.
+
+> MOSK once shipped a *different* `/mosk-orq`: a multi-terminal orchestrator over
+> an external actuator, removed once both runtimes gained native subagents
+> ([ADR-0018](./docs/architecture/adr/adr-0018-remove-orchestration-layer.md)).
+> This one is not that one — it does what that one could not.
 
 ## Spec Types
 
