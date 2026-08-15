@@ -1,0 +1,11 @@
+schema: 1
+origin: specify
+transitions:
+  - at: "2026-08-15T23:21:29Z"
+    from: specify
+    to: plan
+    command: plan
+  - at: "2026-08-15T23:23:43Z"
+    from: plan
+    to: tasks
+    command: tasks
