@@ -49,6 +49,21 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 Percorra `docs/specs/<id>/**/*.md` buscando arquivos com front-matter YAML contendo a chave `promote:`. Para cada um, leia também `promote_mode:` (default: `copy`).
 
+Antes de incluir qualquer item na tabela, valide modo e destino com o helper
+compartilhado. Um erro interrompe o archive; não ofereça confirmação para
+contornar path inválido:
+
+```bash
+source .claude/mosk/scripts/common.sh
+REPO_ROOT="$(get_repo_root)"
+validated_target="$(validate_promotion_target "$REPO_ROOT" "$promote" "$promote_mode")"
+```
+
+O helper exige `copy|append|manual`, restringe o destino a `docs/`, rejeita
+caminho absoluto, segmentos `..`/`.` e escapes por symlink. Guarde o caminho
+absoluto retornado em `validated_target`; esta é a única variável autorizada
+como destino nas operações seguintes.
+
 Monte uma tabela com todos os artefatos encontrados:
 
 | Arquivo | Modo | Destino | Status |
@@ -61,10 +76,12 @@ Apresente a tabela ao usuário e peça confirmação em bloco (`aplicar tudo`, `
 
 ### 4. Aplicar promoções
 
-Para cada entrada confirmada:
+Para cada entrada confirmada, execute novamente
+`validate_promotion_target` imediatamente antes da escrita e use somente o
+`validated_target` retornado:
 
-- **`copy`**: copiar o arquivo inteiro (com front-matter intacto) para o destino. Se o destino já existe, pergunte ao usuário: sobrescrever, pular, ou usar nome alternativo.
-- **`append`**: ler o corpo do arquivo (descartando o front-matter), acrescentar ao final do arquivo em `promote:`. Criar o destino se não existir.
+- **`copy`**: copiar o arquivo inteiro (com front-matter intacto) para `validated_target`. Se o destino já existe, pergunte ao usuário: sobrescrever, pular, ou usar nome alternativo; qualquer nome alternativo também passa pelo helper.
+- **`append`**: ler o corpo do arquivo (descartando o front-matter), acrescentar ao final de `validated_target`. Criar o destino se não existir.
 - **`manual`**: NÃO aplicar. Apenas imprima o caminho de origem, o destino sugerido e uma instrução clara: "Aplique manualmente o delta abaixo em {destino} antes de considerar a spec concluída."
 
 Se `promote:` for encontrado sem `promote_mode:`, assuma `copy`.

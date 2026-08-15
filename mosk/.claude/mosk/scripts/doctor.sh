@@ -41,12 +41,16 @@ validate_internal_refs() {
             case "$ref" in
                 */|*-|*.|*NAME*|*'ctx-'*|*'<'*|*'{'*|*'*'*) continue ;;
             esac
-            target="$install_root/$ref"
+            case "$ref" in
+                .claude/*) target="$install_root/$ref" ;;
+                ../*) target="$(dirname "$file")/$ref" ;;
+                *) continue ;;
+            esac
             if [[ ! -e "$target" ]]; then
                 echo "${file#$install_root/}:$line :: REF :: '$ref' não existe"
                 failed=1
             fi
-        done < <(grep -rnEo '\.claude/(agents|skills|mosk/(tasks|templates|checklists|scripts|data))/[A-Za-z0-9._/-]+' "$scan" 2>/dev/null || true)
+        done < <(grep -rnEo '(\.claude/(agents|skills|mosk/(tasks|templates|checklists|scripts|data))|\.\./(tasks|templates|checklists|scripts|data))/[A-Za-z0-9._/-]+' "$scan" 2>/dev/null || true)
     done
     return "$failed"
 }
@@ -153,7 +157,11 @@ run_check() {
 }
 
 json_escape() {
-    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; :a;N;$!ba;s/\n/\\n/g'
+    local value="$1"
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    value="${value//$'\n'/\\n}"
+    printf '%s' "$value"
 }
 
 main() {

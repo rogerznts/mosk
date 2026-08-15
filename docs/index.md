@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-15
+Last updated: 2026-08-15T18:14:22Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -53,6 +53,8 @@ Corporativo).
     espelhar o planejamento no Plane (CORPO-776).
   - [`update-20260531.md`](./project/update-20260531.md) — último update datado.
   - [`epics/`](./project/epics/) — um arquivo por épico (Tripé + evidência).
+- **qa/** — [`security-review-012-feature-stabilize-toolkit-contracts.md`](./qa/security/security-review-012-feature-stabilize-toolkit-contracts.md)
+  (`SECURITY: CONCERNS` sobre contenção de destinos de promoção).
 
 ## Planejamento (épicos ↔ Plane)
 
@@ -71,7 +73,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 012 | [stabilize-toolkit-contracts](./specs/012-feature-stabilize-toolkit-contracts/) | tasks | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
+| 012 | [stabilize-toolkit-contracts](./specs/012-feature-stabilize-toolkit-contracts/) | qa-gate (`PASS`, score 100) | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 
 ### Arquivadas
 

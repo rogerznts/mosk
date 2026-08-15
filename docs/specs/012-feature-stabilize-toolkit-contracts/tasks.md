@@ -82,7 +82,8 @@ bash mosk/.claude/mosk/scripts/doctor.sh --json
 ```
 
 - `selftest-common.sh`: 29 asserções.
-- `selftest-toolkit.sh`: 21 asserções, incluindo gate e ship-ready arquivado.
+- `selftest-toolkit.sh`: 39 asserções, incluindo gate, referências relativas,
+  resolução fail-closed, contenção de `promote:` e ship-ready arquivado.
 - `doctor.sh`: 7 verificações, saída humana e JSON íntegras.
 - Smoke de `mosk/` materializado em diretório temporário: exit 0 íntegro; após
   remover um template obrigatório da cópia, exit 1 com causa acionável.
@@ -92,3 +93,19 @@ bash mosk/.claude/mosk/scripts/doctor.sh --json
 - SC-001–SC-009 possuem evidência mecânica acima. SC-010 está satisfeito: não há
   marcador de clarificação aberto; a única ocorrência literal é o próprio texto
   do critério em `spec.md`.
+
+## Rodada de correções do gate — 2026-08-15
+
+- [x] `QA-1`: validar referências internas relativas `../tasks|templates|checklists|scripts|data` e cobrir formatos válido/inválido.
+- [x] `QA-2`: fazer branch numerado falhar quando a spec está ausente, ambígua ou sem `spec-meta.yaml`.
+- [x] `SEC-1`: criar `validate_promotion_target`, conter destinos sob `docs/`, validar modo e bloquear traversal/symlink escape em archive e ship-ready.
+- [x] `QA-3`: normalizar whitespace dos escalares e rejeitar waiver com motivo ou aprovador em branco.
+- [x] Espelhar os cinco arquivos de produto modificados no ambiente local.
+- [x] Reexecutar `bash -n`, ShellCheck em severidade error, 29 self-tests comuns,
+  39 self-tests do toolkit, doctor 7/7, auditoria, sync dry-run e smoke do
+  conteúdo distribuível de `mosk/`.
+- [x] `QA-4`: substituir `read -a` por validação lexical portátil e cobrir em
+  zsh destino válido, separador duplo, segmento `.` e traversal.
+
+O gate permanece de propriedade do QA e não foi alterado pelo Dev. A spec volta
+para `implement` até a nova rodada independente de security review e qa-gate.

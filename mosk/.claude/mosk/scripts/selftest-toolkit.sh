@@ -45,6 +45,19 @@ expect_fail() {
     if "$@" >/dev/null 2>&1; then fail "$name (esperado falha)"; else ok "$name"; fi
 }
 
+expect_fail_contains() {
+    local name="$1" expected="$2"
+    shift 2
+    local output status
+    output="$("$@" 2>&1)"
+    status=$?
+    if [[ "$status" -ne 0 ]] && printf '%s' "$output" | grep -Fq "$expected"; then
+        ok "$name"
+    else
+        fail "$name (esperado falha contendo '$expected'; status=$status; saída=$output)"
+    fi
+}
+
 write_gate() {
     local dir="$1" verdict="$2" active="${3:-false}" reason="${4:-}" owner="${5:-}" at="${6:-}"
     mkdir -p "$dir"
@@ -74,6 +87,9 @@ expect_fail "WAIVED incompleto bloqueia" validate_gate_for_completion "$gate_roo
 
 write_gate "$gate_root/waived-bad-date" WAIVED true "risco aceito" "PO" "2026-08-15"
 expect_fail "WAIVED com data inválida bloqueia" validate_gate_for_completion "$gate_root/waived-bad-date"
+
+write_gate "$gate_root/waived-blank" WAIVED true "   " "   " "2026-08-15T18:00:00Z"
+expect_fail "WAIVED com motivo e aprovador em branco bloqueia" validate_gate_for_completion "$gate_root/waived-blank"
 
 write_gate "$gate_root/waived" WAIVED true "risco aceito" "PO" "2026-08-15T18:00:00Z"
 expect_ok "WAIVED completo permite conclusão" validate_gate_for_completion "$gate_root/waived"
@@ -105,6 +121,34 @@ expect_fail "referência ausente falha" validate_internal_refs "$fixture" "$fixt
 printf 'Use `.claude/mosk/templates/<name>.md`.\n' > "$fixture/.claude/mosk/tasks/placeholder.md"
 expect_ok "placeholder genérico é ignorado" validate_internal_refs "$fixture" "$fixture/.claude/mosk/tasks/placeholder.md"
 
+printf 'Use `../templates/exists.md`.\n' > "$fixture/.claude/mosk/tasks/relative-valid.md"
+expect_ok "referência relativa existente passa" validate_internal_refs "$fixture" "$fixture/.claude/mosk/tasks/relative-valid.md"
+
+printf 'Use `../templates/relative-missing.md`.\n' > "$fixture/.claude/mosk/tasks/relative-invalid.md"
+expect_fail "referência relativa ausente falha" validate_internal_refs "$fixture" "$fixture/.claude/mosk/tasks/relative-invalid.md"
+
+echo "selftest-toolkit: contenção de promote"
+promotion_repo="$TMP_ROOT/promotions"
+mkdir -p "$promotion_repo/docs/safe" "$promotion_repo/outside"
+ln -s "$promotion_repo/outside" "$promotion_repo/docs/escape"
+expect_ok "destino canônico sob docs passa" validate_promotion_target "$promotion_repo" "docs/safe/output.md" copy
+expect_ok "modo manual com destino canônico passa" validate_promotion_target "$promotion_repo" "docs/safe/manual.md" manual
+expect_fail "destino absoluto bloqueia" validate_promotion_target "$promotion_repo" "/tmp/mosk-output.md" copy
+expect_fail "segmento traversal bloqueia" validate_promotion_target "$promotion_repo" "docs/../outside.md" append
+expect_fail "escape por symlink bloqueia" validate_promotion_target "$promotion_repo" "docs/escape/output.md" copy
+expect_fail "destino que termina em diretório bloqueia" validate_promotion_target "$promotion_repo" "docs/safe/" copy
+expect_fail "modo desconhecido bloqueia" validate_promotion_target "$promotion_repo" "docs/safe/output.md" overwrite
+
+run_zsh_promotion() {
+    zsh -c 'source "$1"; validate_promotion_target "$2" "$3" "$4"' \
+        _ "$SCRIPT_DIR/common.sh" "$1" "$2" "$3"
+}
+
+expect_ok "zsh aceita destino canônico" run_zsh_promotion "$promotion_repo" "docs/safe/output.md" copy
+expect_fail "zsh bloqueia separador duplo" run_zsh_promotion "$promotion_repo" "docs/safe//output.md" copy
+expect_fail "zsh bloqueia segmento ponto" run_zsh_promotion "$promotion_repo" "docs/safe/./output.md" copy
+expect_fail "zsh bloqueia traversal" run_zsh_promotion "$promotion_repo" "docs/safe/../output.md" append
+
 echo "selftest-toolkit: auditor autocontido"
 expect_ok "audit-docs-paths roda sem PyYAML" bash "$SCRIPT_DIR/audit-docs-paths.sh" --quiet
 
@@ -129,6 +173,10 @@ run_ship_ready() {
     (cd "$1" && bash .claude/mosk/scripts/check-ship-ready.sh --json)
 }
 
+run_ship_ready_branch() {
+    (cd "$1" && SPECIFY_FEATURE="$2" bash .claude/mosk/scripts/check-ship-ready.sh --json)
+}
+
 echo "selftest-toolkit: ship-ready arquivado"
 ship_repo="$TMP_ROOT/ship-ready"
 mkdir -p "$ship_repo/.claude/mosk/scripts" \
@@ -148,10 +196,37 @@ git -C "$ship_repo" add .
 git -C "$ship_repo" commit -qm "test: create archived fixture"
 expect_ok "ship-ready encontra spec arquivada com PASS" run_ship_ready "$ship_repo"
 
+expect_fail_contains "ship-ready bloqueia branch de spec sem diretório" \
+    "nenhuma spec encontrada" run_ship_ready_branch "$ship_repo" "feature/015-missing-spec"
+
+mkdir -p "$ship_repo/docs/specs/016-feature-duplicate" \
+    "$ship_repo/docs/specs/archive/016-feature-duplicate"
+expect_fail_contains "ship-ready bloqueia resolução ambígua" \
+    "Multiple active/archived specs" run_ship_ready_branch "$ship_repo" "feature/016-duplicate"
+rm -rf "$ship_repo/docs/specs/016-feature-duplicate" \
+    "$ship_repo/docs/specs/archive/016-feature-duplicate"
+
+mkdir -p "$ship_repo/docs/specs/017-feature-no-meta"
+expect_fail_contains "ship-ready bloqueia spec sem metadata" \
+    "spec-meta.yaml ausente" run_ship_ready_branch "$ship_repo" "feature/017-no-meta"
+rm -rf "$ship_repo/docs/specs/017-feature-no-meta"
+
 write_gate "$ship_repo/docs/specs/archive/014-feature-ship-ready" FAIL
 git -C "$ship_repo" add .
 git -C "$ship_repo" commit -qm "test: set blocking gate"
 expect_fail "ship-ready bloqueia gate FAIL arquivado" run_ship_ready "$ship_repo"
+
+write_gate "$ship_repo/docs/specs/archive/014-feature-ship-ready" PASS
+printf '%s\n' \
+    '---' \
+    'promote: docs/../outside.md' \
+    'promote_mode: append' \
+    '---' \
+    > "$ship_repo/docs/specs/archive/014-feature-ship-ready/unsafe-promote.md"
+git -C "$ship_repo" add .
+git -C "$ship_repo" commit -qm "test: add unsafe promote fixture"
+expect_fail_contains "ship-ready bloqueia promote com traversal" \
+    "promote inválido" run_ship_ready "$ship_repo"
 
 if [[ -n "$FAILURES" ]]; then
     echo "FALHOU" >&2

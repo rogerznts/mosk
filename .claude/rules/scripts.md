@@ -271,7 +271,10 @@ branch está pronta pra abrir/mergear PR: `current_phase == archived`, gate
 `PASS` ou `WAIVED` com justificativa, aprovador e timestamp UTC, nenhum
 artefato `promote:` (copy/append) com alvo faltando e working tree limpo. A
 resolução procura a spec ativa e a já movida para `docs/specs/archive/`; branch
-sem spec passa. Exit 0 = pronta; 1 = pontas soltas (lista os motivos). Usage:
+sem prefixo de spec passa. Branch numerado com spec ausente, ambígua ou sem
+metadata falha. Todo `promote:` passa por `validate_promotion_target`, que
+restringe o destino a `docs/` e bloqueia traversal, modo inválido e escape por
+symlink. Exit 0 = pronta; 1 = pontas soltas (lista os motivos). Usage:
 `bash .claude/mosk/scripts/check-ship-ready.sh [--json]`.
 **Consumido por** camadas de guardrail (hook do Claude Code em `gh pr merge`,
 CI/branch protection, `/tea-open-pr`).
@@ -362,9 +365,11 @@ spec.
 ### `selftest-toolkit.sh`
 
 Fixtures dos contratos centrais do toolkit: gates bloqueantes e permitidos,
-waiver formalizado, resolução de spec ativa/arquivada, referências internas,
-paths canônicos, chaves do `core-config.yaml`, templates referenciados e
-`check-ship-ready.sh` sobre spec arquivada.
+waiver formalizado, resolução fail-closed de spec ativa/arquivada, referências
+internas absolutas e relativas, paths canônicos, chaves do `core-config.yaml`,
+templates referenciados, contenção de `promote:` e `check-ship-ready.sh` sobre
+spec arquivada. A contenção roda em Bash e zsh, incluindo fixtures para `//`,
+segmento `.`, traversal e destino válido.
 
 **Usage:** `bash .claude/mosk/scripts/selftest-toolkit.sh [--verbose] [--help]`.
 Exit 0 = todas as fixtures passaram; 1 = falha de contrato; 2 = erro de uso.
@@ -393,6 +398,9 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 
 **Provides:**
 - Repo-root + current-branch resolution with non-git fallbacks.
+- `validate_promotion_target <repo_root> <target> <mode>` — aceita somente
+  `copy|append|manual`, exige destino de arquivo sob `docs/` e rejeita caminho
+  absoluto, traversal e escapes por symlink; imprime o destino absoluto seguro.
 - `find_feature_dir_by_number` — locates a spec folder by numeric
   prefix (so `004-fix-bug` and `004-add-feature` resolve to the same
   spec).

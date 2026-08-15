@@ -50,7 +50,19 @@ done
 
 REPO_ROOT="$(get_repo_root)"
 CURRENT_BRANCH="$(get_current_branch)"
-FEATURE_DIR="$(find_feature_dir_by_prefix_any "$REPO_ROOT" "$CURRENT_BRANCH" 2>/dev/null || true)"
+FEATURE_DIR=""
+SPEC_PREFIX=""
+RESOLUTION_FAILURE=""
+BRANCH_IS_SPEC=0
+if [[ "$CURRENT_BRANCH" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
+    BRANCH_IS_SPEC=1
+    SPEC_PREFIX="${BASH_REMATCH[2]}"
+    if ! FEATURE_DIR="$(find_feature_dir_by_prefix_any "$REPO_ROOT" "$CURRENT_BRANCH" 2>&1)"; then
+        RESOLUTION_FAILURE="$FEATURE_DIR"
+        FEATURE_DIR=""
+        [[ -n "$RESOLUTION_FAILURE" ]] || RESOLUTION_FAILURE="nenhuma spec encontrada para o prefixo $SPEC_PREFIX"
+    fi
+fi
 
 # --- acumulador de falhas ---
 failures=()
@@ -80,12 +92,31 @@ emit() {
     [[ "$ready" == "true" ]]
 }
 
-# --- sem spec ativa: nada a validar ---
-if [[ -z "$FEATURE_DIR" || ! -d "$FEATURE_DIR" || ! -f "$FEATURE_DIR/spec-meta.yaml" ]]; then
+# --- branch base/comum: nada a validar ---
+if [[ "$BRANCH_IS_SPEC" -eq 0 ]]; then
     SPEC_ID=""; PHASE=""
     [[ "$JSON" -eq 1 ]] && echo '{"ready":true,"spec":"","phase":"","failures":[]}' \
-        || echo "ship-ready: OK (branch sem spec ativa — nada a validar)"
+        || echo "ship-ready: OK (branch sem prefixo de spec — nada a validar)"
     exit 0
+fi
+
+# Branch numerado nunca degrada para "sem spec": ausência, ambiguidade e
+# metadata faltante são estados bloqueantes.
+SPEC_ID="$SPEC_PREFIX"; PHASE=""
+if [[ -n "$RESOLUTION_FAILURE" ]]; then
+    add_fail "falha ao resolver spec do branch '$CURRENT_BRANCH': $RESOLUTION_FAILURE"
+    emit
+    exit $?
+fi
+if [[ ! -d "$FEATURE_DIR" ]]; then
+    add_fail "diretório da spec não existe para o branch '$CURRENT_BRANCH'"
+    emit
+    exit $?
+fi
+if [[ ! -f "$FEATURE_DIR/spec-meta.yaml" ]]; then
+    add_fail "spec-meta.yaml ausente em $FEATURE_DIR"
+    emit
+    exit $?
 fi
 
 SPEC_ID="$(read_spec_meta "$FEATURE_DIR" spec_id)"
@@ -107,8 +138,13 @@ while IFS= read -r pf; do
     local_target="$(awk -F': *' '/^promote:/{print $2; exit}' "$pf" | tr -d '"'"'"' ')"
     local_mode="$(awk -F': *' '/^promote_mode:/{print $2; exit}' "$pf" | tr -d '"'"'"' ')"
     [[ -z "$local_target" ]] && continue
-    [[ "$local_mode" == "manual" ]] && continue   # manual: aplicado a mao, nao gateia
-    if [[ ! -e "$REPO_ROOT/$local_target" ]]; then
+    [[ -n "$local_mode" ]] || local_mode="copy"
+    if ! validated_target="$(validate_promotion_target "$REPO_ROOT" "$local_target" "$local_mode" 2>&1)"; then
+        add_fail "promote inválido em $(basename "$pf"): $validated_target"
+        continue
+    fi
+    [[ "$local_mode" == "manual" ]] && continue   # manual: validado, aplicado a mao
+    if [[ ! -e "$validated_target" ]]; then
         add_fail "promote nao aplicado: $(basename "$pf") -> $local_target (rode o archive)"
     fi
 done < <(grep -rl '^promote:' "$FEATURE_DIR" 2>/dev/null || true)

@@ -207,8 +207,11 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run    # preview 
   automation; exit codes are 0 (healthy), 1 (violation), and 2 (invalid use).
 - `check-ship-ready.sh` — validates both active and archived specs. Completion
   requires `current_phase: archived`, a `PASS` gate or a fully documented
-  `WAIVED`, applied promotions, and a clean working tree.
+  `WAIVED`, promotion targets safely contained under `docs/`, applied
+  promotions, and a clean working tree. Numbered branches with a missing or
+  ambiguous spec fail closed.
 - `selftest-common.sh` and `selftest-toolkit.sh` — fixture suites for shell path
   resolution, spec numbering, gate decisions, archived-spec resolution,
-  references, canonical docs paths, config keys, and templates.
+  absolute/relative references, canonical docs paths, config keys, templates,
+  and promotion-path containment.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — internal helpers used by tasks; not invoked directly in normal use.

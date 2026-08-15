@@ -386,9 +386,9 @@ Under `.claude/mosk/scripts/`:
 - `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
 - `reset-install.sh` — reinstalls the toolkit from scratch: deletes the previous install (including files that no longer exist upstream) before copying the new one. Used by `/mosk-update`, because `degit --force` overwrites but **never deletes**. Preserves `.claude/rules/`, settings, `docs/` and your own skills. Accepts `--from`, `--to`, `--dry-run`, `--json`.
 - `doctor.sh` — read-only integrity check for a clean installation: Bash syntax, self-tests, internal references, documentation paths, agent/skill sync, roster, and required files. Accepts `--json`; depends only on the toolkit's declared shell utilities.
-- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, QA gate `PASS` or a fully documented `WAIVED`, `promote:` artifacts applied, clean working tree. It resolves both active and archived specs. Accepts `--json`.
+- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, QA gate `PASS` or a fully documented `WAIVED`, safe `promote:` targets confined to `docs/`, promotions applied, and clean working tree. It resolves active and archived specs and fails closed when a numbered branch is missing or ambiguous. Accepts `--json`.
 - `selftest-common.sh` — the repo's automated check: spec numbering rules and `common.sh` path resolution in **bash and zsh**. Both have broken in production before.
-- `selftest-toolkit.sh` — fixture suite for gate decisions, archived-spec resolution, internal references, canonical paths, config keys, and template references.
+- `selftest-toolkit.sh` — fixture suite for gate decisions, fail-closed spec resolution, absolute/relative references, canonical paths, config keys, templates, and promotion-path containment.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
 ## Optional Environment Tools
