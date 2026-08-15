@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mosk.dev/schemas/spec-meta.schema.json",
+  "title": "MOSK spec metadata",
+  "type": "object",
+  "required": [
+    "schema", "spec_number", "spec_id", "type", "branch", "created_at",
+    "created_by", "status", "current_phase", "last_phase_change"
+  ],
+  "properties": {
+    "schema": { "const": 2 },
+    "spec_number": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "spec_id": { "type": "string", "pattern": "^[0-9]{3}-(feature|fix|hotfix|gmud|refactor|experimental|extension)-[a-z0-9][a-z0-9-]*$" },
+    "type": { "enum": ["feature", "fix", "hotfix", "gmud", "refactor", "experimental", "extension"] },
+    "branch": { "type": "string", "pattern": "^(feature|fix|hotfix|gmud|refactor|experimental|extension)/[0-9]{3}-[a-z0-9][a-z0-9-]*$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "created_by": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["active", "archived"] },
+    "current_phase": { "enum": ["specify", "plan", "tasks", "implement", "qa-gate", "archived"] },
+    "last_phase_change": { "type": "string", "format": "date-time" },
+    "archived_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "archived" } }, "required": ["status"] },
+      "then": {
+        "properties": { "current_phase": { "const": "archived" } },
+        "required": ["archived_at"]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

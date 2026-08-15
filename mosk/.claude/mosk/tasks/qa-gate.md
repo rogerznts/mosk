@@ -113,6 +113,8 @@ Produce a minimal gate artifact that answers one question clearly: can this move
    - status_reason
    - reviewer
    - updated timestamp
+   - `evidence_ref` — caminho relativo à spec para `qa-notes.md` ou outro
+     artefato verificável que sustenta o veredito (obrigatório no schema 2)
    - `top_issues` — each with `id`, `severity`, `title` (plain language),
      `finding`, `contradicts` (the criterion **with its gloss**) and
      `suggested_action`. Ids follow the canonical vocabulary
@@ -149,12 +151,11 @@ Produce a minimal gate artifact that answers one question clearly: can this move
 
 9. **Update spec metadata and refresh index.**
    ```bash
-   source .claude/mosk/scripts/common.sh
-   update_spec_phase "$FEATURE_DIR" qa-gate
+   bash .claude/mosk/scripts/transition-spec-phase.sh \
+     --spec "$(basename "$FEATURE_DIR")" --to qa-gate --command qa-gate
    ```
-   It records `current_phase` and bumps `last_phase_change`. Then execute
-   `../tasks/index-docs.md` to refresh `docs/index.md`. Automatic — no extra
-   prompt.
+   Run this only after writing the gate and its evidence. Then execute
+   `../tasks/index-docs.md`. Never edit `current_phase` directly.
 
 10. **Apresentar o estado e parar — nunca iterar sozinho.**
 

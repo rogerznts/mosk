@@ -1,0 +1,178 @@
+# QA notes — spec 013
+
+- Security review do diff contra `master`: [`SECURITY: PASS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md)
+  na segunda rodada.
+- Findings resolvidos e revalidados: SEC-1 (symlink escape no diretório da
+  spec), SEC-2 (schema legado numa spec ativa), SEC-3 (histórico malformado) e
+  SEC-4 (chaves YAML duplicadas).
+- Controles confirmados: lock concorrente e rollback injetado preservam estado;
+  saltos, schema futuro, gate vigente sem evidência e waiver incompleto bloqueiam.
+- A revisão não alterou `current_phase`; a spec permanece em `implement`.
+
+## Correções aplicadas pelo desenvolvimento
+
+- SEC-1: resolvedor e sink agora rejeitam raiz/archive/spec symlink e exigem
+  filho físico imediato da área permitida.
+- SEC-2: gate schema 1 só é legível numa spec com estado arquivado e localizada
+  fisicamente em `docs/specs/archive/`; spec ativa exige schema 2.
+- SEC-3: cada evento do histórico valida estrutura, timestamp, aresta, comando,
+  continuidade e ordem; schema 2 após `specify` não aceita histórico ausente.
+- SEC-4: chaves críticas duplicadas em metadata e gate são bloqueadas; o parser
+  estrito do histórico também exige uma ocorrência de cada campo.
+- Evidência do dev: 29 asserções comuns, 46 de pipeline e 39 do toolkit; doctor
+  7/7 no produto e no espelho; Bash/zsh syntax, ShellCheck error, auditoria,
+  sync dry-run, quatro pares de espelho e `git diff --check` passaram.
+- Revalidação independente: matriz adversarial 21/21 em Bash e 21/21 em zsh;
+  nenhuma regressão nova explorável com confiança superior a 0,8.
+- Parecer atualizado pelo `/mosk-security` para `SECURITY: PASS`; a spec continua
+  em `implement`.
+
+## Quality gate — primeira rodada
+
+**Gate: FAIL · score 0** — 8 achados: 3 altos e 5 médios. O score foi calculado
+pela fórmula canônica: `100 - (20 × 3) - (10 × 5)`, limitado a zero.
+
+### QA-1 · alta · Uma branch diferente pode resolver e alterar a spec errada
+
+O resolvedor aceitou branches não registradas apenas por compartilharem o
+número `013`. Também aceitou `spec_number: "999"` e combinações divergentes de
+`type`/`branch` dentro da pasta 013, tanto em Bash quanto em zsh.
+
+- Contraria: FR-011 — "o resolvedor aceita número, `spec_id` ou branch e valida
+  a correspondência com `spec-meta.yaml`" (`spec.md:152`)
+- Também: SC-004 — "metadata divergente retorna falha" (`spec.md:221`)
+- Código observado: `mosk/.claude/mosk/scripts/common.sh:505-515,541-570`
+
+### QA-2 · alta · Um sinal entre as gravações deixa estado parcial
+
+Uma fixture injetou `TERM` imediatamente após a promoção de `spec-meta.yaml`.
+A operação retornou erro e removeu o lock, porém a metadata ficou na nova fase
+enquanto o histórico continuou na anterior; a validação posterior falhou por
+divergência.
+
+- Contraria: FR-008 — "metadata e histórico são protegidos contra escrita
+  parcial" (`spec.md:146`)
+- Também: SC-002 — "em 100% das falhas simuladas, ambos permanecem byte a byte
+  iguais" (`spec.md:217`)
+- Código observado: `mosk/.claude/mosk/scripts/common.sh:798,840-857`
+
+### QA-3 · alta · Archive aceita promoção obrigatória ainda pendente
+
+Numa fixture em `qa-gate` com gate `PASS`, um artefato declarou
+`promote: docs/canonical/not-created.md` e `promote_mode: copy`. A transição para
+`archived` retornou sucesso mesmo com o alvo ausente; o estado final foi gravado
+sem a promoção.
+
+- Contraria: PhaseContract — "archived exige gate válido, evidência presente,
+  tasks completas e promoções satisfeitas" (`data-model.md:45`)
+- Também: FR-006 — "cada destino possui pré-condições verificáveis no disco"
+  (`spec.md:141`)
+- Código observado: `mosk/.claude/mosk/scripts/common.sh:750-780`
+
+### QA-4 · média · Instantes de metadata e histórico podem divergir
+
+Uma fixture alterou `last_phase_change` para `2099-01-01T00:00:00Z`, mantendo o
+último evento do histórico em `2026-08-15T19:04:33Z`. A metadata foi aceita em
+Bash e zsh.
+
+- Contraria: cenário US3.1 — "metadata e histórico concordam sobre origem,
+  destino, instante e comando responsável" (`spec.md:102`)
+- Código observado: `mosk/.claude/mosk/scripts/common.sh:502-529,375-405`
+
+### QA-5 · média · Esclarecimentos em plan.md não impedem tasks
+
+Depois de `specify -> plan`, uma fixture adicionou
+`[NEEDS CLARIFICATION: decisão pendente]` a `plan.md`. A transição
+`plan -> tasks` avançou em Bash e zsh.
+
+- Contraria: edge case — "artefato obrigatório contendo marcador bloqueante
+  impede a transição" (`spec.md:118`)
+- Código observado: `mosk/.claude/mosk/scripts/common.sh:756-779`
+
+### QA-6 · média · Gate vigente passa sem histórico de scores
+
+Um gate schema 2 sem `score_history` foi aceito em Bash e zsh. O JSON Schema
+também não declara esse campo em `properties` ou `required`, embora a task e o
+template o tratem como obrigatório.
+
+- Contraria: FR-013 — "gate e waiver possuem schemas versionados com campos
+  obrigatórios" (`spec.md:156`)
+- Também: GateDecision — "a decisão inclui score e histórico de scores"
+  (`spec.md:183`)
+- Código observado: `mosk/.claude/mosk/schemas/qa-gate.schema.json:6-25` e
+  `mosk/.claude/mosk/scripts/common.sh:610-623`
+
+### QA-7 · média · A matriz proibida não está toda no self-test
+
+O harness cobre as seis arestas permitidas, mas apenas três das 24 combinações
+proibidas e um único no-op. Uma matriz independente confirmou que o `case`
+atual decide corretamente as 36 combinações em Bash e zsh; o gap é de cobertura
+permanente, não da tabela atual.
+
+- Contraria: SC-001 — "100% das transições permitidas e proibidas possuem
+  fixture" (`spec.md:215`)
+- Também: FR-020 — "self-tests cobrem a matriz completa" (`spec.md:170`)
+- Harness observado: `mosk/.claude/mosk/scripts/selftest-pipeline-state.sh:133-191`
+
+### QA-8 · média · Um par produto/espelho permanece divergente
+
+Dezoito pares modificados estão idênticos. O par
+`mosk/.claude/mosk/templates/project-rule-tmpl.md` ↔
+`.claude/mosk/templates/project-rule-tmpl.md` diverge: o espelho local omite
+três linhas sobre symlinks, histórico, YAML duplicado e gates legados.
+
+- Contraria: FR-019 — "produto sob `mosk/` e espelho local sob `.claude/`
+  permanecem equivalentes" (`spec.md:168`)
+- Também: T020 — "espelhar todos os arquivos modificados e provar ausência de
+  drift" (`tasks.md:57`)
+
+### Evidência mecânica da rodada
+
+- `bash -n` e `zsh -n`: todos os scripts do produto passaram.
+- ShellCheck em severidade error: passou.
+- Selftests: common 29/29, pipeline 46/46 e toolkit 39/39.
+- Doctor: 7/7 no produto, espelho e materialização isolada de `mosk/`.
+- Segurança: `SECURITY: PASS`; matriz adversarial 21/21 por shell.
+- Schemas JSON válidos por `jq`; auditoria documental, sync dry-run e
+  `git diff --check` passaram.
+- O gate foi verificado em contexto limpo por um subagente `mosk-qa`; os
+  findings altos também foram reproduzidos diretamente pela revisão principal.
+
+## Correções do desenvolvimento — rodada 1 do gate
+
+- QA-1: o locator agora é classificado antes da busca. Número usa apenas o
+  prefixo numérico; `spec_id` exige a pasta exata; branch canônica deriva a
+  pasta esperada e precisa concordar exatamente com a metadata. Schema 2 cruza
+  número, tipo e slug entre todos os campos.
+- QA-2: o trap de transição restaura os backups se qualquer saída não-zero
+  ocorrer depois do início da promoção de metadata. Fixtures externas injetam
+  `HUP`, `INT` e `TERM` após o primeiro `mv` em Bash e zsh e comprovam estado
+  byte a byte idêntico e ainda válido.
+- QA-3: `validate_spec_promotions_satisfied` virou o contrato compartilhado do
+  sink de `archived` e do `check-ship-ready.sh`. `copy`/`append` pendentes e
+  destinos inválidos bloqueiam; `manual` continua informativo.
+- QA-4: `validate_phase_history` compara o `at` final também com
+  `last_phase_change`.
+- QA-5: `spec.md`, `plan.md` e `tasks.md` são verificados conforme a fase e
+  qualquer marcador `[NEEDS CLARIFICATION` bloqueia sem mutação.
+- QA-6: gate schema 2 exige uma ocorrência de `score_history`, valores 0–100 e
+  último item igual a `quality_score`; o JSON Schema e as fixtures foram
+  alinhados. O template de metadata também voltou a declarar
+  `last_phase_change` como obrigatório.
+- QA-7: o harness percorre os 36 pares da matriz, as seis arestas permitidas,
+  as 24 proibidas, os seis no-ops e a preservação do estado. A suíte passou de
+  46 para 142 asserções.
+- QA-8: os 20 pares produto/espelho modificados foram comparados byte a byte e
+  ficaram idênticos, incluindo `project-rule-tmpl.md`.
+
+### Validação do desenvolvimento
+
+- Sintaxe: todos os scripts passaram em Bash e zsh.
+- ShellCheck em severidade error: passou.
+- Selftests: common 29/29, pipeline 142/142 e toolkit 39/39.
+- Doctor: 7/7 no produto, ambiente local e materialização isolada de `mosk/`.
+- JSON Schemas: válidos por `jq`.
+- Auditoria documental, sync agente → skill em dry-run, 20 pares de espelho e
+  `git diff --check`: passaram.
+- O `gate.yaml` permanece `FAIL` com score 0; somente QA pode reavaliar o
+  veredito. A spec voltou para `implement` por `apply-qa-fixes`.

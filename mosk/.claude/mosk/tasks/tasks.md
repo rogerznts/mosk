@@ -53,10 +53,12 @@ Optional markers:
    - obvious parallel work
    - recommended MVP cut
 
-8. **Update spec metadata and refresh index.** Update the current spec's
-   `spec-meta.yaml`: set `current_phase: tasks` and bump
-   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
-   `docs/index.md`. Automatic — no extra prompt.
+8. **Confirm the phase and refresh the index.** After `tasks.md` exists, run:
+   ```bash
+   bash .claude/mosk/scripts/transition-spec-phase.sh \
+     --spec "$(basename "$FEATURE_DIR")" --to tasks --command tasks
+   ```
+   Then execute `../tasks/index-docs.md`. Never edit `current_phase` directly.
 
 ## Rules
 

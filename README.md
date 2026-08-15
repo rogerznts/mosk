@@ -197,11 +197,17 @@ branch: "feature/005-checkout-coupon"   # branch != pasta (ADR-0017)
 created_at: "2026-04-22T14:30:00Z"
 created_by: "Alice <alice@example.com>"
 status: active             # active | archived
+schema: 2
 current_phase: specify     # specify | plan | tasks | implement | qa-gate | archived
 last_phase_change: "2026-04-22T14:30:00Z"
 ```
 
-Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) update `current_phase` as they run. `index-docs` reads these files to build the Active Specs table in `docs/index.md`.
+Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) confirm
+their post-condition through `transition-spec-phase.sh`. The transition validates
+the allowed edge, verifies artifact markers and pending promotions, updates
+`current_phase` with rollback on failures/signals and appends
+`phase-history.yaml`; it never chooses the next phase for the user. `index-docs`
+reads the current projection to build the Active Specs table in `docs/index.md`.
 
 ## Entry Point: `docs/index.md`
 
@@ -386,9 +392,11 @@ Under `.claude/mosk/scripts/`:
 - `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
 - `reset-install.sh` — reinstalls the toolkit from scratch: deletes the previous install (including files that no longer exist upstream) before copying the new one. Used by `/mosk-update`, because `degit --force` overwrites but **never deletes**. Preserves `.claude/rules/`, settings, `docs/` and your own skills. Accepts `--from`, `--to`, `--dry-run`, `--json`.
 - `doctor.sh` — read-only integrity check for a clean installation: Bash syntax, self-tests, internal references, documentation paths, agent/skill sync, roster, and required files. Accepts `--json`; depends only on the toolkit's declared shell utilities.
+- `transition-spec-phase.sh` — deterministic phase transition CLI. Resolves a spec by number, id, or exact registered branch; cross-validates identity, schemas and pre/post-conditions; restores metadata plus history together on failures and handled signals; accepts `--json` and stable exit codes 0/1/2. Its state contract fails closed on spec-path symlinks, pending promotions, blocking clarification markers, duplicate critical YAML keys, malformed history chains, and legacy gates outside the archive.
 - `check-ship-ready.sh` — single source of "this spec is closed": phase archived, QA gate `PASS` or a fully documented `WAIVED`, safe `promote:` targets confined to `docs/`, promotions applied, and clean working tree. It resolves active and archived specs and fails closed when a numbered branch is missing or ambiguous. Accepts `--json`.
 - `selftest-common.sh` — the repo's automated check: spec numbering rules and `common.sh` path resolution in **bash and zsh**. Both have broken in production before.
 - `selftest-toolkit.sh` — fixture suite for gate decisions, fail-closed spec resolution, absolute/relative references, canonical paths, config keys, templates, and promotion-path containment.
+- `selftest-pipeline-state.sh` — exhaustive fixture matrix for all 36 phase pairs, schemas, identity, history, idempotency, promotion preconditions and rollback on failures/signals in Bash and zsh.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
 ## Optional Environment Tools

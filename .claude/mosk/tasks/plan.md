@@ -50,10 +50,15 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
    - remaining blockers, if any
    - readiness for `tasks`
 
-8. **Update spec metadata and refresh index.** Update the current spec's
-   `spec-meta.yaml`: set `current_phase: plan` and bump
-   `last_phase_change`. Then execute `../tasks/index-docs.md` to refresh
-   `docs/index.md`. Automatic — no extra prompt.
+8. **Confirm the phase and refresh the index.** After `plan.md` and its required
+   artifacts exist, run:
+   ```bash
+   bash .claude/mosk/scripts/transition-spec-phase.sh \
+     --spec "$(basename "$SPECS_DIR")" --to plan --command plan
+   ```
+   Then execute `../tasks/index-docs.md`. The transition validates the
+   post-condition and records `phase-history.yaml`; never edit
+   `current_phase` directly.
 
 ## Rules
 

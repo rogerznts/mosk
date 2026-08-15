@@ -123,6 +123,10 @@ check_required_files() {
     for path in \
         "$MOSK_ROOT/core-config.yaml" \
         "$MOSK_ROOT/data/output-contract.md" \
+        "$MOSK_ROOT/schemas/spec-meta.schema.json" \
+        "$MOSK_ROOT/schemas/qa-gate.schema.json" \
+        "$SCRIPT_DIR/transition-spec-phase.sh" \
+        "$SCRIPT_DIR/selftest-pipeline-state.sh" \
         "$MOSK_ROOT/templates/spec-meta-tmpl.yaml" \
         "$MOSK_ROOT/templates/qa-gate-tmpl.yaml"; do
         if [[ ! -f "$path" ]]; then

@@ -57,7 +57,7 @@ BRANCH_IS_SPEC=0
 if [[ "$CURRENT_BRANCH" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
     BRANCH_IS_SPEC=1
     SPEC_PREFIX="${BASH_REMATCH[2]}"
-    if ! FEATURE_DIR="$(find_feature_dir_by_prefix_any "$REPO_ROOT" "$CURRENT_BRANCH" 2>&1)"; then
+    if ! FEATURE_DIR="$(resolve_spec_dir "$REPO_ROOT" "$CURRENT_BRANCH" any 2>&1)"; then
         RESOLUTION_FAILURE="$FEATURE_DIR"
         FEATURE_DIR=""
         [[ -n "$RESOLUTION_FAILURE" ]] || RESOLUTION_FAILURE="nenhuma spec encontrada para o prefixo $SPEC_PREFIX"
@@ -122,6 +122,10 @@ fi
 SPEC_ID="$(read_spec_meta "$FEATURE_DIR" spec_id)"
 PHASE="$(read_spec_meta "$FEATURE_DIR" current_phase)"
 
+if ! state_failure="$(validate_spec_metadata "$FEATURE_DIR" 2>&1)"; then
+    add_fail "$state_failure"
+fi
+
 # 1. fase precisa estar arquivada
 if [[ "$PHASE" != "archived" ]]; then
     add_fail "current_phase='$PHASE' (esperado 'archived'; a spec nao passou pelo archive)"
@@ -132,22 +136,11 @@ if ! gate_failure="$(validate_gate_for_completion "$FEATURE_DIR" 2>&1)"; then
     add_fail "$gate_failure"
 fi
 
-# 3. artefatos promote (copy/append) com alvo faltando
-while IFS= read -r pf; do
-    [[ -n "$pf" ]] || continue
-    local_target="$(awk -F': *' '/^promote:/{print $2; exit}' "$pf" | tr -d '"'"'"' ')"
-    local_mode="$(awk -F': *' '/^promote_mode:/{print $2; exit}' "$pf" | tr -d '"'"'"' ')"
-    [[ -z "$local_target" ]] && continue
-    [[ -n "$local_mode" ]] || local_mode="copy"
-    if ! validated_target="$(validate_promotion_target "$REPO_ROOT" "$local_target" "$local_mode" 2>&1)"; then
-        add_fail "promote inválido em $(basename "$pf"): $validated_target"
-        continue
-    fi
-    [[ "$local_mode" == "manual" ]] && continue   # manual: validado, aplicado a mao
-    if [[ ! -e "$validated_target" ]]; then
-        add_fail "promote nao aplicado: $(basename "$pf") -> $local_target (rode o archive)"
-    fi
-done < <(grep -rl '^promote:' "$FEATURE_DIR" 2>/dev/null || true)
+# 3. artefatos promote (copy/append) com alvo faltando. A transição para
+# archived usa o mesmo helper, evitando dois contratos que possam divergir.
+if ! promotion_failure="$(validate_spec_promotions_satisfied "$REPO_ROOT" "$FEATURE_DIR" 2>&1)"; then
+    add_fail "$promotion_failure"
+fi
 
 # 4. working tree limpo
 if has_git && [[ -n "$(git -C "$REPO_ROOT" status --porcelain 2>/dev/null)" ]]; then

@@ -9,7 +9,7 @@ template:
     title: "Quality Gate: {{epic_num}}.{{story_num}}"
 
 # Required fields (keep these first)
-schema: 1
+schema: 2
 story: "{{epic_num}}.{{story_num}}"
 story_title: "{{story_title}}"
 gate: "{{gate_status}}" # PASS|CONCERNS|FAIL|WAIVED
@@ -18,6 +18,7 @@ score_history: [{{score_history}}] # série das voltas, do primeiro gate ao atua
 status_reason: "{{status_reason}}" # 1-2 sentence summary of why this gate decision
 reviewer: "Quinn (Test Architect)"
 updated: "{{iso_timestamp}}"
+evidence_ref: "qa-notes.md" # caminho relativo à spec; obrigatório no schema 2
 
 # Sobre `quality_score`:
 # - CALCULADO, não estimado, pela fórmula canônica do toolkit — a mesma de

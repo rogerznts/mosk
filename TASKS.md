@@ -149,6 +149,7 @@ hand.
 | `execute-checklist` | Runs the delivery checklist. |
 | `audit-docs-paths` | Path-integrity audit (5 rules, exit 1 on violations). Also `/mosk-dev audit`. |
 | `doctor` | Runs the complete read-only toolkit integrity check (`doctor.sh`), including syntax, self-tests, references, sync and roster. |
+| `transition-spec-phase` | Confirms a user-requested pipeline transition through the canonical state machine, with strict identity, schema/precondition validation, signal-safe rollback and append-only history. |
 | `index-docs` | Regenerates `docs/index.md`. |
 
 ```

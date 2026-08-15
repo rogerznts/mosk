@@ -83,12 +83,11 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
 
 9. **Update spec metadata and refresh index.**
    ```bash
-   source .claude/mosk/scripts/common.sh
-   update_spec_phase "$FEATURE_DIR" implement
+   bash .claude/mosk/scripts/transition-spec-phase.sh \
+     --spec "$(basename "$FEATURE_DIR")" --to implement --command implement
    ```
-   It records `current_phase` and bumps `last_phase_change`. Then execute
-   `../tasks/index-docs.md` to refresh `docs/index.md`. Automatic — no extra
-   prompt.
+   The command validates the completed task list and records the transition.
+   Then execute `../tasks/index-docs.md`. Never edit `current_phase` directly.
 
 10. **Security-review suggestion (conditional).**
     Inspect the diff you just implemented. If it touched security-sensitive

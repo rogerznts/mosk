@@ -88,13 +88,17 @@ Se `promote:` for encontrado sem `promote_mode:`, assuma `copy`.
 
 Registre o que foi feito (promovido, pulado, pendente manual) — será usado na nota de encerramento.
 
-### 5. Atualizar `spec-meta.yaml`
+### 5. Confirmar o estado arquivado
 
-Edite `docs/specs/<id>/spec-meta.yaml`:
+Depois do gate, das tasks e das promoções estarem satisfeitos, execute:
 
-- `status: archived`
-- `archived_at: "<ISO 8601 UTC atual>"`
-- `current_phase: archived`
+```bash
+bash .claude/mosk/scripts/transition-spec-phase.sh \
+  --spec "<id>" --to archived --command archive
+```
+
+O comando grava `status`, `archived_at`, `current_phase` e o histórico de forma
+atômica. Nunca edite esses campos diretamente.
 
 ### 6. Mover a pasta para o arquivo
 
