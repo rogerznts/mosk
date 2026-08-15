@@ -1,5 +1,59 @@
 # QA notes — spec 013
 
+## Quality gate — segunda rodada
+
+**Gate: FAIL · score 80** — 1 achado alto. O score foi calculado pela fórmula
+canônica: `100 - (20 × 1) - (10 × 0)`. Série: `0 → 80`.
+
+### QA-3 · alta · Archive ainda aceita promoção obrigatória escondida por YAML alternativo
+
+As correções anteriores fecharam promoções canônicas ausentes ou divergentes,
+mas a validação lexical considera top-level apenas uma linha que começa na
+coluna zero. YAML aceita uma mapping raiz inteiramente indentada. Com isso,
+front-matter contendo somente `"promo\\u0074e"`, chave explícita `? promote` ou
+tag YAML, todos com dois espaços iniciais, foi ignorado pelo runtime e
+materializado como `promote` por Ruby/Psych.
+
+O impacto foi confirmado numa spec fixture íntegra em `qa-gate`: o artefato
+declarava `copy` para `docs/canonical/missing.md`, o destino não existia e a
+transição `qa-gate -> archived` retornou exit 0 em Bash e zsh, persistindo
+`status: archived` e `current_phase: archived`.
+
+- Contraria: PhaseContract — "archived exige gate válido, evidência presente,
+  tasks completas e promoções satisfeitas" (`data-model.md`, seção
+  "PhaseContract")
+- Também: FR-006 — "cada destino possui pré-condições verificáveis no disco"
+  (`spec.md`, seção "Functional Requirements")
+- Também: contrato de schema — "toda chave top-level fora da gramática simples
+  falha" (`contracts/pipeline-state.md`, seção "Schema compatibility")
+- Onde: `mosk/.claude/mosk/scripts/common.sh:860-943` — a validação canônica
+  ignora linhas indentadas e o scanner conclui que não há promoção
+- Custo: correção localizada no parser restrito de front-matter e três fixtures
+  adversariais permanentes em Bash e zsh
+
+### Evidência mecânica da segunda rodada
+
+- Sintaxe Bash/zsh, ShellCheck error e JSON Schemas: PASS.
+- Selftests: common 29/29, pipeline 177/177 e toolkit 39/39.
+- Doctors: 7/7 no produto, espelho e materialização isolada; pipeline isolado
+  177/177.
+- Matriz completa, no-ops, sinais `HUP`/`INT`/`TERM`, rollback, locks,
+  migração legítima/forjada, YAML adversarial canônico, symlinks, gate legado,
+  score history e promoções materiais passaram na suíte oficial.
+- Vinte pares produto/espelho, auditoria documental, sync dry-run e
+  `git diff --check`: PASS.
+- O relatório de segurança disponível começou a rodada como `SECURITY: PASS`,
+  mas a combinação independente de indentação + chave alternativa reabre a
+  superfície de SEC-4 e o impacto de QA-3; o gate prevalece como `FAIL`.
+
+- Security review final após `c711548`:
+  [`SECURITY: PASS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
+  SEC-1 a SEC-5 foram revalidados como resolvidos em Bash e zsh. A matriz
+  independente cobriu migração legítima/forjada, inconsistência de
+  `history_origin_schema`, chaves YAML citadas, Unicode, explícitas e com tag em
+  metadata, gate e promoção, além de symlink, gate legado e equivalência
+  material. Nenhum finding alto ou médio permanece aberto; o gate não foi
+  alterado.
 - Security review da quarta rodada após `f592dc8`:
   [`SECURITY: CONCERNS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
   SEC-1, SEC-2 e SEC-5 estão resolvidos. SEC-3 permanece aberto porque qualquer
@@ -24,6 +78,21 @@
 - A revisão não alterou `current_phase`; a spec permanece em `implement`.
 
 ## Correções aplicadas pelo desenvolvimento
+
+### Segunda rodada do quality gate
+
+- QA-3/SEC-4: o validador agora rejeita front-matter cujo primeiro conteúdo
+  real começa indentado. Isso fecha mappings raiz que Psych interpreta como
+  top-level, mas que o scanner shell antes ignorava.
+- Regressões independentes cobrem `"promo\u0074e"`, chave explícita
+  `? promote` e tag `!!str promote`, todas com raiz indentada, em Bash e zsh.
+  Cada tentativa de archive falha, preserva metadata/histórico byte a byte e
+  mantém o destino de promoção ausente.
+- A transição canônica `qa-gate -> implement` foi registrada por
+  `apply-qa-fixes`; o gate permaneceu intocado.
+- Evidência do dev: common 29/29, pipeline 192/192, toolkit 39/39 e doctors 7/7
+  no produto, espelho e materialização isolada. Bash/zsh, ShellCheck error,
+  schemas, auditoria, sync dry-run, paridade e diff-check passaram.
 
 ### Quarta rodada de segurança
 

@@ -76,7 +76,9 @@ do schema 1 só é habilitada para specs fisicamente arquivadas.
 
 Promoções `copy`/`append` só são satisfeitas quando o destino é arquivo regular.
 Em `copy`, destino e artefato são byte a byte iguais; em `append`, o destino
-termina com o corpo exato do artefato sem front-matter.
+termina com o corpo exato do artefato sem front-matter. O front-matter usa
+mapping raiz na coluna zero; raiz inteiramente indentada é inválida antes da
+interpretação de `promote`.
 
 ## SpecLocator
 

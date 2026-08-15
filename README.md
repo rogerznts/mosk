@@ -170,6 +170,11 @@ promote_mode: copy
 
 Without `promote:`, the artifact freezes inside the archived spec.
 
+Promotion front-matter uses a root mapping whose first content starts in column
+zero. An entirely indented root mapping is rejected before scanning, including
+Unicode-escaped, explicit-key and tagged variants that a full YAML parser could
+otherwise interpret as `promote`.
+
 ### Transforming raw drafts with `shard-doc`
 
 When `mosk-pm` writes a monolithic PRD to `docs/prd/raw.md` (or the architect writes `docs/architecture/raw.md`), the optional `shard-doc` task splits it into `index.md` + section files **in the same folder**. Run it when you want a navigable sharded view.

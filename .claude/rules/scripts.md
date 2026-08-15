@@ -271,8 +271,10 @@ validado evento a evento, declara origem `specify|migration` e exige evidência
 `last_phase_change`. Identidade cruza pasta, número, tipo e branch exata. Toda
 chave YAML top-level fora da gramática simples — inclusive citada, escapada ou
 duplicada — falha; gate vigente exige `score_history`; marcadores bloqueantes e
-promoções pendentes impedem avanço. Falhas e sinais tratados restauram metadata
-e histórico juntos. Gate legado só é aceito em spec fisicamente arquivada.
+promoções pendentes impedem avanço. Front-matter com mapping raiz inteiramente
+indentada também falha antes do scan de `promote:`. Falhas e sinais tratados
+restauram metadata e histórico juntos. Gate legado só é aceito em spec
+fisicamente arquivada.
 
 ### `doctor.sh`
 

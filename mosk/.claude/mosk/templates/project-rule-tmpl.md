@@ -152,6 +152,10 @@ Supported modes:
 Without `promote:`, the artifact freezes inside the archived spec and
 does not touch the base `docs/`.
 
+Promotion front-matter must start its root mapping in column zero. An entirely
+indented root mapping fails before scanning, including Unicode-escaped,
+explicit-key and tagged representations of `promote`.
+
 ## Artefacts (per-spec addenda)
 
 Inside an **active** spec, `mosk-po` can create small, planned

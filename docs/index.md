@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-15T20:12:30Z
+Last updated: 2026-08-15T20:56:15Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -56,7 +56,8 @@ Corporativo).
 - **qa/** — [`security-review-012-feature-stabilize-toolkit-contracts.md`](./qa/security/security-review-012-feature-stabilize-toolkit-contracts.md)
   (`SECURITY: PASS`; contenção de destinos de promoção revalidada) e
   [`security-review-013-feature-deterministic-pipeline-state.md`](./qa/security/security-review-013-feature-deterministic-pipeline-state.md)
-  (`SECURITY: PASS`; quatro findings corrigidos e revalidados em Bash e zsh).
+  (`SECURITY: PASS` na última revisão; o gate QA atual reabriu a superfície de
+  promoção com uma combinação adversarial ainda não coberta).
 
 ## Planejamento (épicos ↔ Plane)
 

@@ -100,6 +100,29 @@ make_state_spec() {
     echo "$dir"
 }
 
+make_archive_ready_spec() {
+    local repo="$1" number="$2" dir
+    dir="$(make_state_spec "$repo" "$number" qa-gate)"
+    printf '# Evidence\n' > "$dir/qa-notes.md"
+    cat > "$dir/gate.yaml" <<'EOF'
+schema: 2
+story: "fixture"
+story_title: "Archive front-matter"
+gate: PASS
+quality_score: 100
+score_history: [100]
+status_reason: "ready"
+reviewer: "Self Test"
+updated: "2026-08-15T00:00:04Z"
+evidence_ref: "qa-notes.md"
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: ""
+EOF
+    echo "$dir"
+}
+
 state_digest() {
     local dir="$1"
     cksum "$dir/spec-meta.yaml"
@@ -353,6 +376,54 @@ sed -i.bak 's/schema: 2/schema: 1/' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.
 expect_fail "gate schema 1 em spec ativa falha" validate_gate_for_completion "$spec"
 sed -i.bak 's/schema: 1/schema: 2/' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.bak"
 expect_ok "implement retorna a qa-gate" transition_spec_phase "$spec" qa-gate qa-gate
+
+echo "selftest-pipeline-state: front-matter raiz indentada"
+indented_unicode="$(make_archive_ready_spec "$repo" 190)"
+cat > "$indented_unicode/promotion.md" <<'EOF'
+---
+  "promo\u0074e": docs/canonical/missing-unicode.md
+  promote_mode: copy
+---
+# Hidden Unicode promotion
+EOF
+indented_before="$(state_digest "$indented_unicode")"
+expect_fail "archive bloqueia promote Unicode em mapping raiz indentada" transition_spec_phase "$indented_unicode" archived archive "$repo"
+expect_eq "Unicode indentado preserva estado em Bash" "$indented_before" "$(state_digest "$indented_unicode")"
+expect_fail "zsh bloqueia promote Unicode em mapping raiz indentada" zsh -c 'source "$1"; transition_spec_phase "$2" archived archive "$3"' _ "$SCRIPT_DIR/common.sh" "$indented_unicode" "$repo"
+expect_eq "Unicode indentado preserva estado em zsh" "$indented_before" "$(state_digest "$indented_unicode")"
+expect_ok "Unicode indentado não materializa destino" test ! -e "$repo/docs/canonical/missing-unicode.md"
+
+indented_explicit="$(make_archive_ready_spec "$repo" 191)"
+cat > "$indented_explicit/promotion.md" <<'EOF'
+---
+  ? promote
+  : docs/canonical/missing-explicit.md
+  promote_mode: copy
+---
+# Hidden explicit-key promotion
+EOF
+indented_before="$(state_digest "$indented_explicit")"
+expect_fail "archive bloqueia chave promote explícita indentada" transition_spec_phase "$indented_explicit" archived archive "$repo"
+expect_eq "chave explícita preserva estado em Bash" "$indented_before" "$(state_digest "$indented_explicit")"
+expect_fail "zsh bloqueia chave promote explícita indentada" zsh -c 'source "$1"; transition_spec_phase "$2" archived archive "$3"' _ "$SCRIPT_DIR/common.sh" "$indented_explicit" "$repo"
+expect_eq "chave explícita preserva estado em zsh" "$indented_before" "$(state_digest "$indented_explicit")"
+expect_ok "chave explícita não materializa destino" test ! -e "$repo/docs/canonical/missing-explicit.md"
+
+indented_tag="$(make_archive_ready_spec "$repo" 192)"
+cat > "$indented_tag/promotion.md" <<'EOF'
+---
+  !!str promote: docs/canonical/missing-tag.md
+  promote_mode: copy
+---
+# Hidden tagged promotion
+EOF
+indented_before="$(state_digest "$indented_tag")"
+expect_fail "archive bloqueia chave promote com tag indentada" transition_spec_phase "$indented_tag" archived archive "$repo"
+expect_eq "tag indentada preserva estado em Bash" "$indented_before" "$(state_digest "$indented_tag")"
+expect_fail "zsh bloqueia chave promote com tag indentada" zsh -c 'source "$1"; transition_spec_phase "$2" archived archive "$3"' _ "$SCRIPT_DIR/common.sh" "$indented_tag" "$repo"
+expect_eq "tag indentada preserva estado em zsh" "$indented_before" "$(state_digest "$indented_tag")"
+expect_ok "tag indentada não materializa destino" test ! -e "$repo/docs/canonical/missing-tag.md"
+
 cat > "$spec/promotion-copy.md" <<'EOF'
 ---
 promote: docs/canonical/applied.md

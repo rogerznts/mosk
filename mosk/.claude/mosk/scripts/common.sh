@@ -862,7 +862,15 @@ validate_canonical_frontmatter_yaml_keys() {
     awk '
         NR == 1 { if ($0 != "---") exit; inside=1; next }
         inside && /^---[[:space:]]*$/ { found_end=1; exit }
-        inside && (/^[[:space:]]*$/ || /^#/) { next }
+        inside && (/^[[:space:]]*$/ || /^[[:space:]]*#/) { next }
+        inside && !first_content {
+            first_content=1
+            if ($0 ~ /^[[:space:]]/) {
+                print "mapping YAML raiz indentada não é suportada no front-matter, linha " NR " de " FILENAME > "/dev/stderr"
+                bad=1
+                exit 1
+            }
+        }
         inside && /^[^[:space:]]/ && $0 !~ /^[a-z_][a-z0-9_-]*:/ {
             print "chave YAML top-level fora da gramática canônica no front-matter, linha " NR " de " FILENAME > "/dev/stderr"
             bad=1

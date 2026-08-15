@@ -102,6 +102,12 @@
 - [x] T041 [SEC-4] Validar a gramática lexical completa das chaves YAML top-level e bloquear escapes Unicode em metadata, gate e promoção
 - [x] T042 Adicionar regressões independentes Bash/zsh, sincronizar produto/espelho e preservar `gate.yaml`
 
+## Remediação do quality gate — rodada 2
+
+- [x] T043 [QA-3] [SEC-4] Rejeitar mapping raiz de front-matter inteiramente indentada antes do scan de promoção
+- [x] T044 Cobrir Unicode escapado, chave explícita e tag em Bash/zsh, provando que archive preserva metadata, histórico e destino
+- [x] T045 Sincronizar produto/espelho, atualizar o índice e executar a suíte proporcional sem alterar `gate.yaml`
+
 ## Parallel Opportunities
 
 - T001 e T002 escrevem schemas diferentes e não compartilham estado.

@@ -72,6 +72,9 @@ autorizar migração apenas alterando o histórico.
 - Toda chave top-level em metadata, gate e front-matter precisa usar a gramática
   simples `^[a-z_][a-z0-9_-]*:`. Chaves citadas, escapadas, explícitas, com tag
   ou duplicadas falham antes do consumo shell.
+- O mapping raiz do front-matter começa na coluna zero. Se o primeiro conteúdo
+  real estiver indentado, o arquivo inteiro falha antes do scanner de promoção;
+  valores aninhados continuam permitidos depois de uma raiz canônica.
 - Templates e decisões novas usam a versão vigente declarada nos schemas.
 - Versão desconhecida/futura falha e orienta atualizar o toolkit.
 - O runtime valida sem carregar uma biblioteca externa; os arquivos JSON Schema

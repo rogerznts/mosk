@@ -2,11 +2,11 @@ schema: 2
 story: "013"
 story_title: "Núcleo determinístico do pipeline"
 gate: FAIL
-quality_score: 0
-score_history: [0]
-status_reason: "O resolvedor ainda pode selecionar a spec errada, sinais deixam estado parcial e archive aceita promoções pendentes. Cinco gaps médios adicionais mantêm schemas, pré-condições, cobertura e espelhos abaixo do contrato da spec."
+quality_score: 80
+score_history: [0, 80]
+status_reason: "As correções anteriores passam na suíte oficial, mas archive ainda aceita uma promoção obrigatória oculta por indentação combinada com chave YAML alternativa. O bypass foi reproduzido em Bash e zsh e reabre QA-3."
 reviewer: "Joaquim (QA Lead)"
-updated: "2026-08-15T19:53:54Z"
+updated: "2026-08-15T20:54:35Z"
 evidence_ref: "qa-notes.md"
 
 waiver_active: false
@@ -15,73 +15,32 @@ waiver_approved_by: ""
 waiver_approved_at: ""
 
 top_issues:
-  - id: "QA-1"
-    severity: high
-    title: "Uma branch diferente pode resolver e alterar a spec errada"
-    finding: "Branches não registradas com o mesmo número, além de metadata com número, tipo e branch divergentes, foram aceitas em Bash e zsh."
-    contradicts: 'FR-011 — "o resolvedor aceita número, spec_id ou branch e valida a correspondência com spec-meta.yaml"; SC-004 — "metadata divergente retorna falha"'
-    suggested_action: "Classificar o locator por forma, exigir igualdade exata para spec_id/branch e validar número, tipo, spec_id, branch e pasta como uma única identidade."
-  - id: "QA-2"
-    severity: high
-    title: "Um sinal entre as gravações deixa metadata e histórico divergentes"
-    finding: "TERM injetado após o mv de spec-meta.yaml retornou erro, mas preservou a nova fase enquanto phase-history.yaml permaneceu na fase anterior."
-    contradicts: 'FR-008 — "metadata e histórico são protegidos contra escrita parcial"; SC-002 — "em 100% das falhas simuladas, ambos permanecem byte a byte iguais"'
-    suggested_action: "Fazer o trap restaurar os backups quando a primeira promoção já ocorreu e adicionar fixtures de HUP, INT e TERM em Bash e zsh."
   - id: "QA-3"
     severity: high
-    title: "Archive confirma estado final com promoção obrigatória pendente"
-    finding: "Uma transição qa-gate -> archived retornou sucesso com promote_mode copy apontando para um alvo inexistente; a spec ficou archived e o destino não foi criado."
-    contradicts: 'PhaseContract — "archived exige gate válido, evidência presente, tasks completas e promoções satisfeitas"; FR-006 — "cada destino possui pré-condições verificáveis no disco"'
-    suggested_action: "Mover a validação única de promoções para a pré-condição de archived e cobrir copy, append, manual, traversal e symlink no selftest de estado."
-  - id: "QA-4"
-    severity: medium
-    title: "Metadata e histórico podem registrar instantes diferentes"
-    finding: "last_phase_change divergente do at do último evento foi aceito em Bash e zsh."
-    contradicts: 'Cenário US3.1 — "metadata e histórico concordam sobre origem, destino, instante e comando responsável"'
-    suggested_action: "Comparar last_phase_change com o timestamp do último evento durante validate_spec_metadata e adicionar uma fixture negativa."
-  - id: "QA-5"
-    severity: medium
-    title: "Esclarecimentos bloqueantes em plan.md não impedem avanço"
-    finding: "plan.md com marcador [NEEDS CLARIFICATION: ...] avançou de plan para tasks em Bash e zsh."
-    contradicts: 'Edge case da spec — "artefato obrigatório ainda contendo marcador NEEDS CLARIFICATION bloqueante impede a transição"'
-    suggested_action: "Aplicar a verificação de marcador a todos os artefatos obrigatórios de cada destino, não apenas a spec.md antes de plan."
-  - id: "QA-6"
-    severity: medium
-    title: "Gate vigente passa sem histórico obrigatório de scores"
-    finding: "Gate schema 2 sem score_history foi aceito; o campo também não existe em properties/required do schema declarativo."
-    contradicts: 'FR-013 — "gate e waiver possuem schemas versionados com campos obrigatórios"; GateDecision — "a decisão inclui score e histórico de scores"'
-    suggested_action: "Adicionar score_history ao JSON Schema e ao validador shell, mantendo compatibilidade explícita apenas para gate histórico schema 1."
-  - id: "QA-7"
-    severity: medium
-    title: "O self-test não percorre a matriz proibida completa"
-    finding: "O harness cobre as seis arestas permitidas, mas somente três das 24 combinações proibidas e um dos seis no-ops."
-    contradicts: 'SC-001 — "100% das transições permitidas e proibidas possuem fixture"; FR-020 — "self-tests cobrem a matriz completa"'
-    suggested_action: "Gerar fixtures sistemáticas para todas as combinações, comandos e no-ops, verificando também imutabilidade byte a byte em cada recusa."
-  - id: "QA-8"
-    severity: medium
-    title: "O espelho local do template de regras está divergente"
-    finding: "Dezoito pares modificados coincidem, mas .claude/mosk/templates/project-rule-tmpl.md omite os controles de segurança presentes no produto distribuível."
-    contradicts: 'FR-019 — "produto sob mosk/ e espelho local sob .claude/ permanecem equivalentes para toda superfície modificada"'
-    suggested_action: "Sincronizar project-rule-tmpl.md do produto para o espelho e tornar a paridade de todos os pares modificados uma asserção permanente."
+    title: "Archive ainda aceita promoção obrigatória escondida por YAML alternativo"
+    finding: "Front-matter com chave semanticamente top-level indentada em formas Unicode, explícita ou tag é ignorado pelo scanner shell. Uma fixture com destino copy ausente entrou em archived com exit 0 em Bash e zsh."
+    contradicts: 'PhaseContract — "archived exige gate válido, evidência presente, tasks completas e promoções satisfeitas"; FR-006 — "cada destino possui pré-condições verificáveis no disco"; contrato de schema — "toda chave top-level fora da gramática simples falha"'
+    suggested_action: "Rejeitar qualquer conteúdo indentado no nível do front-matter suportado, ou normalizar e validar semanticamente todas as chaves antes de decidir que o arquivo não declara promoção; adicionar regressões Bash/zsh para Unicode, chave explícita e tag com indentação."
 
 risk_summary:
-  totals: { critical: 0, high: 3, medium: 5, low: 0 }
+  totals: { critical: 0, high: 1, medium: 0, low: 0 }
   recommendations:
-    must_fix: ["QA-1", "QA-2", "QA-3"]
+    must_fix: ["QA-3"]
     monitor: []
 
 evidence:
   security_report: "../../qa/security/security-review-013-feature-deterministic-pipeline-state.md"
-  security_verdict: "PASS"
+  security_verdict_at_review_start: "PASS"
   tests:
     - "bash -n e zsh -n em todos os scripts do produto: PASS"
-    - "ShellCheck -S error: PASS"
+    - "ShellCheck -S error e schemas JSON por jq: PASS"
     - "selftest-common.sh: 29/29 PASS"
-    - "selftest-pipeline-state.sh: 46/46 PASS"
+    - "selftest-pipeline-state.sh: 177/177 PASS"
     - "selftest-toolkit.sh: 39/39 PASS"
     - "doctor.sh no produto, espelho e materialização isolada: 7/7 PASS"
-    - "Matriz adversarial de segurança: 21/21 em Bash e 21/21 em zsh"
-    - "Reproduções QA-1, QA-2, QA-4 e QA-5 confirmadas em Bash e zsh"
-    - "Reprodução QA-3: archived aceito com promoção copy pendente"
-    - "Paridade: 18 pares idênticos e 1 par divergente"
-    - "jq, auditoria documental, sync dry-run e git diff --check: PASS"
+    - "selftest-pipeline-state.sh na materialização isolada: 177/177 PASS"
+    - "Matriz oficial completa, HUP/INT/TERM, migração, gates adversariais, symlinks e promoções canônicas: PASS em Bash/zsh"
+    - "Paridade dos 20 pares produto/espelho modificados: PASS"
+    - "Auditoria documental, sync dry-run e git diff --check: PASS"
+    - "Fixture independente de front-matter indentado Unicode/explícito/tag: helper aceitou em Bash/zsh enquanto Psych materializou promote"
+    - "Impacto independente: qa-gate -> archived retornou exit 0 em Bash/zsh, deixou o alvo copy ausente e persistiu status/current_phase archived"

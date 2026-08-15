@@ -49,6 +49,11 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 Percorra `docs/specs/<id>/**/*.md` buscando arquivos com front-matter YAML contendo a chave `promote:`. Para cada um, leia também `promote_mode:` (default: `copy`).
 
+O subconjunto suportado exige que o primeiro conteúdo do mapping raiz comece na
+coluna zero. Mapping raiz inteiramente indentada é inválida, inclusive quando
+usa chave Unicode escapada, chave explícita ou tag que um parser YAML completo
+materializaria como `promote`; interrompa antes de concluir que não há promoção.
+
 Antes de incluir qualquer item na tabela, valide modo e destino com o helper
 compartilhado. Um erro interrompe o archive; não ofereça confirmação para
 contornar path inválido:

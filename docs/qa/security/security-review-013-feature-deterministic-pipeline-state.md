@@ -1,8 +1,55 @@
 # Security review — spec 013
 
-**SECURITY: CONCERNS** — a quarta rodada confirmou SEC-1, SEC-2 e SEC-5 como
-resolvidos, mas SEC-3 e SEC-4 ainda possuem bypasses concretos. São 2 findings
-médios reproduzidos em Bash e zsh; nenhum exige decisão de arquitetura.
+**SECURITY: PASS** — a quinta rodada revalidou SEC-1 a SEC-5 como resolvidos em
+Bash e zsh. Não há finding alto ou médio aberto com confiança superior a 0,8.
+
+## Quinta rodada — revalidação final após `c711548`
+
+### SEC-3 · resolvido · Origem de migração concorda com metadata de upgrade
+
+`origin: migration` sem `history_origin_schema: 1` agora falha, assim como
+`origin: specify` combinado com evidência de upgrade e markers diferentes de
+`1`. O caminho real de transição a partir do schema legado persiste
+simultaneamente a origem e a evidência, permanecendo válido nos dois shells.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:323-328` (leitura da evidência),
+  `:434-461` (concordância entre origem e metadata) e `:1148-1171` (persistência
+  durante upgrade real)
+- Evidência: migração sem marker, marker contraditório e marker inválido foram
+  bloqueados em Bash e zsh; upgrades reais de metadata schema 1 produziram
+  `origin: migration` + `history_origin_schema: 1` e passaram em ambos
+- Confiança da resolução: 0,98
+
+### SEC-4 · resolvido · Gramática lexical bloqueia chaves YAML alternativas
+
+Metadata, gate e front-matter agora recusam toda chave top-level fora da
+gramática simples canônica antes da leitura semântica shell. Isso elimina a
+enumeração incompleta de variantes que permitia escapes Unicode.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:285-300` (metadata/gate) e
+  `:861-943` (front-matter de promoção)
+- Evidência: aspas duplas, aspas simples, escape Unicode, chave explícita e tag
+  YAML foram bloqueados em metadata, gate e promoção, em Bash e zsh
+- Confiança da resolução: 0,99
+
+### SEC-1, SEC-2 e SEC-5 · resolvidos · Controles preservados
+
+- SEC-1: spec symlink foi bloqueada pelo resolvedor e pelo sink nos dois shells;
+  metadata e histórico do alvo externo permaneceram byte a byte iguais.
+- SEC-2: gate schema 1 ativo foi bloqueado; o gate histórico da spec 012
+  continuou aceito, em Bash e zsh.
+- SEC-5: destino divergente e diretório foram bloqueados; promoção materialmente
+  aplicada foi aceita nos dois shells.
+
+### Checks da quinta rodada
+
+- Selftests oficiais: common 29/29, pipeline 177/177 e toolkit 39/39.
+- Matriz adversarial independente: 38 decisões Bash/zsh sobre SEC-3/SEC-4 e 14
+  decisões Bash/zsh sobre SEC-1/SEC-2/SEC-5, além da integridade byte a byte do
+  alvo externo; todas tiveram o resultado esperado.
+- Gate preservado:
+  `ee52c777c0be40769598d200a44c4eca328e2485955c0751687f6a2ae7cf4643`.
+- Revisão concluída em `2026-08-15T20:47:36Z`; 0 HIGH, 0 MEDIUM, 0 LOW abertos.
 
 ## Quarta rodada — revalidação após `f592dc8`
 
@@ -315,4 +362,4 @@ valores. O parser do histórico exige exatamente um `at`, `from`, `to` e
 - Contagem atual: 0 HIGH, 0 MEDIUM, 0 LOW abertos; SEC-1 a SEC-4 permanecem no
   histórico como resolvidos.
 
-SECURITY: CONCERNS
+SECURITY: PASS
