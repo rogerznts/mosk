@@ -1,5 +1,48 @@
 # QA notes — spec 013
 
+## Quality gate — terceira rodada
+
+**Gate: PASS · score 100** — nenhum achado alto ou médio aberto. A série
+`0 → 80 → 100` mostra o fechamento das oito lacunas iniciais e da variante que
+reabriu QA-3 na segunda rodada.
+
+QA-3 — "archive precisa bloquear toda promoção obrigatória pendente" — foi
+reproduzido independentemente com seis mappings raiz que Ruby/Psych materializa
+como `promote`: chave simples, citada, escape Unicode, chave explícita, tag e
+tag combinada com Unicode. Cada forma foi exercitada pela transição real para
+`archived` em Bash e zsh: 12/12 tentativas retornaram violação de contrato,
+metadata e histórico permaneceram byte a byte iguais e nenhum destino `copy`
+foi criado.
+
+Os demais achados QA-1 a QA-8 e SEC-1 a SEC-5 foram revalidados pela suíte
+completa: identidade canônica, symlinks, schema legado, histórico e migração,
+matriz de 36 pares, no-ops, rollback por `HUP`/`INT`/`TERM`, lock, marcadores,
+gate/waiver, `score_history`, YAML adversarial, promoções `copy`/`append` e
+paridade de mirrors. O relatório independente disponível termina em
+[`SECURITY: PASS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
+
+### Evidência mecânica da terceira rodada
+
+- Sintaxe Bash/zsh, ShellCheck error e JSON Schemas: PASS.
+- Selftests: common 29/29, pipeline 192/192 e toolkit 39/39.
+- Doctors: 7/7 no produto, espelho e materialização isolada; pipeline isolado
+  192/192.
+- Matriz independente de QA-3: 6/6 formas reconhecidas por Psych e 12/12
+  decisões Bash/zsh bloqueadas com estado preservado.
+- Vinte pares produto/espelho, auditoria documental, sync dry-run e
+  `git diff --check`: PASS.
+- Nenhuma task mantida escreve `current_phase` diretamente; todas usam a CLI
+  canônica.
+
+## Security review — revalidação após `dba01ad`
+
+[`SECURITY: PASS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
+SEC-1 a SEC-5 permanecem resolvidos. Para QA-3/SEC-4, seis mappings raiz
+indentadas que Psych materializa como `promote` — simples, citada, Unicode,
+explícita, tag e tag + Unicode — foram bloqueadas pela transição real para
+`archived` em Bash e zsh. Metadata e histórico permaneceram byte a byte iguais,
+os destinos continuaram ausentes e o gate não foi alterado.
+
 ## Quality gate — segunda rodada
 
 **Gate: FAIL · score 80** — 1 achado alto. O score foi calculado pela fórmula

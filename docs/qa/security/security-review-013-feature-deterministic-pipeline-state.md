@@ -1,7 +1,48 @@
 # Security review — spec 013
 
-**SECURITY: PASS** — a quinta rodada revalidou SEC-1 a SEC-5 como resolvidos em
-Bash e zsh. Não há finding alto ou médio aberto com confiança superior a 0,8.
+**SECURITY: PASS** — a sexta rodada revalidou SEC-1 a SEC-5 e o fechamento de
+QA-3 em Bash e zsh. Não há finding alto ou médio aberto com confiança superior
+a 0,8.
+
+## Sexta rodada — revalidação após `dba01ad`
+
+### SEC-4 / QA-3 · resolvido · Mapping raiz indentada não oculta promoção
+
+O validador agora exige que o primeiro conteúdo real do front-matter comece na
+coluna zero. Comentários e linhas vazias não contam como conteúdo; se a raiz
+começar indentada, o arquivo falha antes de o scanner decidir se existe
+`promote`.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:861-884` (gramática do
+  front-matter) e `:934-947` (validação antes do scan)
+- Evidência: Psych materializou `promote` em seis fixtures com mapping raiz
+  indentada — chave simples, citada, escape Unicode, chave explícita, tag e
+  combinação tag + Unicode. A transição real para `archived` bloqueou todas em
+  Bash e zsh
+- Integridade: nas 12 tentativas, metadata e histórico permaneceram byte a byte
+  iguais e os seis destinos `copy` continuaram ausentes
+- Confiança da resolução: 0,99
+
+### SEC-1 a SEC-5 · resolvidos · Controles preservados
+
+- SEC-1: contenção e symlink seguem cobertos pelo resolvedor, sink e suíte
+  oficial.
+- SEC-2: gate legado ativo segue bloqueado e registro histórico continua
+  legível.
+- SEC-3: origem de migração e `history_origin_schema` permanecem coerentes.
+- SEC-4: metadata, gate e promoção recusam sintaxe YAML alternativa, incluindo
+  raiz indentada.
+- SEC-5: `copy`/`append` continuam exigindo destino regular e equivalência
+  material.
+
+### Checks da sexta rodada
+
+- Selftests oficiais: common 29/29, pipeline 192/192 e toolkit 39/39.
+- Matriz adversarial independente de QA-3/SEC-4: 6 formas reconhecidas por
+  Psych × 2 shells, todas bloqueadas sem mutação.
+- Gate preservado:
+  `02e244a801463ccafc6fb58d5a98197256cb1962001fcb68d2e0f252c5a778c5`.
+- Revisão concluída em `2026-08-15T21:03:01Z`; 0 HIGH, 0 MEDIUM, 0 LOW abertos.
 
 ## Quinta rodada — revalidação final após `c711548`
 
