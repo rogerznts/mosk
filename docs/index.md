@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-15T18:14:22Z
+Last updated: 2026-08-15T18:21:25Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -54,7 +54,7 @@ Corporativo).
   - [`update-20260531.md`](./project/update-20260531.md) — último update datado.
   - [`epics/`](./project/epics/) — um arquivo por épico (Tripé + evidência).
 - **qa/** — [`security-review-012-feature-stabilize-toolkit-contracts.md`](./qa/security/security-review-012-feature-stabilize-toolkit-contracts.md)
-  (`SECURITY: CONCERNS` sobre contenção de destinos de promoção).
+  (`SECURITY: PASS`; contenção de destinos de promoção revalidada).
 
 ## Planejamento (épicos ↔ Plane)
 
@@ -71,14 +71,13 @@ Corporativo).
 
 ### Ativas
 
-| # | Spec | Fase | Branch | Criada |
-|---|---|---|---|---|
-| 012 | [stabilize-toolkit-contracts](./specs/012-feature-stabilize-toolkit-contracts/) | qa-gate (`PASS`, score 100) | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
+_Nenhuma spec ativa._
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 012 | [feature-stabilize-toolkit-contracts](./specs/archive/012-feature-stabilize-toolkit-contracts/) (doctor autocontido, conclusão fail-closed e inventário para remover legado BMAD — gate `PASS`, score 100) | archived | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 | 004 | [feature-orchestration-graph](./specs/archive/004-feature-orchestration-graph/) (grafo de orquestração consultivo — **revertida** pelo ADR-0018) | archived | 004-feature-orchestration-graph | 2026-08-14 |
 | 011 | [feature-direct-agents](./specs/archive/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch — gate `WAIVED`) | archived | 011-feature-direct-agents | 2026-08-05 |
 | 010 | [feature-graph-loop-orca](./specs/archive/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único — gate `WAIVED`) | archived | 010-feature-graph-loop-orca | 2026-08-05 |

@@ -198,3 +198,9 @@ destino proposto.
 
 Abrir `remove-legacy-bmad-workflows` usando o inventário produzido aqui. Essa
 spec deverá remover ou reescrever a gordura herdada, não apenas documentá-la.
+
+---
+
+**Arquivado em:** 2026-08-15
+**Status final:** Concluído
+**Promoções aplicadas:** nenhuma — 0 copy, 0 append, 0 manual

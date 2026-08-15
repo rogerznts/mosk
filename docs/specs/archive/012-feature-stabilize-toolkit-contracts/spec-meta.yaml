@@ -4,6 +4,7 @@ type: "feature"
 branch: "feature/012-stabilize-toolkit-contracts"
 created_at: "2026-08-15T17:07:14Z"
 created_by: "Roger <phpsaux@gmail.com>"
-status: active
-current_phase: qa-gate
-last_phase_change: "2026-08-15T18:14:22Z"
+status: archived
+current_phase: archived
+archived_at: "2026-08-15T18:21:25Z"
+last_phase_change: "2026-08-15T18:21:25Z"
