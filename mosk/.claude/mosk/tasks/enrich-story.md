@@ -115,11 +115,12 @@ ALWAYS cite source documents: `[Source: architecture/{filename}.md#{section}]`
 - Verify all source references are included for technical details
 - Ensure tasks align with both epic requirements and architecture constraints
 - Update status to "Draft" and save the story file
-- Execute `.claude/mosk/tasks/execute-checklist` `.claude/mosk/checklists/story-readiness-checklist`
+- Execute `.claude/mosk/tasks/execute-checklist.md` with
+  `.claude/mosk/checklists/story-readiness-checklist.md`
 - Provide summary to user including:
   - Story created: `{specs.root}/{current_spec_id}/{specs.storiesSubdir}/{epicNum}.{storyNum}.story.md`
   - Status: Draft
   - Key technical components included from architecture docs
   - Any deviations or conflicts noted between epic and architecture
   - Checklist Results
-  - Next steps: For Complex stories, suggest the user carefully review the story draft and also optionally have the SM run the task `.claude/mosk/tasks/review-story-draft`
+  - Next steps: For Complex stories, suggest the user carefully review the story draft and also optionally have the SM run the task `.claude/mosk/tasks/review-story-draft.md`

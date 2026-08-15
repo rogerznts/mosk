@@ -5,6 +5,7 @@
 #
 # Falha (exit 1) se a spec do branch tiver pontas soltas:
 #   - current_phase != archived (não passou pelo archive do pipeline);
+#   - gate ausente ou diferente de PASS/WAIVED formalizado;
 #   - artefatos com `promote:` (copy/append) cujo alvo ainda não existe;
 #   - working tree sujo (mudanças não commitadas).
 # Branch sem spec ativa (base branch / mudança não-spec) → passa (exit 0): o
@@ -28,6 +29,7 @@ soltas (lista os motivos); exit 2 = erro de uso.
 
 Checagens (quando ha spec ativa):
   - current_phase == archived
+  - gate PASS ou WAIVED com justificativa, aprovador e timestamp UTC
   - nenhum artefato promote (copy/append) com alvo faltando
   - working tree limpo
 
@@ -47,8 +49,8 @@ for arg in "$@"; do
 done
 
 REPO_ROOT="$(get_repo_root)"
-FEATURE_DIR=""
-eval "$(get_feature_paths 2>/dev/null | grep -E '^FEATURE_DIR=')" || true
+CURRENT_BRANCH="$(get_current_branch)"
+FEATURE_DIR="$(find_feature_dir_by_prefix_any "$REPO_ROOT" "$CURRENT_BRANCH" 2>/dev/null || true)"
 
 # --- acumulador de falhas ---
 failures=()
@@ -94,7 +96,12 @@ if [[ "$PHASE" != "archived" ]]; then
     add_fail "current_phase='$PHASE' (esperado 'archived'; a spec nao passou pelo archive)"
 fi
 
-# 2. artefatos promote (copy/append) com alvo faltando
+# 2. gate precisa provar a decisão de QA — archived sozinho não é evidência.
+if ! gate_failure="$(validate_gate_for_completion "$FEATURE_DIR" 2>&1)"; then
+    add_fail "$gate_failure"
+fi
+
+# 3. artefatos promote (copy/append) com alvo faltando
 while IFS= read -r pf; do
     [[ -n "$pf" ]] || continue
     local_target="$(awk -F': *' '/^promote:/{print $2; exit}' "$pf" | tr -d '"'"'"' ')"
@@ -106,7 +113,7 @@ while IFS= read -r pf; do
     fi
 done < <(grep -rl '^promote:' "$FEATURE_DIR" 2>/dev/null || true)
 
-# 3. working tree limpo
+# 4. working tree limpo
 if has_git && [[ -n "$(git -C "$REPO_ROOT" status --porcelain 2>/dev/null)" ]]; then
     add_fail "working tree sujo (mudancas nao commitadas)"
 fi

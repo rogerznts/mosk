@@ -13,6 +13,8 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 ## Guardrails
 
+- Nunca arquive sem `gate: PASS` ou `gate: WAIVED` formalizado. Gate ausente,
+  `CONCERNS`, `FAIL` ou waiver incompleto não admite confirmação de bypass.
 - Nunca arquive uma spec com tasks pendentes sem confirmar com o usuário.
 - Preserve todos os artefatos (spec.md, plan.md, tasks.md, contracts, ADRs, deltas, etc.).
 - Nunca sobrescreva um destino existente em modo `copy` sem confirmação explícita do usuário.
@@ -28,6 +30,14 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 ### 2. Validar prontidão para arquivamento
 
+- Antes de qualquer promoção ou movimento, execute:
+  ```bash
+  source .claude/mosk/scripts/common.sh
+  validate_gate_for_completion "docs/specs/<id>"
+  ```
+- Se o validador falhar, **interrompa**. Esta condição não pode ser dispensada
+  por uma confirmação genérica: `WAIVED` exige `waiver_active: true`, motivo,
+  aprovador e timestamp no próprio `gate.yaml`.
 - Leia `docs/specs/<id>/tasks.md` e verifique se todas as tasks estão marcadas `- [x]`.
 - Se houver tasks pendentes, avise o usuário e peça confirmação explícita para arquivar mesmo assim.
 - **Verifique adendos abertos** em `docs/specs/<id>/artefacts/`:

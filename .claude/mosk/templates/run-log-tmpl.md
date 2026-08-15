@@ -18,7 +18,7 @@ tomou sozinho, e o motivo.
 | quando | onda | unidade | agente | decisão | por quê |
 |---|---|---|---|---|---|
 | 2026-08-14T19:10:02Z | 1 | US-1 | dev-us1-fechamento | seguiu com transação única | `plan.md` §4 previa as duas formas e não escolhia; a única reversível |
-| 2026-08-14T19:24:511Z | 1 | US-2 | qa-onda-1 | gate CONCERNS, score 70 | `SC-002` sem teste; a unidade volta na onda 2 |
+| 2026-08-14T19:24:51Z | 1 | US-2 | qa-onda-1 | gate CONCERNS, score 70 | `SC-002` sem teste; a unidade volta na onda 2 |
 | 2026-08-14T19:41:07Z | 2 | US-2 | dev-us2-relatorio | **parou e devolveu** | teto de 3 voltas atingido com score parado (70 → 70 → 70) |
 
 ## O que registrar

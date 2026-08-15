@@ -171,6 +171,35 @@ find_feature_dir_by_prefix() {
     fi
 }
 
+# Resolve a spec do branch tanto na área ativa quanto no archive. Use somente
+# em verificações históricas (ship-ready, auditoria): as tasks do pipeline devem
+# continuar usando find_feature_dir_by_prefix para não reabrir spec arquivada.
+find_feature_dir_by_prefix_any() {
+    local repo_root="$1"
+    local branch_name="$2"
+    local specs_dir="$repo_root/docs/specs"
+
+    if [[ ! "$branch_name" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
+        return 1
+    fi
+
+    local prefix="${BASH_REMATCH[2]}"
+    local matches=()
+    local dir
+    for dir in "$specs_dir"/"$prefix"-* "$specs_dir/archive"/"$prefix"-*; do
+        [[ -d "$dir" ]] && matches+=("$dir")
+    done
+
+    if [[ ${#matches[@]} -eq 1 ]]; then
+        echo "${matches[0]}"
+        return 0
+    fi
+    if [[ ${#matches[@]} -gt 1 ]]; then
+        echo "ERROR: Multiple active/archived specs found with prefix '$prefix': ${matches[*]}" >&2
+    fi
+    return 1
+}
+
 get_feature_paths() {
     local repo_root=$(get_repo_root)
     local current_branch=$(get_current_branch)
@@ -223,6 +252,66 @@ read_spec_meta() {
             exit
         }
     ' "$meta_file"
+}
+
+# Read a top-level scalar from a small YAML file. This intentionally supports
+# only the shell-legible subset used by gate.yaml/spec-meta.yaml.
+read_yaml_scalar() {
+    local file="$1"
+    local key="$2"
+    [[ -f "$file" ]] || return 0
+    awk -v k="$key" '
+        $0 ~ "^" k "[[:space:]]*:" {
+            sub("^" k "[[:space:]]*:[[:space:]]*", "", $0)
+            sub("[[:space:]]*#.*$", "", $0)
+            sub("^\"", "", $0); sub("\"$", "", $0)
+            sub("^\047", "", $0); sub("\047$", "", $0)
+            print
+            exit
+        }
+    ' "$file"
+}
+
+# A spec só pode ser concluída com PASS ou com WAIVED formalizado. Imprime a
+# causa em stderr e retorna 1 quando o contrato não está satisfeito.
+validate_gate_for_completion() {
+    local spec_dir="$1"
+    local gate_file="$spec_dir/gate.yaml"
+    if [[ ! -f "$gate_file" ]]; then
+        echo "gate ausente em $gate_file; rode /mosk-qa qa-gate antes do archive" >&2
+        return 1
+    fi
+
+    local verdict
+    verdict="$(read_yaml_scalar "$gate_file" gate)"
+    case "$verdict" in
+        PASS) return 0 ;;
+        WAIVED)
+            local active reason approved_by approved_at
+            active="$(read_yaml_scalar "$gate_file" waiver_active)"
+            reason="$(read_yaml_scalar "$gate_file" waiver_reason)"
+            approved_by="$(read_yaml_scalar "$gate_file" waiver_approved_by)"
+            approved_at="$(read_yaml_scalar "$gate_file" waiver_approved_at)"
+            if [[ "$active" != "true" || -z "$reason" || -z "$approved_by" || \
+                  ! "$approved_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
+                echo "gate WAIVED incompleto: exige waiver_active=true, reason, approved_by e approved_at ISO 8601 UTC" >&2
+                return 1
+            fi
+            return 0
+            ;;
+        FAIL|CONCERNS)
+            echo "gate $verdict bloqueia conclusão; corrija ou formalize um WAIVED antes do archive" >&2
+            return 1
+            ;;
+        "")
+            echo "gate inválido em $gate_file: campo top-level 'gate' ausente" >&2
+            return 1
+            ;;
+        *)
+            echo "gate inválido em $gate_file: veredito desconhecido '$verdict'" >&2
+            return 1
+            ;;
+    esac
 }
 
 # Update current_phase in spec-meta.yaml. Usage: update_spec_phase <spec_dir> <phase>

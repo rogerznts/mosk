@@ -1,6 +1,6 @@
 # MOSK Skills
 
-This is the installed MOSK toolkit inside your project. Nine specialist agents, one spec-driven pipeline, and a small set of maintenance scripts — all living under `.claude/`.
+This is the installed MOSK toolkit inside your project. Twelve specialist agents, one spec-driven pipeline, and a small set of maintenance scripts — all living under `.claude/`.
 
 ## Where things live
 
@@ -200,4 +200,15 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run    # preview 
 
 ### Helpers
 
+- `doctor.sh` — read-only integrity check for the installed toolkit. It checks
+  Bash syntax, all `selftest-*.sh` suites, literal internal references,
+  documentation paths, agent/skill sync, the 12-agent roster, and required
+  files. Run `bash .claude/mosk/scripts/doctor.sh` or add `--json` for
+  automation; exit codes are 0 (healthy), 1 (violation), and 2 (invalid use).
+- `check-ship-ready.sh` — validates both active and archived specs. Completion
+  requires `current_phase: archived`, a `PASS` gate or a fully documented
+  `WAIVED`, applied promotions, and a clean working tree.
+- `selftest-common.sh` and `selftest-toolkit.sh` — fixture suites for shell path
+  resolution, spec numbering, gate decisions, archived-spec resolution,
+  references, canonical docs paths, config keys, and templates.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — internal helpers used by tasks; not invoked directly in normal use.

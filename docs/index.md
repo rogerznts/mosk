@@ -3,7 +3,12 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-14
+Last updated: 2026-08-15
+
+Toolkit health can be checked with
+`bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
+`check-ship-ready.sh` finds it archived with a `PASS` gate or a fully documented
+`WAIVED`, all promotions applied, and a clean working tree.
 
 ## Visão geral
 
@@ -17,7 +22,10 @@ Corporativo).
 - **discovery/** — `project-manual.md` (manual de acompanhamento PMO: Tripé,
   Protocolo Nexus, Pulsação, auditoria de metadados);
   [`mosk-payload-mode-brief.md`](./discovery/mosk-payload-mode-brief.md)
-  (brief do modo `/mosk-bench`, persona Bento — 13 decisões).
+  (brief do modo `/mosk-bench`, persona Bento — 13 decisões);
+  [`toolkit-autonomy-assessment-roadmap.md`](./discovery/toolkit-autonomy-assessment-roadmap.md)
+  (avaliação funcional e roadmap para remover legado BMAD, tornar o pipeline
+  determinístico e ampliar a autonomia com segurança).
 - **architecture/** — [`mosk-payload-mode.md`](./architecture/mosk-payload-mode.md)
   (design do modo `/mosk-bench`) + [`adr/`](./architecture/adr/)
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
@@ -63,7 +71,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| — | *(nenhuma spec ativa)* | — | — | — |
+| 012 | [stabilize-toolkit-contracts](./specs/012-feature-stabilize-toolkit-contracts/) | tasks | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 
 ### Arquivadas
 
