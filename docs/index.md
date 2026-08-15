@@ -3,7 +3,12 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-14
+Last updated: 2026-08-15T18:21:25Z
+
+Toolkit health can be checked with
+`bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
+`check-ship-ready.sh` finds it archived with a `PASS` gate or a fully documented
+`WAIVED`, all promotions applied, and a clean working tree.
 
 ## Visão geral
 
@@ -17,7 +22,10 @@ Corporativo).
 - **discovery/** — `project-manual.md` (manual de acompanhamento PMO: Tripé,
   Protocolo Nexus, Pulsação, auditoria de metadados);
   [`mosk-payload-mode-brief.md`](./discovery/mosk-payload-mode-brief.md)
-  (brief do modo `/mosk-bench`, persona Bento — 13 decisões).
+  (brief do modo `/mosk-bench`, persona Bento — 13 decisões);
+  [`toolkit-autonomy-assessment-roadmap.md`](./discovery/toolkit-autonomy-assessment-roadmap.md)
+  (avaliação funcional e roadmap para remover legado BMAD, tornar o pipeline
+  determinístico e ampliar a autonomia com segurança).
 - **architecture/** — [`mosk-payload-mode.md`](./architecture/mosk-payload-mode.md)
   (design do modo `/mosk-bench`) + [`adr/`](./architecture/adr/)
   (ADR-0001 infra compartilhada, ADR-0002 auto-escalação escopada,
@@ -45,6 +53,8 @@ Corporativo).
     espelhar o planejamento no Plane (CORPO-776).
   - [`update-20260531.md`](./project/update-20260531.md) — último update datado.
   - [`epics/`](./project/epics/) — um arquivo por épico (Tripé + evidência).
+- **qa/** — [`security-review-012-feature-stabilize-toolkit-contracts.md`](./qa/security/security-review-012-feature-stabilize-toolkit-contracts.md)
+  (`SECURITY: PASS`; contenção de destinos de promoção revalidada).
 
 ## Planejamento (épicos ↔ Plane)
 
@@ -61,14 +71,13 @@ Corporativo).
 
 ### Ativas
 
-| # | Spec | Fase | Branch | Criada |
-|---|---|---|---|---|
-| — | *(nenhuma spec ativa)* | — | — | — |
+_Nenhuma spec ativa._
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 012 | [feature-stabilize-toolkit-contracts](./specs/archive/012-feature-stabilize-toolkit-contracts/) (doctor autocontido, conclusão fail-closed e inventário para remover legado BMAD — gate `PASS`, score 100) | archived | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 | 004 | [feature-orchestration-graph](./specs/archive/004-feature-orchestration-graph/) (grafo de orquestração consultivo — **revertida** pelo ADR-0018) | archived | 004-feature-orchestration-graph | 2026-08-14 |
 | 011 | [feature-direct-agents](./specs/archive/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch — gate `WAIVED`) | archived | 011-feature-direct-agents | 2026-08-05 |
 | 010 | [feature-graph-loop-orca](./specs/archive/010-feature-graph-loop-orca/) (loops e grafos no desenvolvimento; Orca como atuador único — gate `WAIVED`) | archived | 010-feature-graph-loop-orca | 2026-08-05 |

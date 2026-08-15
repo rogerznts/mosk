@@ -1,0 +1,57 @@
+schema: 1
+story: "012"
+story_title: "Estabilizar contratos do toolkit MOSK"
+gate: PASS
+quality_score: 100
+score_history: [40, 90, 100]
+status_reason: "QA-1, QA-2, QA-3, QA-4 e SEC-1 foram resolvidos e revalidados sem regressão nova; a revisão de segurança permanece em PASS."
+reviewer: "Joaquim (QA Lead)"
+updated: "2026-08-15T18:14:22Z"
+
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: ""
+
+top_issues: []
+
+resolved_issues:
+  - id: "QA-1"
+    status: resolved
+    resolution: "Referências relativas ../tasks|templates|checklists|scripts|data são validadas; fixture independente retornou exit 1 com arquivo, linha e caminho ausente."
+  - id: "QA-2"
+    status: resolved
+    resolution: "Branch numerado com spec ausente, resolução ambígua ou spec-meta.yaml ausente retorna ready:false e exit 1."
+  - id: "QA-3"
+    status: resolved
+    resolution: "Escalares são normalizados e um WAIVED com motivo/aprovador somente em branco é bloqueado."
+  - id: "SEC-1"
+    status: resolved
+    resolution: "SECURITY: PASS, confiança 0,97; matriz adversarial Bash 10/10 e controles zsh bloquearam traversal, symlink intermediário, symlink final e caminho absoluto."
+  - id: "QA-4"
+    status: resolved
+    resolution: "A validação lexical deixou de usar read -a; zsh aceita o destino canônico sem stderr e bloqueia separador duplo, segmento ponto e traversal."
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 0 }
+  recommendations:
+    must_fix: []
+    monitor: []
+
+evidence:
+  baseline_commit: "5595122"
+  reviewed_state: "terceira rodada sobre correções não commitadas"
+  tests:
+    - "bash -n em todos os scripts do template: PASS"
+    - "ShellCheck em severidade error: PASS"
+    - "selftest-common.sh: 29/29 PASS"
+    - "selftest-toolkit.sh: 39/39 PASS"
+    - "doctor.sh: 7/7 checks PASS; JSON validado por jq"
+    - "QA-1: referência relativa quebrada bloqueada com exit 1"
+    - "QA-2: spec ausente, ambígua e sem metadata bloqueadas com exit 1"
+    - "QA-3: waiver com whitespace bloqueado com exit 1"
+    - "QA-4: zsh real validou destino canônico e bloqueou //, . e traversal"
+    - "SEC-1: matriz adversarial Bash 10/10 e controles zsh de containment PASS"
+    - "produto/espelho: 5/5 pares sem drift"
+    - "git diff --check: PASS"
+  security_report: "docs/qa/security/security-review-012-feature-stabilize-toolkit-contracts.md"

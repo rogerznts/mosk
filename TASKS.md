@@ -148,6 +148,7 @@ hand.
 | `archive` | Promotes canonical artifacts and moves the spec to `docs/specs/archive/`. |
 | `execute-checklist` | Runs the delivery checklist. |
 | `audit-docs-paths` | Path-integrity audit (5 rules, exit 1 on violations). Also `/mosk-dev audit`. |
+| `doctor` | Runs the complete read-only toolkit integrity check (`doctor.sh`), including syntax, self-tests, references, sync and roster. |
 | `index-docs` | Regenerates `docs/index.md`. |
 
 ```

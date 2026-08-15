@@ -35,8 +35,12 @@ updated: "{{iso_timestamp}}"
 # score que não for acumulado aqui se perde. Faça append do score da rodada —
 # é essa série que a task apresenta ao humano junto do veredito. Ex.: [61, 68, 69]
 
-# Always present but only active when WAIVED
-waiver: { active: false }
+# Always present. Shell-legible top-level scalars are deliberate: archive and
+# ship-ready validate these fields without pulling a YAML dependency.
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: "" # ISO 8601 UTC; required when gate=WAIVED
 
 # Issues (if any) - Use fixed severity: low | medium | high
 #
@@ -71,10 +75,10 @@ examples:
         suggested_action: "Cobrir os caminhos criticos com teste de integracao"
 
   when_waived: |
-    waiver:
-      active: true
-      reason: "Accepted for MVP release - will address in next sprint"
-      approved_by: "Product Owner"
+    waiver_active: true
+    waiver_reason: "Accepted for MVP release - will address in next sprint"
+    waiver_approved_by: "Product Owner"
+    waiver_approved_at: "2026-08-15T17:30:00Z"
 
 # ============ Optional Extended Fields ============
 # Uncomment and use if your team wants more detail

@@ -104,20 +104,26 @@ check_R3() {
 check_R4() {
     [[ -f "$CONFIG_FILE" ]] || { add "core-config.yaml:0 :: R4 :: file not found at $CONFIG_FILE"; return; }
     local config_keys
-    config_keys=$(python3 - "$CONFIG_FILE" <<'PY'
-import sys, yaml
-with open(sys.argv[1]) as f:
-    data = yaml.safe_load(f) or {}
-pairs = []
-for k, v in data.items():
-    if isinstance(v, dict):
-        for sub in v:
-            pairs.append(f"{k}.{sub}")
-    else:
-        pairs.append(k)
-print("\n".join(pairs))
-PY
-    )
+    # O contrato do core-config que as tasks referenciam é deliberadamente
+    # simples: chaves de primeiro e segundo nível. Não puxe PyYAML para ler
+    # isso — o MOSK não tem package manager e precisa auditar uma instalação
+    # limpa. Esta projeção não tenta ser parser YAML genérico.
+    config_keys=$(awk '
+        /^[^[:space:]#][^:]*:/ {
+            top=$0
+            sub(/:.*/, "", top)
+            gsub(/[[:space:]]/, "", top)
+            if (top != "") print top
+            next
+        }
+        top != "" && /^[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*:/ {
+            child=$0
+            sub(/^[[:space:]]+/, "", child)
+            sub(/:.*/, "", child)
+            gsub(/[[:space:]]/, "", child)
+            if (child != "") print top "." child
+        }
+    ' "$CONFIG_FILE" | sort -u)
     local known_domains
     known_domains=$(echo "$config_keys" | awk -F. '{print $1}' | sort -u | grep -v '^$' | tr '\n' '|' | sed 's/|$//')
     [[ -z "$known_domains" ]] && return

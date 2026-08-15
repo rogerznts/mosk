@@ -250,13 +250,31 @@ bash .claude/mosk/scripts/check-prerequisites.sh \
 
 **Called by:** `plan`, `tasks`, `implement`, `qa-gate` tasks.
 
+### `doctor.sh`
+
+**Diagnóstico central e read-only da instalação.** Compõe `bash -n`, todos os
+`selftest-*.sh`, referências internas literais, `audit-docs-paths.sh`, sync
+agente → skill em dry-run, roster de 12 agentes e arquivos obrigatórios.
+
+**Usage:** `bash .claude/mosk/scripts/doctor.sh [--json] [--help]`.
+Exit 0 = íntegro; 1 = uma ou mais violações; 2 = erro de uso. Não depende de
+PyYAML, npm ou pip e pode rodar numa materialização contendo apenas o conteúdo
+distribuível de `mosk/`.
+
+**Run when:** antes de publicar uma versão do toolkit e depois de alterar
+agents, skills, tasks, templates, scripts ou `core-config.yaml`.
+
 ### `check-ship-ready.sh`
 
-**Guardrail de merge (fonte única de "spec fechada").** Valida se a spec ativa do
-branch está pronta pra abrir/mergear PR: `current_phase == archived`, nenhum
-artefato `promote:` (copy/append) com alvo faltando, working
-tree limpo. Branch sem spec ativa passa. Exit 0 = pronta; 1 = pontas soltas
-(lista os motivos). Usage:
+**Guardrail de merge (fonte única de "spec fechada").** Valida se a spec do
+branch está pronta pra abrir/mergear PR: `current_phase == archived`, gate
+`PASS` ou `WAIVED` com justificativa, aprovador e timestamp UTC, nenhum
+artefato `promote:` (copy/append) com alvo faltando e working tree limpo. A
+resolução procura a spec ativa e a já movida para `docs/specs/archive/`; branch
+sem prefixo de spec passa. Branch numerado com spec ausente, ambígua ou sem
+metadata falha. Todo `promote:` passa por `validate_promotion_target`, que
+restringe o destino a `docs/` e bloqueia traversal, modo inválido e escape por
+symlink. Exit 0 = pronta; 1 = pontas soltas (lista os motivos). Usage:
 `bash .claude/mosk/scripts/check-ship-ready.sh [--json]`.
 **Consumido por** camadas de guardrail (hook do Claude Code em `gh pr merge`,
 CI/branch protection, `/tea-open-pr`).
@@ -326,8 +344,8 @@ diretório na mão: isso apaga a integração MOSK.
 
 ### `selftest-common.sh`
 
-**Único verificador automatizado do repo.** Cobre as duas regras que já
-quebraram em produção e que nenhuma outra coisa checa:
+**Self-test dos helpers compartilhados.** Cobre duas regras que já quebraram em
+produção:
 
 1. **Resolução do próprio diretório do `common.sh`, em bash E em zsh.** As tasks
    mandam o agente rodar `source common.sh` no shell dele, e o shell padrão do
@@ -339,10 +357,24 @@ quebraram em produção e que nenhuma outra coisa checa:
    ele executa ao ser sourceado, então não dá para chamar suas funções offline.
 
 **Usage:** `bash .claude/mosk/scripts/selftest-common.sh [--verbose] [--help]`.
-Exit 0 = limpo; 1 lista `caso :: esperado :: obtido`. Hoje: 13 asserções.
+Exit 0 = limpo; 1 lista `caso :: esperado :: obtido`.
 
 **Run when:** ao mexer nos helpers de caminho do `common.sh` ou na numeração de
 spec.
+
+### `selftest-toolkit.sh`
+
+Fixtures dos contratos centrais do toolkit: gates bloqueantes e permitidos,
+waiver formalizado, resolução fail-closed de spec ativa/arquivada, referências
+internas absolutas e relativas, paths canônicos, chaves do `core-config.yaml`,
+templates referenciados, contenção de `promote:` e `check-ship-ready.sh` sobre
+spec arquivada. A contenção roda em Bash e zsh, incluindo fixtures para `//`,
+segmento `.`, traversal e destino válido.
+
+**Usage:** `bash .claude/mosk/scripts/selftest-toolkit.sh [--verbose] [--help]`.
+Exit 0 = todas as fixtures passaram; 1 = falha de contrato; 2 = erro de uso.
+
+**Run when:** ao mexer em gate, archive, ship-ready, auditoria ou diagnóstico.
 
 ### `common.sh`
 
@@ -366,6 +398,9 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 
 **Provides:**
 - Repo-root + current-branch resolution with non-git fallbacks.
+- `validate_promotion_target <repo_root> <target> <mode>` — aceita somente
+  `copy|append|manual`, exige destino de arquivo sob `docs/` e rejeita caminho
+  absoluto, traversal e escapes por symlink; imprime o destino absoluto seguro.
 - `find_feature_dir_by_number` — locates a spec folder by numeric
   prefix (so `004-fix-bug` and `004-add-feature` resolve to the same
   spec).
@@ -425,6 +460,8 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
+| Auditar a integridade completa do toolkit | `doctor.sh` |
 | Atualizar o toolkit num projeto consumidor | `reset-install.sh` (via `/mosk-update`) |
 | Mexeu nos helpers de caminho do `common.sh` ou na numeração de spec | `selftest-common.sh` |
+| Mexeu em gate, referências, paths ou templates | `selftest-toolkit.sh` |
 | Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |

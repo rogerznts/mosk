@@ -1,6 +1,6 @@
 # MOSK Skills
 
-This is the installed MOSK toolkit inside your project. Nine specialist agents, one spec-driven pipeline, and a small set of maintenance scripts — all living under `.claude/`.
+This is the installed MOSK toolkit inside your project. Twelve specialist agents, one spec-driven pipeline, and a small set of maintenance scripts — all living under `.claude/`.
 
 ## Where things live
 
@@ -66,6 +66,7 @@ Helpers:
 
 - `mosk-boot` — generates `.claude/rules/` and scaffolds `docs/` on first install
 - `mosk-help` — short reference guide
+- `mosk-suggestion` — reads the current phase and suggests the next agent with a ready-to-paste prompt
 
 UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns structure/behavior (flows, wireframes, front-end specs), UI owns visual polish (design system, styles, premium components).
 
@@ -199,4 +200,18 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run    # preview 
 
 ### Helpers
 
+- `doctor.sh` — read-only integrity check for the installed toolkit. It checks
+  Bash syntax, all `selftest-*.sh` suites, literal internal references,
+  documentation paths, agent/skill sync, the 12-agent roster, and required
+  files. Run `bash .claude/mosk/scripts/doctor.sh` or add `--json` for
+  automation; exit codes are 0 (healthy), 1 (violation), and 2 (invalid use).
+- `check-ship-ready.sh` — validates both active and archived specs. Completion
+  requires `current_phase: archived`, a `PASS` gate or a fully documented
+  `WAIVED`, promotion targets safely contained under `docs/`, applied
+  promotions, and a clean working tree. Numbered branches with a missing or
+  ambiguous spec fail closed.
+- `selftest-common.sh` and `selftest-toolkit.sh` — fixture suites for shell path
+  resolution, spec numbering, gate decisions, archived-spec resolution,
+  absolute/relative references, canonical docs paths, config keys, templates,
+  and promotion-path containment.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — internal helpers used by tasks; not invoked directly in normal use.

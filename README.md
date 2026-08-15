@@ -1,6 +1,6 @@
 # MOSK
 
-Spec-driven development toolkit for Claude Code. Nine specialist agents, one pipeline, two mirrored layers of documentation — installable into any repository through `.claude/`.
+Spec-driven development toolkit for Claude Code. Twelve specialist agents, one pipeline, two mirrored layers of documentation — installable into any repository through `.claude/`.
 
 > **Novo — MOSK Bench:** um modo que deixa pessoas **não técnicas** criarem e
 > testarem suas próprias ferramentas internas só descrevendo o que precisam, em
@@ -341,7 +341,7 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
 ```text
 your-project/
 ├── .claude/
-│   ├── agents/           # the 11 agent definitions (source of truth)
+│   ├── agents/           # the 12 agent definitions (source of truth)
 │   ├── mosk/
 │   │   ├── tasks/
 │   │   ├── templates/
@@ -385,8 +385,10 @@ Under `.claude/mosk/scripts/`:
 - `migrate-ctx-skills-to-rules.sh` — converts legacy `ctx-*` context skills to `.claude/rules/*.md`.
 - `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
 - `reset-install.sh` — reinstalls the toolkit from scratch: deletes the previous install (including files that no longer exist upstream) before copying the new one. Used by `/mosk-update`, because `degit --force` overwrites but **never deletes**. Preserves `.claude/rules/`, settings, `docs/` and your own skills. Accepts `--from`, `--to`, `--dry-run`, `--json`.
-- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, `promote:` artifacts applied, clean working tree. Accepts `--json`.
+- `doctor.sh` — read-only integrity check for a clean installation: Bash syntax, self-tests, internal references, documentation paths, agent/skill sync, roster, and required files. Accepts `--json`; depends only on the toolkit's declared shell utilities.
+- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, QA gate `PASS` or a fully documented `WAIVED`, safe `promote:` targets confined to `docs/`, promotions applied, and clean working tree. It resolves active and archived specs and fails closed when a numbered branch is missing or ambiguous. Accepts `--json`.
 - `selftest-common.sh` — the repo's automated check: spec numbering rules and `common.sh` path resolution in **bash and zsh**. Both have broken in production before.
+- `selftest-toolkit.sh` — fixture suite for gate decisions, fail-closed spec resolution, absolute/relative references, canonical paths, config keys, templates, and promotion-path containment.
 - `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
 
 ## Optional Environment Tools

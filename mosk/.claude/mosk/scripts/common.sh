@@ -16,6 +16,8 @@ if [[ -z "${MOSK_SCRIPTS_DIR:-}" ]]; then
     if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
         _mosk_common_self="${BASH_SOURCE[0]}"
     elif [[ -n "${ZSH_VERSION:-}" ]]; then
+        # The next expansion is parsed by zsh at runtime.
+        # shellcheck disable=SC2296
         _mosk_common_self="${(%):-%x}"   # equivalente zsh de BASH_SOURCE[0]
     else
         _mosk_common_self="$0"
@@ -171,6 +173,35 @@ find_feature_dir_by_prefix() {
     fi
 }
 
+# Resolve a spec do branch tanto na área ativa quanto no archive. Use somente
+# em verificações históricas (ship-ready, auditoria): as tasks do pipeline devem
+# continuar usando find_feature_dir_by_prefix para não reabrir spec arquivada.
+find_feature_dir_by_prefix_any() {
+    local repo_root="$1"
+    local branch_name="$2"
+    local specs_dir="$repo_root/docs/specs"
+
+    if [[ ! "$branch_name" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
+        return 1
+    fi
+
+    local prefix="${BASH_REMATCH[2]}"
+    local matches=()
+    local dir
+    for dir in "$specs_dir"/"$prefix"-* "$specs_dir/archive"/"$prefix"-*; do
+        [[ -d "$dir" ]] && matches+=("$dir")
+    done
+
+    if [[ ${#matches[@]} -eq 1 ]]; then
+        echo "${matches[0]}"
+        return 0
+    fi
+    if [[ ${#matches[@]} -gt 1 ]]; then
+        echo "ERROR: Multiple active/archived specs found with prefix '$prefix': ${matches[*]}" >&2
+    fi
+    return 1
+}
+
 get_feature_paths() {
     local repo_root=$(get_repo_root)
     local current_branch=$(get_current_branch)
@@ -223,6 +254,146 @@ read_spec_meta() {
             exit
         }
     ' "$meta_file"
+}
+
+# Read a top-level scalar from a small YAML file. This intentionally supports
+# only the shell-legible subset used by gate.yaml/spec-meta.yaml.
+read_yaml_scalar() {
+    local file="$1"
+    local key="$2"
+    [[ -f "$file" ]] || return 0
+    awk -v k="$key" '
+        $0 ~ "^" k "[[:space:]]*:" {
+            sub("^" k "[[:space:]]*:[[:space:]]*", "", $0)
+            sub("[[:space:]]*#.*$", "", $0)
+            sub("^\"", "", $0); sub("\"$", "", $0)
+            sub("^\047", "", $0); sub("\047$", "", $0)
+            sub("^[[:space:]]+", "", $0)
+            sub("[[:space:]]+$", "", $0)
+            print
+            exit
+        }
+    ' "$file"
+}
+
+# Validate a promote target before archive/ship-ready uses it. Success prints
+# the absolute target. The lexical docs/ check blocks absolute paths and `..`;
+# the physical-parent check blocks symlink escapes without requiring realpath.
+validate_promotion_target() {
+    local repo_root="$1"
+    local target="$2"
+    local mode="${3:-copy}"
+
+    case "$mode" in
+        copy|append|manual) ;;
+        *) echo "promote_mode inválido '$mode' (esperado copy, append ou manual)" >&2; return 1 ;;
+    esac
+
+    case "$target" in
+        docs/*) ;;
+        *) echo "destino promote inválido '$target': deve ficar sob docs/" >&2; return 1 ;;
+    esac
+    case "$target" in
+        */) echo "destino promote inválido '$target': informe um arquivo, não um diretório" >&2; return 1 ;;
+    esac
+
+    local remainder="${target#docs/}"
+    [[ -n "$remainder" ]] || {
+        echo "destino promote inválido '$target': informe um arquivo sob docs/" >&2
+        return 1
+    }
+
+    # Wrap with slashes so start/end components are checked by the same
+    # patterns. Avoid `read -a`: it is Bash-only and common.sh is sourced by
+    # zsh on macOS too.
+    case "/$remainder/" in
+        *//*|*/./*|*/../*)
+            echo "destino promote inválido '$target': segmentos vazios, '.' e '..' não são permitidos" >&2
+            return 1
+            ;;
+    esac
+
+    local docs_root="$repo_root/docs"
+    [[ -d "$docs_root" ]] || {
+        echo "destino promote inválido: diretório docs/ não existe em $repo_root" >&2
+        return 1
+    }
+    [[ ! -L "$docs_root" ]] || {
+        echo "destino promote inválido: docs/ não pode ser symlink" >&2
+        return 1
+    }
+
+    local absolute="$repo_root/$target"
+    if [[ -L "$absolute" ]]; then
+        echo "destino promote inválido '$target': o arquivo final não pode ser symlink" >&2
+        return 1
+    fi
+
+    local parent
+    parent="$(dirname "$absolute")"
+    while [[ ! -d "$parent" ]]; do
+        if [[ -e "$parent" || -L "$parent" ]]; then
+            echo "destino promote inválido '$target': componente pai não é diretório seguro" >&2
+            return 1
+        fi
+        [[ "$parent" != "$repo_root" && "$parent" != "/" ]] || {
+            echo "destino promote inválido '$target': não foi possível conter o pai em docs/" >&2
+            return 1
+        }
+        parent="$(dirname "$parent")"
+    done
+
+    local docs_physical parent_physical
+    docs_physical="$(cd -P "$docs_root" 2>/dev/null && pwd)" || return 1
+    parent_physical="$(cd -P "$parent" 2>/dev/null && pwd)" || return 1
+    case "$parent_physical" in
+        "$docs_physical"|"$docs_physical"/*) ;;
+        *) echo "destino promote inválido '$target': symlink escapa de docs/" >&2; return 1 ;;
+    esac
+
+    printf '%s\n' "$absolute"
+}
+
+# A spec só pode ser concluída com PASS ou com WAIVED formalizado. Imprime a
+# causa em stderr e retorna 1 quando o contrato não está satisfeito.
+validate_gate_for_completion() {
+    local spec_dir="$1"
+    local gate_file="$spec_dir/gate.yaml"
+    if [[ ! -f "$gate_file" ]]; then
+        echo "gate ausente em $gate_file; rode /mosk-qa qa-gate antes do archive" >&2
+        return 1
+    fi
+
+    local verdict
+    verdict="$(read_yaml_scalar "$gate_file" gate)"
+    case "$verdict" in
+        PASS) return 0 ;;
+        WAIVED)
+            local active reason approved_by approved_at
+            active="$(read_yaml_scalar "$gate_file" waiver_active)"
+            reason="$(read_yaml_scalar "$gate_file" waiver_reason)"
+            approved_by="$(read_yaml_scalar "$gate_file" waiver_approved_by)"
+            approved_at="$(read_yaml_scalar "$gate_file" waiver_approved_at)"
+            if [[ "$active" != "true" || -z "$reason" || -z "$approved_by" || \
+                  ! "$approved_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]; then
+                echo "gate WAIVED incompleto: exige waiver_active=true, reason, approved_by e approved_at ISO 8601 UTC" >&2
+                return 1
+            fi
+            return 0
+            ;;
+        FAIL|CONCERNS)
+            echo "gate $verdict bloqueia conclusão; corrija ou formalize um WAIVED antes do archive" >&2
+            return 1
+            ;;
+        "")
+            echo "gate inválido em $gate_file: campo top-level 'gate' ausente" >&2
+            return 1
+            ;;
+        *)
+            echo "gate inválido em $gate_file: veredito desconhecido '$verdict'" >&2
+            return 1
+            ;;
+    esac
 }
 
 # Update current_phase in spec-meta.yaml. Usage: update_spec_phase <spec_dir> <phase>

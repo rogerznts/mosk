@@ -60,8 +60,9 @@ Key layers inside `mosk/.claude/mosk/`:
 - `scripts/` — Bash helpers (`create-new-feature.sh`,
   `sync-agents-skills.sh`, `link-codex-skills.sh`,
   `migrate-docs-structure.sh`, `migrate-ctx-skills-to-rules.sh`,
-  `sync-hallmark.sh`, `reset-install.sh`, `check-ship-ready.sh`,
-  `selftest-common.sh`, `common.sh`).
+  `sync-hallmark.sh`, `reset-install.sh`, `doctor.sh`,
+  `check-ship-ready.sh`, `selftest-common.sh`, `selftest-toolkit.sh`,
+  `common.sh`).
 - `checklists/` — quality checklists invoked by optional tasks.
 - `data/` — static reference material read by tasks (elicitation methods,
   test frameworks, …), plus `data/hallmark/`: a **vendored fork** of the

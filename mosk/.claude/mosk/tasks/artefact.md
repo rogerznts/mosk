@@ -139,6 +139,6 @@ work — without touching the parent spec's `spec.md`, `plan.md`,
   Numbering section).
 - Promotion convention: `.claude/rules/project.md` (Promotion
   Convention).
-- Escalation block format: `.claude/mosk/agents/po.md`.
+- Escalation block format: `.claude/mosk/templates/escalation-block-tmpl.md`.
 - Templates: `.claude/mosk/templates/artefact-tmpl.md`,
   `.claude/mosk/templates/artefact-tasks-tmpl.md`.
