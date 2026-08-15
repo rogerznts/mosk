@@ -14,6 +14,8 @@ Campos obrigatórios no schema vigente:
 - `status`: `active` ou `archived`.
 - `current_phase`: uma das seis fases canônicas.
 - `created_at`, `last_phase_change`: timestamps UTC.
+- `history_origin_schema`: presente com valor `1` somente quando o caminho de
+  upgrade converte metadata legada e autoriza `origin: migration`.
 
 Invariantes:
 
@@ -41,7 +43,8 @@ Não existe evento para no-op idempotente ou tentativa recusada. A ordem física
 é a ordem do histórico; timestamps não podem retroceder. Cada `from` posterior
 deve repetir o `to` anterior, e toda aresta/comando precisa pertencer aos enums
 da máquina de estados. `origin: specify` exige que a cadeia comece em
-`specify -> plan`; truncar a cadeia preservando apenas o evento final é inválido.
+`specify -> plan`; `origin: migration` exige `history_origin_schema: 1` na
+metadata. Truncar uma cadeia nova e trocar unilateralmente a origem é inválido.
 
 ## PhaseContract
 

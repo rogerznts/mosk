@@ -24,4 +24,5 @@ last_phase_change: "{{CREATED_AT}}" # obrigatório no schema 2; atualizado pela 
 
 # Optional fields (populated as the spec progresses):
 # archived_at: "2026-05-15T10:00:00Z"
+# history_origin_schema: 1          # somente upgrade real de metadata legada
 # owners: ["alice@…", "bob@…"]

@@ -279,9 +279,11 @@ Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
 The state machine validates the edge and artifacts, writes metadata atomically
 and appends `phase-history.yaml`; it never chooses the next phase for the user.
 Resolution and writes reject symlink escapes, history is validated event by
-event from an explicit `specify|migration` origin, quoted or duplicate critical
-YAML keys fail closed, promotions require regular materially equivalent targets,
-and legacy gates are accepted only from physically archived specs.
+event from an explicit `specify|migration` origin, and migration requires the
+metadata evidence written by a schema-1 upgrade. Non-canonical top-level YAML
+keys—including quoted or escaped forms—fail closed; promotions require regular
+materially equivalent targets, and legacy gates are accepted only from
+physically archived specs.
 
 **Spec types:**
 

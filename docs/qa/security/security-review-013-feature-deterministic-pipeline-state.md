@@ -1,8 +1,73 @@
 # Security review — spec 013
 
-**SECURITY: CONCERNS** — a terceira rodada manteve SEC-1 e SEC-2 resolvidos,
-mas reabriu SEC-3 e SEC-4 e encontrou SEC-5. São 3 findings médios, todos
-reproduzidos em Bash e zsh; nenhum exige decisão de arquitetura.
+**SECURITY: CONCERNS** — a quarta rodada confirmou SEC-1, SEC-2 e SEC-5 como
+resolvidos, mas SEC-3 e SEC-4 ainda possuem bypasses concretos. São 2 findings
+médios reproduzidos em Bash e zsh; nenhum exige decisão de arquitetura.
+
+## Quarta rodada — revalidação após `f592dc8`
+
+### SEC-3 · média · `origin: migration` ainda autoriza truncar qualquer spec nova
+
+`origin: specify` agora exige corretamente que a cadeia comece em
+`specify -> plan`. Porém qualquer metadata schema 2 também aceita
+`origin: migration`, sem uma prova no estado de que a spec foi realmente
+migrada do schema legado. Trocar a origem e preservar apenas o evento final
+continua produzindo um histórico considerado íntegro.
+
+- Contraria: o edge case "histórico truncado numa spec nova" deve falhar
+  (`docs/specs/013-feature-deterministic-pipeline-state/spec.md:122`)
+- Onde: `mosk/.claude/mosk/scripts/common.sh:319-328` (schema 2 só exige uma
+  origem) e `:384-441` (`migration` dispensa a primeira aresta canônica)
+- Exploração: uma cópia schema 2 da spec teve seus três eventos substituídos
+  apenas por `qa-gate -> implement` e declarou `origin: migration`; tanto Bash
+  quanto zsh aceitaram. A mesma cadeia com `origin: specify` foi bloqueada
+- Correção: vincular a permissão de migração a um sinal persistido pelo caminho
+  de upgrade legado e validado contra metadata, em vez de aceitar a declaração
+  unilateral do histórico. Specs criadas no schema 2 devem recusar
+  `origin: migration`
+- Confiança: 0,98
+
+### SEC-4 · média · Escape em chave YAML ainda recria o diferencial de parser
+
+A regex bloqueia `"gate":`, `'gate':` e a chave indentada literalmente, mas
+não bloqueia representações YAML semanticamente equivalentes. Uma chave
+`"ga\u0074e": FAIL` é decodificada como `gate` por um parser completo e
+ignorada pelo runtime shell. O mesmo escape faz uma promoção pendente desaparecer
+do scanner de front-matter.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:288-309` (metadata/gate) e
+  `:814-888` (front-matter de promoção)
+- Exploração: `gate: PASS` seguido de `"ga\u0074e": FAIL` foi aceito como PASS
+  em Bash e zsh, enquanto Ruby/Psych leu FAIL. Um front-matter contendo apenas
+  `"promo\u0074e": docs/canonical/missing.md` também foi considerado sem
+  promoção nos dois shells, enquanto Psych materializou a chave `promote`
+- Correção: validar o subconjunto lexical inteiro, não variantes enumeradas.
+  Em metadata/gate e dentro do front-matter, rejeitar toda chave top-level que
+  não use a gramática simples canônica `^[a-z_][a-z0-9_-]*:`; estruturas
+  explícitas, tags e chaves citadas devem falhar antes de qualquer leitura
+- Confiança: 0,99
+
+### SEC-5 · resolvido · Promoção exige equivalência material
+
+Alvos ausentes, diretórios e conteúdo divergente agora bloqueiam em Bash e zsh.
+`copy` exige igualdade byte a byte; `append` exige que o alvo termine com o
+corpo exato sem front-matter. Depois da aplicação material, ambos os shells
+aceitaram a promoção.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:741-812` (contenção e arquivo
+  regular) e `:881-934` (equivalência de `copy`/`append`)
+- Confiança da resolução: 0,99
+
+### Controles preservados na quarta rodada
+
+- SEC-1: resolvedor e sink bloquearam spec symlink em Bash/zsh; metadata e
+  histórico do alvo externo permaneceram byte a byte iguais.
+- SEC-2: gate schema 1 ativo foi bloqueado em Bash/zsh; o gate histórico da
+  spec 012 continuou aceito nos dois shells.
+- Selftests oficiais: common 29/29, pipeline 167/167 e toolkit 39/39.
+- Gate preservado:
+  `ee52c777c0be40769598d200a44c4eca328e2485955c0751687f6a2ae7cf4643`.
+- Revisão concluída em `2026-08-15T20:37:57Z`; 0 HIGH, 2 MEDIUM, 0 LOW abertos.
 
 ## Terceira rodada — revalidação das correções QA-1 a QA-8
 

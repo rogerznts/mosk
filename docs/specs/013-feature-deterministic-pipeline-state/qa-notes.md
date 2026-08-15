@@ -1,5 +1,12 @@
 # QA notes — spec 013
 
+- Security review da quarta rodada após `f592dc8`:
+  [`SECURITY: CONCERNS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
+  SEC-1, SEC-2 e SEC-5 estão resolvidos. SEC-3 permanece aberto porque qualquer
+  schema 2 pode declarar unilateralmente `origin: migration` e truncar a cadeia;
+  SEC-4 permanece aberto porque chaves YAML com escape, como
+  `"ga\u0074e"`, ainda divergem entre o runtime shell e parsers completos.
+  Ambos os bypasses foram reproduzidos em Bash e zsh; o gate não foi alterado.
 - Security review da terceira rodada: [`SECURITY: CONCERNS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
   SEC-3 foi reaberto porque histórico schema 2 ainda pode ser truncado; SEC-4
   foi reaberto porque chaves YAML citadas escapam da detecção de duplicidade; e
@@ -17,6 +24,22 @@
 - A revisão não alterou `current_phase`; a spec permanece em `implement`.
 
 ## Correções aplicadas pelo desenvolvimento
+
+### Quarta rodada de segurança
+
+- SEC-3: `origin: migration` em metadata schema 2 agora exige
+  `history_origin_schema: 1`. O campo é persistido automaticamente somente
+  quando a transição converte schema 1; specs novas não o recebem. Trocar apenas
+  a origem de um histórico truncado falha em Bash e zsh.
+- SEC-4: metadata, gate e front-matter agora passam por validação lexical de
+  todas as chaves top-level antes da semântica. Formas citadas, escapes Unicode
+  como `"ga\u0074e"`, tags e chaves explícitas ficam fora da gramática canônica
+  e falham nos dois shells.
+- Evidência do dev: common 29/29, pipeline 177/177 e toolkit 39/39, com fixtures
+  independentes para migração legítima, migração unilateral e escapes Unicode
+  em metadata, gate e promoção. Doctors 7/7 no produto, espelho e materialização
+  isolada; Bash/zsh, ShellCheck error, schemas, auditoria, sync dry-run, paridade
+  e diff-check passaram. O gate permaneceu intocado.
 
 ### Terceira rodada de segurança
 

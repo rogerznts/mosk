@@ -282,6 +282,21 @@ read_yaml_scalar() {
     ' "$file"
 }
 
+# The shell runtime consumes only canonical, plain top-level mapping keys.
+# Reject every other lexical representation before reading any scalar so YAML
+# escapes, tags, explicit keys and quoted aliases cannot create parser drift.
+validate_canonical_top_level_yaml_keys() {
+    local file="$1"
+    awk '
+        /^[[:space:]]*$/ || /^#/ { next }
+        /^[^[:space:]]/ && $0 !~ /^[a-z_][a-z0-9_-]*:/ {
+            print "chave YAML top-level fora da gramática canônica na linha " NR " de " FILENAME > "/dev/stderr"
+            bad=1
+        }
+        END { exit bad ? 1 : 0 }
+    ' "$file"
+}
+
 # Reject ambiguous YAML before any security-sensitive scalar is consumed. The
 # runtime intentionally supports only a small, line-oriented YAML subset, so a
 # duplicate key is always a contract violation rather than merge semantics.
@@ -322,9 +337,10 @@ phase_command_matches_destination() {
 # which authorizes a later first edge without pretending earlier events exist.
 validate_phase_history() {
     local spec_dir="$1" current_phase="$2" expected_last_at="${3:-}"
-    local history="$spec_dir/phase-history.yaml" parsed meta_schema require_origin=0
+    local history="$spec_dir/phase-history.yaml" parsed meta_schema migration_evidence require_origin=0
     [[ -f "$history" ]] || return 0
     meta_schema="$(read_spec_meta "$spec_dir" schema)"; meta_schema="${meta_schema:-1}"
+    migration_evidence="$(read_spec_meta "$spec_dir" history_origin_schema)"
     [[ "$meta_schema" == 2 ]] && require_origin=1
 
     if ! parsed="$(awk -v require_origin="$require_origin" '
@@ -439,6 +455,16 @@ validate_phase_history() {
             return 1
         }
     fi
+    if [[ "$meta_schema" == 2 ]]; then
+        if [[ "$history_origin" == migration && "$migration_evidence" != 1 ]]; then
+            echo "origin migration sem evidência de upgrade legado em $spec_dir" >&2
+            return 1
+        fi
+        if [[ "$history_origin" == specify && -n "$migration_evidence" ]]; then
+            echo "origin specify diverge da evidência de upgrade legado em $spec_dir" >&2
+            return 1
+        fi
+    fi
 
     [[ "$event_count" -gt 0 && "$last_to" == "$current_phase" ]] || {
         echo "phase-history diverge de current_phase em $spec_dir" >&2
@@ -527,11 +553,12 @@ validate_spec_metadata() {
     local meta_file="$spec_dir/spec-meta.yaml"
     [[ -f "$meta_file" ]] || { echo "spec-meta.yaml ausente em $spec_dir" >&2; return 1; }
 
+    validate_canonical_top_level_yaml_keys "$meta_file" || return 1
     validate_no_duplicate_yaml_keys "$meta_file" \
         schema spec_number spec_id type branch created_at created_by status \
-        current_phase last_phase_change archived_at || return 1
+        current_phase last_phase_change archived_at history_origin_schema || return 1
 
-    local schema number spec_id spec_type branch created_at created_by spec_status phase changed archived_at
+    local schema number spec_id spec_type branch created_at created_by spec_status phase changed archived_at history_origin_schema
     schema="$(read_spec_meta "$spec_dir" schema)"; schema="${schema:-1}"
     case "$schema" in 1|2) ;; *) echo "schema de spec-meta não suportado: '$schema'" >&2; return 1 ;; esac
     number="$(read_spec_meta "$spec_dir" spec_number)"
@@ -544,6 +571,7 @@ validate_spec_metadata() {
     phase="$(read_spec_meta "$spec_dir" current_phase)"
     changed="$(read_spec_meta "$spec_dir" last_phase_change)"
     archived_at="$(read_spec_meta "$spec_dir" archived_at)"
+    history_origin_schema="$(read_spec_meta "$spec_dir" history_origin_schema)"
 
     [[ "$spec_id" == "$(basename "$spec_dir")" ]] || { echo "spec_id diverge do diretório em $meta_file" >&2; return 1; }
     [[ -n "$branch" ]] || { echo "branch ausente em $meta_file" >&2; return 1; }
@@ -576,6 +604,10 @@ validate_spec_metadata() {
         [[ "$created_at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || { echo "created_at inválido em $meta_file" >&2; return 1; }
         [[ "$changed" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || { echo "last_phase_change inválido em $meta_file" >&2; return 1; }
         [[ -n "$created_by" ]] || { echo "created_by obrigatório no schema 2 em $meta_file" >&2; return 1; }
+        [[ -z "$history_origin_schema" || "$history_origin_schema" == 1 ]] || {
+            echo "history_origin_schema inválido em $meta_file" >&2
+            return 1
+        }
     fi
     if [[ "$spec_status" == archived || "$phase" == archived ]]; then
         [[ "$spec_status" == archived && "$phase" == archived ]] || {
@@ -672,6 +704,7 @@ validate_gate_contract() {
     local spec_dir="$1"
     local gate_file="$spec_dir/gate.yaml"
     [[ -f "$gate_file" ]] || { echo "gate ausente em $gate_file" >&2; return 1; }
+    validate_canonical_top_level_yaml_keys "$gate_file" || return 1
     validate_no_duplicate_yaml_keys "$gate_file" \
         schema story story_title gate quality_score score_history status_reason reviewer updated \
         evidence_ref waiver_active waiver_reason waiver_approved_by waiver_approved_at || return 1
@@ -824,6 +857,20 @@ frontmatter_yaml_key_count() {
     ' "$file"
 }
 
+validate_canonical_frontmatter_yaml_keys() {
+    local file="$1"
+    awk '
+        NR == 1 { if ($0 != "---") exit; inside=1; next }
+        inside && /^---[[:space:]]*$/ { found_end=1; exit }
+        inside && (/^[[:space:]]*$/ || /^#/) { next }
+        inside && /^[^[:space:]]/ && $0 !~ /^[a-z_][a-z0-9_-]*:/ {
+            print "chave YAML top-level fora da gramática canônica no front-matter, linha " NR " de " FILENAME > "/dev/stderr"
+            bad=1
+        }
+        END { exit bad ? 1 : 0 }
+    ' "$file"
+}
+
 read_frontmatter_scalar() {
     local file="$1" key="$2"
     awk -v k="$key" '
@@ -883,6 +930,10 @@ validate_spec_promotions_satisfied() {
     local promote_count mode_count body_tmp body_size target_size
     while IFS= read -r promotion_file; do
         [[ -n "$promotion_file" ]] || continue
+        if ! validate_canonical_frontmatter_yaml_keys "$promotion_file"; then
+            failures=$((failures + 1))
+            continue
+        fi
         promote_count="$(frontmatter_yaml_key_count "$promotion_file" promote)"
         mode_count="$(frontmatter_yaml_key_count "$promotion_file" promote_mode)"
         [[ "$promote_count" -gt 0 || "$mode_count" -gt 0 ]] || continue
@@ -1100,9 +1151,10 @@ transition_spec_phase() (
         printf 'schema: 1\norigin: %s\ntransitions:\n' "$history_origin" > "$history_tmp"
     fi
 
-    awk -v phase="$new_phase" -v now="$now" '
-        BEGIN { schema_set=phase_set=stamp_set=status_set=archive_set=0 }
+    awk -v phase="$new_phase" -v now="$now" -v old_schema="$old_schema" '
+        BEGIN { schema_set=phase_set=stamp_set=status_set=archive_set=origin_schema_set=0 }
         /^[[:space:]]*schema[[:space:]]*:/ { print "schema: 2"; schema_set=1; next }
+        /^[[:space:]]*history_origin_schema[[:space:]]*:/ { print; origin_schema_set=1; next }
         /^[[:space:]]*current_phase[[:space:]]*:/ { print "current_phase: " phase; phase_set=1; next }
         /^[[:space:]]*last_phase_change[[:space:]]*:/ { print "last_phase_change: \"" now "\""; stamp_set=1; next }
         /^[[:space:]]*status[[:space:]]*:/ { if (phase == "archived") print "status: archived"; else print; status_set=1; next }
@@ -1112,6 +1164,7 @@ transition_spec_phase() (
             if (!schema_set) print "schema: 2"
             if (!phase_set) print "current_phase: " phase
             if (!stamp_set) print "last_phase_change: \"" now "\""
+            if (old_schema == "1" && !origin_schema_set) print "history_origin_schema: 1"
             if (phase == "archived" && !status_set) print "status: archived"
             if (phase == "archived" && !archive_set) print "archived_at: \"" now "\""
         }

@@ -266,10 +266,11 @@ bash .claude/mosk/scripts/transition-spec-phase.sh \
 Exit 0 = transição/no-op idempotente; 1 = violação de contrato; 2 = erro de
 uso. `qa-gate -> implement` só é aceito por `apply-qa-fixes`, e `archived` é
 terminal. O resolvedor e o sink rejeitam symlinks/escape físico; histórico é
-validado evento a evento, declara origem `specify|migration` e precisa concordar
-também com `last_phase_change`; identidade cruza pasta, número, tipo e branch
-exata; chaves YAML críticas citadas ou duplicadas
-duplicadas falham; gate vigente exige `score_history`; marcadores bloqueantes e
+validado evento a evento, declara origem `specify|migration` e exige evidência
+`history_origin_schema: 1` para upgrades legados; também precisa concordar com
+`last_phase_change`. Identidade cruza pasta, número, tipo e branch exata. Toda
+chave YAML top-level fora da gramática simples — inclusive citada, escapada ou
+duplicada — falha; gate vigente exige `score_history`; marcadores bloqueantes e
 promoções pendentes impedem avanço. Falhas e sinais tratados restauram metadata
 e histórico juntos. Gate legado só é aceito em spec fisicamente arquivada.
 

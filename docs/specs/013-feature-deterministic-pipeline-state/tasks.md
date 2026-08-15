@@ -96,6 +96,12 @@
 - [x] T038 [SEC-5] Exigir alvo regular e equivalência material para promoções `copy`/`append`, bloqueando diretórios e conteúdo divergente
 - [x] T039 Sincronizar espelhos e executar a suíte proporcional completa sem alterar `gate.yaml`
 
+## Remediação da revisão de segurança — rodada 4
+
+- [x] T040 [SEC-3] Vincular `origin: migration` à evidência `history_origin_schema: 1`, escrita somente pelo upgrade de schema 1
+- [x] T041 [SEC-4] Validar a gramática lexical completa das chaves YAML top-level e bloquear escapes Unicode em metadata, gate e promoção
+- [x] T042 Adicionar regressões independentes Bash/zsh, sincronizar produto/espelho e preservar `gate.yaml`
+
 ## Parallel Opportunities
 
 - T001 e T002 escrevem schemas diferentes e não compartilham estado.

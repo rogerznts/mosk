@@ -18,7 +18,8 @@
     "status": { "enum": ["active", "archived"] },
     "current_phase": { "enum": ["specify", "plan", "tasks", "implement", "qa-gate", "archived"] },
     "last_phase_change": { "type": "string", "format": "date-time" },
-    "archived_at": { "type": "string", "format": "date-time" }
+    "archived_at": { "type": "string", "format": "date-time" },
+    "history_origin_schema": { "const": 1 }
   },
   "allOf": [
     {

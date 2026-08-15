@@ -60,16 +60,18 @@ timestamp UTC, aresta, comando, continuidade, ordem temporal e concordância do
 último `to` com `current_phase`. No schema 2, toda fase posterior a `specify`
 exige histórico. A origem é explícita: `origin: specify` exige primeiro evento
 `specify -> plan`; `origin: migration` autoriza uma primeira aresta posterior
-somente para specs legadas incorporadas ao contrato.
+somente quando a metadata contém `history_origin_schema: 1`, persistido pelo
+caminho real de upgrade de schema 1. Uma spec criada no schema 2 não pode
+autorizar migração apenas alterando o histórico.
 
 ## Schema compatibility
 
 - `spec-meta` legado sem `schema` é lido como versão 1.
 - Gate com `schema: 1` é aceito somente dentro de uma spec já arquivada em
   `docs/specs/archive/`; decisões de specs ativas exigem schema 2.
-- Chaves críticas citadas, indentadas ou duplicadas em metadata, gate,
-  histórico ou front-matter de promoção falham em vez de adotar semântica
-  diferente entre parsers.
+- Toda chave top-level em metadata, gate e front-matter precisa usar a gramática
+  simples `^[a-z_][a-z0-9_-]*:`. Chaves citadas, escapadas, explícitas, com tag
+  ou duplicadas falham antes do consumo shell.
 - Templates e decisões novas usam a versão vigente declarada nos schemas.
 - Versão desconhecida/futura falha e orienta atualizar o toolkit.
 - O runtime valida sem carregar uma biblioteca externa; os arquivos JSON Schema
