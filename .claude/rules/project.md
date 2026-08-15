@@ -258,6 +258,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 `spec-meta.yaml` is the authoritative metadata per spec:
 
 ```yaml
+schema: 2
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature
@@ -269,7 +270,12 @@ current_phase: specify     # specify | plan | tasks | implement | qa-gate | arch
 ```
 
 Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
-`archive.md`) update `current_phase` when they run.
+`archive.md`) confirm their post-condition through `transition-spec-phase.sh`.
+The state machine validates the edge and artifacts, writes metadata atomically
+and appends `phase-history.yaml`; it never chooses the next phase for the user.
+Resolution and writes reject symlink escapes, history is validated event by
+event, duplicate critical YAML keys fail closed, and legacy gates are accepted
+only from physically archived specs.
 
 ## docs/index.md as Entry Point
 

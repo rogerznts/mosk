@@ -49,6 +49,11 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 Percorra `docs/specs/<id>/**/*.md` buscando arquivos com front-matter YAML contendo a chave `promote:`. Para cada um, leia também `promote_mode:` (default: `copy`).
 
+O subconjunto suportado exige que o primeiro conteúdo do mapping raiz comece na
+coluna zero. Mapping raiz inteiramente indentada é inválida, inclusive quando
+usa chave Unicode escapada, chave explícita ou tag que um parser YAML completo
+materializaria como `promote`; interrompa antes de concluir que não há promoção.
+
 Antes de incluir qualquer item na tabela, valide modo e destino com o helper
 compartilhado. Um erro interrompe o archive; não ofereça confirmação para
 contornar path inválido:
@@ -84,17 +89,26 @@ Para cada entrada confirmada, execute novamente
 - **`append`**: ler o corpo do arquivo (descartando o front-matter), acrescentar ao final de `validated_target`. Criar o destino se não existir.
 - **`manual`**: NÃO aplicar. Apenas imprima o caminho de origem, o destino sugerido e uma instrução clara: "Aplique manualmente o delta abaixo em {destino} antes de considerar a spec concluída."
 
+Para `copy` e `append`, o destino final precisa ser arquivo regular. A validação
+de prontidão compara materialmente a promoção: `copy` exige bytes idênticos ao
+artefato inteiro; `append` exige que o destino termine com o corpo exato sem o
+front-matter. Existência isolada do caminho nunca conta como aplicação.
+
 Se `promote:` for encontrado sem `promote_mode:`, assuma `copy`.
 
 Registre o que foi feito (promovido, pulado, pendente manual) — será usado na nota de encerramento.
 
-### 5. Atualizar `spec-meta.yaml`
+### 5. Confirmar o estado arquivado
 
-Edite `docs/specs/<id>/spec-meta.yaml`:
+Depois do gate, das tasks e das promoções estarem satisfeitos, execute:
 
-- `status: archived`
-- `archived_at: "<ISO 8601 UTC atual>"`
-- `current_phase: archived`
+```bash
+bash .claude/mosk/scripts/transition-spec-phase.sh \
+  --spec "<id>" --to archived --command archive
+```
+
+O comando grava `status`, `archived_at`, `current_phase` e o histórico de forma
+atômica. Nunca edite esses campos diretamente.
 
 ### 6. Mover a pasta para o arquivo
 

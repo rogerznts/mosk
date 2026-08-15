@@ -152,6 +152,10 @@ Supported modes:
 Without `promote:`, the artifact freezes inside the archived spec and
 does not touch the base `docs/`.
 
+Promotion front-matter must start its root mapping in column zero. An entirely
+indented root mapping fails before scanning, including Unicode-escaped,
+explicit-key and tagged representations of `promote`.
+
 ## Artefacts (per-spec addenda)
 
 Inside an **active** spec, `mosk-po` can create small, planned
@@ -262,6 +266,7 @@ Spec numbers are globally unique, three-digit, zero-padded (`001`,
 `spec-meta.yaml` is the authoritative metadata per spec:
 
 ```yaml
+schema: 2
 spec_number: "005"
 spec_id: "005-feature-checkout-coupon"
 type: feature              # feature | fix | hotfix | gmud | refactor | experimental | extension
@@ -274,7 +279,15 @@ current_phase: specify     # specify | plan | tasks | implement | qa-gate | arch
 ```
 
 Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
-`archive.md`) update `current_phase` when they run.
+`archive.md`) confirm their post-condition through `transition-spec-phase.sh`.
+The state machine validates the edge and artifacts, writes metadata atomically
+and appends `phase-history.yaml`; it never chooses the next phase for the user.
+Resolution and writes reject symlink escapes, history is validated event by
+event from an explicit `specify|migration` origin, and migration requires the
+metadata evidence written by a schema-1 upgrade. Non-canonical top-level YAML
+keys—including quoted or escaped forms—fail closed; promotions require regular
+materially equivalent targets, and legacy gates are accepted only from
+physically archived specs.
 
 **Spec types:**
 
@@ -324,6 +337,7 @@ Manual regeneration: `/mosk-dev index-docs`.
   ask the user. Default to the spec — it is reversible.
 - Never bypass the escalation policy: suggest a handoff, do not invoke
   another agent yourself.
-- Update `spec-meta.yaml` `current_phase` when advancing a spec
+- Use `transition-spec-phase.sh` when advancing a spec; never edit
+  `spec-meta.yaml.current_phase` directly
   through the pipeline.
 - {{PROJECT_SPECIFIC_AI_RULES}}

@@ -1,0 +1,27 @@
+schema: 1
+origin: migration
+transitions:
+  - at: "2026-08-15T19:04:33Z"
+    from: tasks
+    to: implement
+    command: implement
+  - at: "2026-08-15T19:56:12Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate
+  - at: "2026-08-15T19:58:12Z"
+    from: qa-gate
+    to: implement
+    command: apply-qa-fixes
+  - at: "2026-08-15T20:55:14Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate
+  - at: "2026-08-15T20:56:15Z"
+    from: qa-gate
+    to: implement
+    command: apply-qa-fixes
+  - at: "2026-08-15T21:07:24Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate

@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-15T18:21:25Z
+Last updated: 2026-08-15T21:07:24Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -54,7 +54,10 @@ Corporativo).
   - [`update-20260531.md`](./project/update-20260531.md) — último update datado.
   - [`epics/`](./project/epics/) — um arquivo por épico (Tripé + evidência).
 - **qa/** — [`security-review-012-feature-stabilize-toolkit-contracts.md`](./qa/security/security-review-012-feature-stabilize-toolkit-contracts.md)
-  (`SECURITY: PASS`; contenção de destinos de promoção revalidada).
+  (`SECURITY: PASS`; contenção de destinos de promoção revalidada) e
+  [`security-review-013-feature-deterministic-pipeline-state.md`](./qa/security/security-review-013-feature-deterministic-pipeline-state.md)
+  (`SECURITY: PASS`; seis variantes de mapping raiz indentada foram bloqueadas
+  em Bash e zsh e o gate QA final passou).
 
 ## Planejamento (épicos ↔ Plane)
 
@@ -71,7 +74,9 @@ Corporativo).
 
 ### Ativas
 
-_Nenhuma spec ativa._
+| # | Spec | Fase | Branch | Criada |
+|---|---|---|---|---|
+| 013 | [feature-deterministic-pipeline-state](./specs/013-feature-deterministic-pipeline-state/) | qa-gate | feature/013-deterministic-pipeline-state | 2026-08-15 |
 
 ### Arquivadas
 

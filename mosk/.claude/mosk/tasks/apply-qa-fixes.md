@@ -60,8 +60,8 @@ Applying QA fixes puts the spec back in `implement`. Record that, so the
 metadata says where the work actually is:
 
 ```bash
-source .claude/mosk/scripts/common.sh
-update_spec_phase "$FEATURE_DIR" implement
+bash .claude/mosk/scripts/transition-spec-phase.sh \
+  --spec "$(basename "$FEATURE_DIR")" --to implement --command apply-qa-fixes
 ```
 
 This does **not** auto-iterate — you were routed here by a human decision, and

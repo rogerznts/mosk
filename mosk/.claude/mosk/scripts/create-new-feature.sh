@@ -528,12 +528,13 @@ write_initial_spec_meta() {
         fi
     fi
     cat > "$spec_dir/spec-meta.yaml" <<EOF
+schema: 2
 spec_number: "$spec_number"
 spec_id: "$spec_id"
 type: "${spec_type:-feature}"
 branch: "$spec_branch"
 created_at: "$now"
-created_by: "$created_by"
+created_by: "${created_by:-unknown}"
 status: active
 current_phase: specify
 last_phase_change: "$now"

@@ -61,8 +61,9 @@ expect_fail_contains() {
 write_gate() {
     local dir="$1" verdict="$2" active="${3:-false}" reason="${4:-}" owner="${5:-}" at="${6:-}"
     mkdir -p "$dir"
-    printf 'gate: %s\nwaiver_active: %s\nwaiver_reason: "%s"\nwaiver_approved_by: "%s"\nwaiver_approved_at: "%s"\n' \
+    printf 'schema: 2\nstory: "selftest"\nstory_title: "Toolkit fixture"\ngate: %s\nquality_score: 100\nscore_history: [100]\nstatus_reason: "fixture"\nreviewer: "Self Test"\nupdated: "2026-08-15T18:00:00Z"\nevidence_ref: "qa-notes.md"\nwaiver_active: %s\nwaiver_reason: "%s"\nwaiver_approved_by: "%s"\nwaiver_approved_at: "%s"\n' \
         "$verdict" "$active" "$reason" "$owner" "$at" > "$dir/gate.yaml"
+    printf '# Evidence\n' > "$dir/qa-notes.md"
 }
 
 echo "selftest-toolkit: gate de conclusão"
@@ -184,7 +185,12 @@ mkdir -p "$ship_repo/.claude/mosk/scripts" \
 cp "$SCRIPT_DIR/common.sh" "$SCRIPT_DIR/check-ship-ready.sh" \
     "$ship_repo/.claude/mosk/scripts/"
 printf '%s\n' \
+    'schema: 1' \
+    'spec_number: "014"' \
     'spec_id: "014-feature-ship-ready"' \
+    'type: feature' \
+    'branch: "feature/014-ship-ready"' \
+    'status: archived' \
     'current_phase: archived' \
     > "$ship_repo/docs/specs/archive/014-feature-ship-ready/spec-meta.yaml"
 write_gate "$ship_repo/docs/specs/archive/014-feature-ship-ready" PASS
@@ -197,12 +203,22 @@ git -C "$ship_repo" commit -qm "test: create archived fixture"
 expect_ok "ship-ready encontra spec arquivada com PASS" run_ship_ready "$ship_repo"
 
 expect_fail_contains "ship-ready bloqueia branch de spec sem diretório" \
-    "nenhuma spec encontrada" run_ship_ready_branch "$ship_repo" "feature/015-missing-spec"
+    "spec não encontrada" run_ship_ready_branch "$ship_repo" "feature/015-missing-spec"
 
 mkdir -p "$ship_repo/docs/specs/016-feature-duplicate" \
     "$ship_repo/docs/specs/archive/016-feature-duplicate"
+printf '%s\n' \
+    'schema: 1' 'spec_number: "016"' 'spec_id: "016-feature-duplicate"' \
+    'type: feature' 'branch: "feature/016-duplicate"' 'status: active' \
+    'current_phase: specify' \
+    > "$ship_repo/docs/specs/016-feature-duplicate/spec-meta.yaml"
+printf '%s\n' \
+    'schema: 1' 'spec_number: "016"' 'spec_id: "016-feature-duplicate"' \
+    'type: feature' 'branch: "feature/016-duplicate"' 'status: archived' \
+    'current_phase: archived' \
+    > "$ship_repo/docs/specs/archive/016-feature-duplicate/spec-meta.yaml"
 expect_fail_contains "ship-ready bloqueia resolução ambígua" \
-    "Multiple active/archived specs" run_ship_ready_branch "$ship_repo" "feature/016-duplicate"
+    "spec ambígua" run_ship_ready_branch "$ship_repo" "feature/016-duplicate"
 rm -rf "$ship_repo/docs/specs/016-feature-duplicate" \
     "$ship_repo/docs/specs/archive/016-feature-duplicate"
 

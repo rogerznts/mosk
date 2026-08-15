@@ -209,7 +209,7 @@ refletindo onde a spec está de verdade.
 
 ## Step 7 — Fechar
 
-1. `update_spec_phase "$FEATURE_DIR" qa-gate`
+1. `bash .claude/mosk/scripts/transition-spec-phase.sh --spec "$(basename "$FEATURE_DIR")" --to qa-gate --command qa-gate`
 2. Execute `../tasks/index-docs.md`.
 3. **Relatório final** — a única coisa que a pessoa vai ler:
 

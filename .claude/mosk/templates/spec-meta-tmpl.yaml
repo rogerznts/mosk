@@ -3,6 +3,7 @@
 # pipeline tasks (plan, tasks, implement, qa-gate, archive) as the spec
 # progresses. Read by index-docs to build the docs/index.md tables.
 
+schema: 2                          # contrato vigente; legado sem schema = v1
 spec_number: "{{SPEC_NUMBER}}"     # zero-padded 3 digits (e.g. "005")
 spec_id: "{{SPEC_ID}}"             # full folder name (e.g. "005-feature-checkout-coupon")
 type: "{{SPEC_TYPE}}"              # feature | fix | hotfix | gmud | refactor | experimental
@@ -19,8 +20,9 @@ created_by: "{{CREATED_BY}}"       # git user.name + email, or author hint
 status: active                     # active | archived
 current_phase: specify             # specify | plan | tasks | implement | qa-gate | archived
                                    # (clarify NAO e fase — e um passo opcional)
+last_phase_change: "{{CREATED_AT}}" # obrigatório no schema 2; atualizado pela CLI
 
 # Optional fields (populated as the spec progresses):
 # archived_at: "2026-05-15T10:00:00Z"
-# last_phase_change: "2026-04-25T14:20:00Z"
+# history_origin_schema: 1          # somente upgrade real de metadata legada
 # owners: ["alice@…", "bob@…"]

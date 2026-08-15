@@ -250,6 +250,32 @@ bash .claude/mosk/scripts/check-prerequisites.sh \
 
 **Called by:** `plan`, `tasks`, `implement`, `qa-gate` tasks.
 
+### `transition-spec-phase.sh`
+
+**Interface única para mudança de fase.** Resolve a spec por número, `spec_id`
+ou branch, valida schema, aresta e artefatos, atualiza `spec-meta.yaml`
+atomicamente e acrescenta `phase-history.yaml`. A task informa o destino; o
+script nunca escolhe a próxima fase.
+
+**Usage:**
+```bash
+bash .claude/mosk/scripts/transition-spec-phase.sh \
+  --spec <locator> --to <phase> --command <task> [--json]
+```
+
+Exit 0 = transição/no-op idempotente; 1 = violação de contrato; 2 = erro de
+uso. `qa-gate -> implement` só é aceito por `apply-qa-fixes`, e `archived` é
+terminal. O resolvedor e o sink rejeitam symlinks/escape físico; histórico é
+validado evento a evento, declara origem `specify|migration` e exige evidência
+`history_origin_schema: 1` para upgrades legados; também precisa concordar com
+`last_phase_change`. Identidade cruza pasta, número, tipo e branch exata. Toda
+chave YAML top-level fora da gramática simples — inclusive citada, escapada ou
+duplicada — falha; gate vigente exige `score_history`; marcadores bloqueantes e
+promoções pendentes impedem avanço. Front-matter com mapping raiz inteiramente
+indentada também falha antes do scan de `promote:`. Falhas e sinais tratados
+restauram metadata e histórico juntos. Gate legado só é aceito em spec
+fisicamente arquivada.
+
 ### `doctor.sh`
 
 **Diagnóstico central e read-only da instalação.** Compõe `bash -n`, todos os
@@ -269,7 +295,8 @@ agents, skills, tasks, templates, scripts ou `core-config.yaml`.
 **Guardrail de merge (fonte única de "spec fechada").** Valida se a spec do
 branch está pronta pra abrir/mergear PR: `current_phase == archived`, gate
 `PASS` ou `WAIVED` com justificativa, aprovador e timestamp UTC, nenhum
-artefato `promote:` (copy/append) com alvo faltando e working tree limpo. A
+artefato `promote:` (copy/append) sem alvo regular materialmente equivalente e
+working tree limpo. A
 resolução procura a spec ativa e a já movida para `docs/specs/archive/`; branch
 sem prefixo de spec passa. Branch numerado com spec ausente, ambígua ou sem
 metadata falha. Todo `promote:` passa por `validate_promotion_target`, que
@@ -376,6 +403,16 @@ Exit 0 = todas as fixtures passaram; 1 = falha de contrato; 2 = erro de uso.
 
 **Run when:** ao mexer em gate, archive, ship-ready, auditoria ou diagnóstico.
 
+### `selftest-pipeline-state.sh`
+
+Fixtures da máquina de estados: resolução canônica e identidade cruzada,
+schemas, os 36 pares da matriz de transições, idempotência, preservação em
+falha/sinal em Bash e zsh, histórico, promoções e lock concorrente.
+
+**Usage:** `bash .claude/mosk/scripts/selftest-pipeline-state.sh [--verbose] [--help]`.
+
+**Run when:** ao mexer em fases, metadata, gate/evidência ou resolução de spec.
+
 ### `common.sh`
 
 Shared library — never executed directly, always `source`'d:
@@ -459,9 +496,11 @@ caminho; a lib avisa em stderr se não conseguir se localizar.
 | Validate a feature branch can plan | `setup-plan.sh` (via `plan` task) |
 | Refresh agent context after plan | `update-agent-context.sh` |
 | Gate a pipeline phase | `check-prerequisites.sh --require-tasks` |
+| Confirmar uma mudança de fase | `transition-spec-phase.sh` |
 | Check a spec is ready to merge (guardrail) | `check-ship-ready.sh` |
 | Auditar a integridade completa do toolkit | `doctor.sh` |
 | Atualizar o toolkit num projeto consumidor | `reset-install.sh` (via `/mosk-update`) |
 | Mexeu nos helpers de caminho do `common.sh` ou na numeração de spec | `selftest-common.sh` |
 | Mexeu em gate, referências, paths ou templates | `selftest-toolkit.sh` |
+| Mexeu em fases, schemas ou resolução de spec | `selftest-pipeline-state.sh` |
 | Atualizar/conferir o vendor do Hallmark | `sync-hallmark.sh --dry-run` primeiro |
