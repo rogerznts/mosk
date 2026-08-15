@@ -1,15 +1,38 @@
 # QA notes — spec 013
 
+- Security review da terceira rodada: [`SECURITY: CONCERNS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md).
+  SEC-3 foi reaberto porque histórico schema 2 ainda pode ser truncado; SEC-4
+  foi reaberto porque chaves YAML citadas escapam da detecção de duplicidade; e
+  SEC-5 mostra que a existência do alvo não prova uma promoção `copy`/`append`.
+  Os três findings médios foram reproduzidos em Bash e zsh; o gate não foi
+  alterado.
 - Security review do diff contra `master`: [`SECURITY: PASS`](../../qa/security/security-review-013-feature-deterministic-pipeline-state.md)
-  na segunda rodada.
-- Findings resolvidos e revalidados: SEC-1 (symlink escape no diretório da
-  spec), SEC-2 (schema legado numa spec ativa), SEC-3 (histórico malformado) e
-  SEC-4 (chaves YAML duplicadas).
+  na segunda rodada, agora preservada apenas como registro histórico.
+- Na segunda rodada, SEC-1 (symlink escape no diretório da spec), SEC-2 (schema
+  legado numa spec ativa), SEC-3 (histórico malformado) e SEC-4 (chaves YAML
+  duplicadas simples) foram considerados resolvidos; a terceira rodada reabriu
+  SEC-3 e SEC-4 com variantes que as fixtures anteriores não cobriam.
 - Controles confirmados: lock concorrente e rollback injetado preservam estado;
   saltos, schema futuro, gate vigente sem evidência e waiver incompleto bloqueiam.
 - A revisão não alterou `current_phase`; a spec permanece em `implement`.
 
 ## Correções aplicadas pelo desenvolvimento
+
+### Terceira rodada de segurança
+
+- SEC-3: `phase-history.yaml` agora declara `origin: specify|migration`; specs
+  novas precisam começar em `specify -> plan`, enquanto migrações legadas são
+  marcadas explicitamente. Histórico schema 2 truncado falha em Bash e zsh.
+- SEC-4: metadata, gate e front-matter de promoção rejeitam chaves críticas
+  citadas/indentadas e duplicadas antes da leitura shell, eliminando a
+  divergência entre primeiro e último valor de parsers YAML.
+- SEC-5: `copy`/`append` exigem alvo regular e prova material. `copy` usa
+  igualdade byte a byte; `append` exige o corpo sem front-matter como sufixo
+  exato. Diretórios, alvos ausentes e conteúdos divergentes bloqueiam archive.
+- Evidência do dev: common 29/29, pipeline 167/167 e toolkit 39/39; doctors 7/7
+  no produto, espelho e materialização isolada; Bash/zsh, ShellCheck error,
+  schemas, auditoria, sync dry-run, paridade e diff-check passaram. O gate
+  permaneceu intocado.
 
 - SEC-1: resolvedor e sink agora rejeitam raiz/archive/spec symlink e exigem
   filho físico imediato da área permitida.

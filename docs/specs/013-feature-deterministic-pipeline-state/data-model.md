@@ -29,6 +29,8 @@ Invariantes:
 
 Evento append-only em `phase-history.yaml`.
 
+- `origin`: `specify` para specs novas ou `migration` para a primeira captura de
+  uma spec legada já em andamento.
 - `schema`: versão do evento.
 - `at`: timestamp UTC.
 - `from`: fase observada antes da operação.
@@ -38,7 +40,8 @@ Evento append-only em `phase-history.yaml`.
 Não existe evento para no-op idempotente ou tentativa recusada. A ordem física
 é a ordem do histórico; timestamps não podem retroceder. Cada `from` posterior
 deve repetir o `to` anterior, e toda aresta/comando precisa pertencer aos enums
-da máquina de estados.
+da máquina de estados. `origin: specify` exige que a cadeia comece em
+`specify -> plan`; truncar a cadeia preservando apenas o evento final é inválido.
 
 ## PhaseContract
 
@@ -67,6 +70,10 @@ Projeção versionada em `gate.yaml`:
 Schema 1 continua legível para arquivos históricos. O schema vigente é exigido
 para novas decisões e bloqueia `PASS`/`WAIVED` sem evidência. A compatibilidade
 do schema 1 só é habilitada para specs fisicamente arquivadas.
+
+Promoções `copy`/`append` só são satisfeitas quando o destino é arquivo regular.
+Em `copy`, destino e artefato são byte a byte iguais; em `append`, o destino
+termina com o corpo exato do artefato sem front-matter.
 
 ## SpecLocator
 

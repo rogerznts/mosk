@@ -84,6 +84,11 @@ Para cada entrada confirmada, execute novamente
 - **`append`**: ler o corpo do arquivo (descartando o front-matter), acrescentar ao final de `validated_target`. Criar o destino se não existir.
 - **`manual`**: NÃO aplicar. Apenas imprima o caminho de origem, o destino sugerido e uma instrução clara: "Aplique manualmente o delta abaixo em {destino} antes de considerar a spec concluída."
 
+Para `copy` e `append`, o destino final precisa ser arquivo regular. A validação
+de prontidão compara materialmente a promoção: `copy` exige bytes idênticos ao
+artefato inteiro; `append` exige que o destino termine com o corpo exato sem o
+front-matter. Existência isolada do caminho nunca conta como aplicação.
+
 Se `promote:` for encontrado sem `promote_mode:`, assuma `copy`.
 
 Registre o que foi feito (promovido, pulado, pendente manual) — será usado na nota de encerramento.

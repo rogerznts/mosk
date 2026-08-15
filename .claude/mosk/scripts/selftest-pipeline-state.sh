@@ -68,7 +68,7 @@ make_state_spec() {
     dir="$(make_spec "$repo" "$number" "$phase")"
     history="$dir/phase-history.yaml"
     if [[ "$phase" != specify ]]; then
-        printf 'schema: 1\ntransitions:\n' > "$history"
+        printf 'schema: 1\norigin: specify\ntransitions:\n' > "$history"
         append_event "$history" "2026-08-15T00:00:01Z" specify plan plan
         last_at="2026-08-15T00:00:01Z"
     fi
@@ -162,12 +162,18 @@ cp "$spec/spec-meta.yaml" "$spec/spec-meta.clean"
 printf 'status: archived\n' >> "$spec/spec-meta.yaml"
 expect_fail "metadata com chave crítica duplicada falha" validate_spec_metadata "$spec"
 mv "$spec/spec-meta.clean" "$spec/spec-meta.yaml"
+cp "$spec/spec-meta.yaml" "$spec/spec-meta.clean"
+printf '"status": archived\n' >> "$spec/spec-meta.yaml"
+expect_fail "metadata com chave crítica citada falha" validate_spec_metadata "$spec"
+expect_fail "zsh bloqueia chave crítica citada em metadata" zsh -c 'source "$1"; validate_spec_metadata "$2"' _ "$SCRIPT_DIR/common.sh" "$spec"
+mv "$spec/spec-meta.clean" "$spec/spec-meta.yaml"
 sed -i.bak 's/schema: 2/schema: 99/' "$spec/spec-meta.yaml" && rm -f "$spec/spec-meta.yaml.bak"
 expect_fail "schema futuro falha" validate_spec_metadata "$spec"
 sed -i.bak 's/schema: 99/schema: 2/' "$spec/spec-meta.yaml" && rm -f "$spec/spec-meta.yaml.bak"
 malformed_spec="$(make_spec "$repo" 016 implement)"
 cat > "$malformed_spec/phase-history.yaml" <<'EOF'
 schema: 1
+origin: specify
 transitions:
   - at: "not-a-date"
     from: archived
@@ -177,6 +183,7 @@ EOF
 expect_fail "histórico com evento impossível falha" validate_spec_metadata "$malformed_spec"
 cat > "$malformed_spec/phase-history.yaml" <<'EOF'
 schema: 1
+origin: specify
 transitions:
   - at: "2026-08-15T00:00:00Z"
     from: tasks
@@ -188,9 +195,27 @@ transitions:
     command: tasks
 EOF
 expect_fail "histórico com cadeia descontínua falha" validate_spec_metadata "$malformed_spec"
+cat > "$malformed_spec/phase-history.yaml" <<'EOF'
+schema: 1
+origin: specify
+transitions:
+  - at: "2026-08-15T00:00:00Z"
+    from: qa-gate
+    to: implement
+    command: apply-qa-fixes
+EOF
+expect_fail "histórico schema 2 truncado falha" validate_spec_metadata "$malformed_spec"
+expect_fail "zsh bloqueia histórico schema 2 truncado" zsh -c 'source "$1"; validate_spec_metadata "$2"' _ "$SCRIPT_DIR/common.sh" "$malformed_spec"
 rm "$malformed_spec/phase-history.yaml"
 expect_fail "schema 2 após specify sem histórico falha" validate_spec_metadata "$malformed_spec"
 rm -rf "$malformed_spec"
+legacy_migration_spec="$(make_spec "$repo" 018 tasks 1)"
+expect_ok "spec legada registra origem de migração" transition_spec_phase "$legacy_migration_spec" implement implement "$repo"
+expect_eq "histórico migrado declara origin migration" migration "$(read_yaml_scalar "$legacy_migration_spec/phase-history.yaml" origin)"
+expect_ok "estado migrado continua válido" validate_spec_metadata "$legacy_migration_spec"
+legacy_migration_zsh="$(make_spec "$repo" 019 tasks 1)"
+expect_ok "zsh registra origem de migração legada" zsh -c 'source "$1"; transition_spec_phase "$2" implement implement "$3"' _ "$SCRIPT_DIR/common.sh" "$legacy_migration_zsh" "$repo"
+expect_eq "histórico migrado por zsh declara origin migration" migration "$(read_yaml_scalar "$legacy_migration_zsh/phase-history.yaml" origin)"
 timestamp_spec="$(make_state_spec "$repo" 017 implement)"
 sed -i.bak 's/last_phase_change:.*/last_phase_change: "2099-01-01T00:00:00Z"/' "$timestamp_spec/spec-meta.yaml" && rm -f "$timestamp_spec/spec-meta.yaml.bak"
 expect_fail "metadata e histórico com instantes divergentes falham" validate_spec_metadata "$timestamp_spec"
@@ -306,6 +331,10 @@ sed -i.bak 's/gate: WAIVED/gate: PASS/' "$spec/gate.yaml" && rm -f "$spec/gate.y
 printf 'gate: FAIL\n' >> "$spec/gate.yaml"
 expect_fail "gate com chave crítica duplicada falha" validate_gate_for_completion "$spec"
 sed -i.bak '$d' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.bak"
+printf '"gate": FAIL\n' >> "$spec/gate.yaml"
+expect_fail "gate com chave crítica citada falha" validate_gate_for_completion "$spec"
+expect_fail "zsh bloqueia chave crítica citada em gate" zsh -c 'source "$1"; validate_gate_for_completion "$2"' _ "$SCRIPT_DIR/common.sh" "$spec"
+sed -i.bak '$d' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.bak"
 sed -i.bak 's/schema: 2/schema: 1/' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.bak"
 expect_fail "gate schema 1 em spec ativa falha" validate_gate_for_completion "$spec"
 sed -i.bak 's/schema: 1/schema: 2/' "$spec/gate.yaml" && rm -f "$spec/gate.yaml.bak"
@@ -324,11 +353,55 @@ promote_mode: manual
 ---
 # Manual fixture
 EOF
+cat > "$spec/promotion-append.md" <<'EOF'
+---
+promote: docs/canonical/append.md
+promote_mode: append
+---
+# Append fixture
+EOF
+cat > "$spec/promotion-quoted.md" <<'EOF'
+---
+"promote": docs/canonical/quoted.md
+promote_mode: copy
+---
+# Quoted fixture
+EOF
 archive_before="$(state_digest "$spec")"
 expect_fail "archive bloqueia promoção copy pendente" transition_spec_phase "$spec" archived archive "$repo"
 expect_eq "promoção pendente preserva estado" "$archive_before" "$(state_digest "$spec")"
 mkdir -p "$repo/docs/canonical"
-printf '# Applied\n' > "$repo/docs/canonical/applied.md"
+expect_fail "promoção não pode usar o próprio artefato na área de specs" validate_promotion_target "$repo" "docs/specs/013-feature-demo-013/promotion-copy.md" copy
+expect_fail "zsh bloqueia destino de promoção dentro de docs/specs" zsh -c 'source "$1"; validate_promotion_target "$2" "$3" copy' _ "$SCRIPT_DIR/common.sh" "$repo" "docs/specs/013-feature-demo-013/promotion-copy.md"
+expect_fail "front-matter bloqueia chave promote citada" validate_spec_promotions_satisfied "$repo" "$spec"
+expect_fail "zsh bloqueia chave promote citada" zsh -c 'source "$1"; validate_spec_promotions_satisfied "$2" "$3"' _ "$SCRIPT_DIR/common.sh" "$repo" "$spec"
+rm "$spec/promotion-quoted.md"
+cat > "$spec/promotion-duplicate.md" <<'EOF'
+---
+promote: docs/canonical/one.md
+promote: docs/canonical/two.md
+promote_mode: copy
+---
+# Duplicate fixture
+EOF
+expect_fail "front-matter bloqueia chave promote duplicada" validate_spec_promotions_satisfied "$repo" "$spec"
+expect_fail "zsh bloqueia chave promote duplicada" zsh -c 'source "$1"; validate_spec_promotions_satisfied "$2" "$3"' _ "$SCRIPT_DIR/common.sh" "$repo" "$spec"
+rm "$spec/promotion-duplicate.md"
+mkdir "$repo/docs/canonical/directory-target"
+expect_fail "helper bloqueia diretório como alvo de append" validate_promotion_target "$repo" docs/canonical/directory-target append
+expect_fail "zsh bloqueia diretório como alvo de append" zsh -c 'source "$1"; validate_promotion_target "$2" docs/canonical/directory-target append' _ "$SCRIPT_DIR/common.sh" "$repo"
+sed -i.bak 's#docs/canonical/applied.md#docs/canonical/directory-target#' "$spec/promotion-copy.md" && rm -f "$spec/promotion-copy.md.bak"
+expect_fail "promoção copy bloqueia diretório como alvo" validate_spec_promotions_satisfied "$repo" "$spec"
+expect_fail "zsh bloqueia diretório como alvo de copy" zsh -c 'source "$1"; validate_spec_promotions_satisfied "$2" "$3"' _ "$SCRIPT_DIR/common.sh" "$repo" "$spec"
+sed -i.bak 's#docs/canonical/directory-target#docs/canonical/applied.md#' "$spec/promotion-copy.md" && rm -f "$spec/promotion-copy.md.bak"
+printf '# Divergent\n' > "$repo/docs/canonical/applied.md"
+printf '# Existing without payload\n' > "$repo/docs/canonical/append.md"
+expect_fail "promoções bloqueiam conteúdo copy/append divergente" validate_spec_promotions_satisfied "$repo" "$spec"
+expect_fail "zsh bloqueia conteúdo copy/append divergente" zsh -c 'source "$1"; validate_spec_promotions_satisfied "$2" "$3"' _ "$SCRIPT_DIR/common.sh" "$repo" "$spec"
+cp "$spec/promotion-copy.md" "$repo/docs/canonical/applied.md"
+extract_frontmatter_body "$spec/promotion-append.md" >> "$repo/docs/canonical/append.md"
+expect_ok "promoções copy/append materialmente equivalentes passam" validate_spec_promotions_satisfied "$repo" "$spec"
+expect_ok "zsh aceita promoções materialmente equivalentes" zsh -c 'source "$1"; validate_spec_promotions_satisfied "$2" "$3"' _ "$SCRIPT_DIR/common.sh" "$repo" "$spec"
 expect_ok "qa-gate com PASS arquiva" transition_spec_phase "$spec" archived archive
 expect_eq "archived é estado final persistido" archived "$(read_spec_meta "$spec" current_phase)"
 expect_fail "archived não reabre" transition_spec_phase "$spec" implement implement

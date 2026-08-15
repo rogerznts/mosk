@@ -1,8 +1,83 @@
 # Security review — spec 013
 
-**SECURITY: PASS** — a segunda rodada revalidou SEC-1 a SEC-4 como resolvidos
-em Bash e zsh. Não há finding alto ou médio aberto com confiança superior a
-0,8.
+**SECURITY: CONCERNS** — a terceira rodada manteve SEC-1 e SEC-2 resolvidos,
+mas reabriu SEC-3 e SEC-4 e encontrou SEC-5. São 3 findings médios, todos
+reproduzidos em Bash e zsh; nenhum exige decisão de arquitetura.
+
+## Terceira rodada — revalidação das correções QA-1 a QA-8
+
+### SEC-3 · média · Histórico novo pode ser truncado sem invalidar o estado
+
+Uma spec no schema vigente e posterior a `specify` continua válida depois que
+todo o histórico é substituído por um único evento final. O validador confere a
+continuidade apenas entre eventos presentes, mas não distingue uma spec legada
+de uma spec nova nem exige que a cadeia vigente comece na origem registrada.
+
+- Contraria: FR-009 — "cada transição bem-sucedida acrescenta um evento
+  estruturado" (`docs/specs/013-feature-deterministic-pipeline-state/spec.md:148`)
+- Também: o edge case "histórico truncado numa spec nova" deve falhar
+  (`docs/specs/013-feature-deterministic-pipeline-state/spec.md:122`)
+- Onde: `mosk/.claude/mosk/scripts/common.sh:310-413` (o primeiro evento pode
+  começar em qualquer fase) e `:551-555` (schema 2 exige presença, não origem)
+- Exploração: os três eventos reais da spec 013 foram substituídos apenas por
+  `qa-gate -> implement`, preservando o timestamp final; `validate_spec_metadata`
+  aceitou o histórico truncado em Bash e zsh
+- Correção: persistir uma origem verificável do histórico. Para specs novas,
+  exigir primeiro evento `specify -> plan`; para migrações legadas, registrar
+  explicitamente um evento/marker de migração que autorize uma origem posterior
+- Confiança: 0,98
+
+### SEC-4 · média · Chave YAML citada contorna a rejeição de duplicatas
+
+O detector reconhece apenas a forma não citada `gate:`. A forma YAML
+equivalente `"gate":` não entra na contagem, permitindo que o runtime shell e
+um parser YAML completo adotem vereditos diferentes. O mesmo diferencial afeta
+metadata e pode alcançar `status`, `branch` e outras chaves críticas.
+
+- Onde: `mosk/.claude/mosk/scripts/common.sh:285-301` (detector por regex),
+  `:492-494` (metadata) e `:637-660` (gate)
+- Exploração: um gate com `gate: PASS` seguido de `"gate": FAIL` passou em
+  `validate_gate_for_completion` em Bash e zsh, enquanto Ruby/Psych leu
+  `gate=FAIL`; `status: active` seguido de `"status": archived` também passou
+  no runtime e foi lido como `archived` pelo parser YAML
+- Correção: restringir formalmente o subconjunto aceito, rejeitando qualquer
+  chave top-level citada/alternativa antes do consumo, ou normalizar chaves YAML
+  citadas e incluí-las na detecção de duplicidade; adicionar fixtures para
+  metadata, gate e front-matter de promoção
+- Confiança: 0,99
+
+### SEC-5 · média · Existência do alvo não prova que a promoção foi aplicada
+
+`validate_spec_promotions_satisfied` considera `copy` e `append` concluídos
+quando o caminho de destino simplesmente existe. Um `append` pendente contra
+qualquer documento já existente, portanto, libera a transição para `archived`
+sem que o conteúdo tenha sido promovido. Além disso, um diretório existente sem
+barra final é aceito como se fosse um arquivo.
+
+- Contraria: a pré-condição de `archived` exige "promoções satisfeitas"
+  (`docs/specs/013-feature-deterministic-pipeline-state/data-model.md:51`)
+- Onde: `mosk/.claude/mosk/scripts/common.sh:706-708` (só rejeita diretório com
+  barra final) e `:770-789` (existência é tratada como aplicação)
+- Exploração: um artefato `append` apontou para um arquivo existente que não
+  continha seu payload; o helper retornou sucesso em Bash e zsh. O destino
+  `docs/specs`, que já é diretório, também foi aceito em modo `copy`
+- Correção: rejeitar destino final que seja diretório e registrar uma prova
+  mecânica da promoção. Para `copy`, validar arquivo regular e digest/conteúdo;
+  para `append`, registrar source digest, target digest e resultado aplicado em
+  um receipt versionado. Uma decisão humana de pular precisa ser explícita no
+  mesmo registro, não inferida pela existência do alvo
+- Confiança: 0,99
+
+### Checks da terceira rodada
+
+- Selftests oficiais: common 29/29, pipeline 142/142 e toolkit 39/39.
+- O harness executou resolução, rollback de `HUP`/`INT`/`TERM`, contenção e
+  promoções tanto em Bash quanto em zsh.
+- QA-1, QA-2, QA-4, QA-5, QA-6, QA-7 e QA-8 permaneceram verdes nas fixtures
+  oficiais; QA-3 permanece incompleta por SEC-5.
+- Gate preservado byte a byte durante a revisão:
+  `ee52c777c0be40769598d200a44c4eca328e2485955c0751687f6a2ae7cf4643`.
+- Revisão concluída em `2026-08-15T20:22:44Z`; 0 HIGH, 3 MEDIUM, 0 LOW abertos.
 
 ## Segunda rodada — revalidação após as correções
 
@@ -175,4 +250,4 @@ valores. O parser do histórico exige exatamente um `at`, `from`, `to` e
 - Contagem atual: 0 HIGH, 0 MEDIUM, 0 LOW abertos; SEC-1 a SEC-4 permanecem no
   histórico como resolvidos.
 
-SECURITY: PASS
+SECURITY: CONCERNS

@@ -266,8 +266,9 @@ bash .claude/mosk/scripts/transition-spec-phase.sh \
 Exit 0 = transição/no-op idempotente; 1 = violação de contrato; 2 = erro de
 uso. `qa-gate -> implement` só é aceito por `apply-qa-fixes`, e `archived` é
 terminal. O resolvedor e o sink rejeitam symlinks/escape físico; histórico é
-validado evento a evento e precisa concordar também com `last_phase_change`;
-identidade cruza pasta, número, tipo e branch exata; chaves YAML críticas
+validado evento a evento, declara origem `specify|migration` e precisa concordar
+também com `last_phase_change`; identidade cruza pasta, número, tipo e branch
+exata; chaves YAML críticas citadas ou duplicadas
 duplicadas falham; gate vigente exige `score_history`; marcadores bloqueantes e
 promoções pendentes impedem avanço. Falhas e sinais tratados restauram metadata
 e histórico juntos. Gate legado só é aceito em spec fisicamente arquivada.
@@ -291,7 +292,8 @@ agents, skills, tasks, templates, scripts ou `core-config.yaml`.
 **Guardrail de merge (fonte única de "spec fechada").** Valida se a spec do
 branch está pronta pra abrir/mergear PR: `current_phase == archived`, gate
 `PASS` ou `WAIVED` com justificativa, aprovador e timestamp UTC, nenhum
-artefato `promote:` (copy/append) com alvo faltando e working tree limpo. A
+artefato `promote:` (copy/append) sem alvo regular materialmente equivalente e
+working tree limpo. A
 resolução procura a spec ativa e a já movida para `docs/specs/archive/`; branch
 sem prefixo de spec passa. Branch numerado com spec ausente, ambígua ou sem
 metadata falha. Todo `promote:` passa por `validate_promotion_target`, que

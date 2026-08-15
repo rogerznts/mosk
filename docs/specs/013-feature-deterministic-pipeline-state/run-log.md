@@ -6,3 +6,4 @@ sozinha, e o motivo. É o que torna a autonomia auditável depois do fato.
 | quando | onda | unidade | agente | decisão | por quê |
 |---|---|---|---|---|---|
 | 2026-08-15T20:16:55Z | 1 | spec-013 | mosk-orq | consolidou a implementação e a primeira rodada de correções em um commit local | T001–T035 concluídas; validações mecânicas 29/29, 142/142 e 39/39 passaram |
+| 2026-08-15T20:34:52Z | 2 | SEC-3/SEC-4/SEC-5 | dev-013-security-round2 | corrigiu truncamento de histórico, chaves YAML citadas e validação material de promoções | SECURITY: CONCERNS identificou três regressões médias reproduzidas em Bash e zsh |

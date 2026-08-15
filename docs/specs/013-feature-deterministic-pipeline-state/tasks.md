@@ -89,6 +89,13 @@
 - [x] T034 [QA-8] Reconciliar produto e espelho local para todas as superfícies modificadas
 - [x] T035 Executar sintaxe Bash/zsh, ShellCheck error, 29/29 common, 142/142 pipeline, 39/39 toolkit, doctor 7/7, smoke isolado, auditoria, sync, 20 pares de espelho e diff-check
 
+## Remediação da revisão de segurança — rodada 3
+
+- [x] T036 [SEC-3] Registrar `origin: specify|migration` e rejeitar histórico schema 2 truncado, com regressões Bash/zsh
+- [x] T037 [SEC-4] Rejeitar chaves YAML críticas citadas/alternativas ou duplicadas em metadata, gate e front-matter de promoção
+- [x] T038 [SEC-5] Exigir alvo regular e equivalência material para promoções `copy`/`append`, bloqueando diretórios e conteúdo divergente
+- [x] T039 Sincronizar espelhos e executar a suíte proporcional completa sem alterar `gate.yaml`
+
 ## Parallel Opportunities
 
 - T001 e T002 escrevem schemas diferentes e não compartilham estado.

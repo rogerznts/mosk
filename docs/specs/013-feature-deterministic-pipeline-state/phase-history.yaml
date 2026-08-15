@@ -1,4 +1,5 @@
 schema: 1
+origin: migration
 transitions:
   - at: "2026-08-15T19:04:33Z"
     from: tasks

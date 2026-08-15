@@ -58,15 +58,18 @@ qa-gate -> archived
 O histórico existente é validado evento a evento: chaves únicas e obrigatórias,
 timestamp UTC, aresta, comando, continuidade, ordem temporal e concordância do
 último `to` com `current_phase`. No schema 2, toda fase posterior a `specify`
-exige histórico.
+exige histórico. A origem é explícita: `origin: specify` exige primeiro evento
+`specify -> plan`; `origin: migration` autoriza uma primeira aresta posterior
+somente para specs legadas incorporadas ao contrato.
 
 ## Schema compatibility
 
 - `spec-meta` legado sem `schema` é lido como versão 1.
 - Gate com `schema: 1` é aceito somente dentro de uma spec já arquivada em
   `docs/specs/archive/`; decisões de specs ativas exigem schema 2.
-- Chaves críticas duplicadas em metadata, gate ou histórico falham em vez de
-  adotar semântica implícita de primeiro/último valor.
+- Chaves críticas citadas, indentadas ou duplicadas em metadata, gate,
+  histórico ou front-matter de promoção falham em vez de adotar semântica
+  diferente entre parsers.
 - Templates e decisões novas usam a versão vigente declarada nos schemas.
 - Versão desconhecida/futura falha e orienta atualizar o toolkit.
 - O runtime valida sem carregar uma biblioteca externa; os arquivos JSON Schema

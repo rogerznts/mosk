@@ -286,14 +286,23 @@ read_yaml_scalar() {
 # runtime intentionally supports only a small, line-oriented YAML subset, so a
 # duplicate key is always a contract violation rather than merge semantics.
 validate_no_duplicate_yaml_keys() {
-    local file="$1" key count
+    local file="$1" key counts plain_count alternate_count
     shift
     for key in "$@"; do
-        count="$(awk -v k="$key" '
-            $0 ~ "^" k "[[:space:]]*:" { n++ }
-            END { print n + 0 }
+        counts="$(awk -v k="$key" '
+            $0 ~ "^[[:space:]]*(\"" k "\"|\047" k "\047|" k ")[[:space:]]*:" {
+                if ($0 ~ "^" k "[[:space:]]*:") plain++
+                else alternate++
+            }
+            END { print plain + 0 ":" alternate + 0 }
         ' "$file")"
-        [[ "$count" -le 1 ]] || {
+        plain_count="${counts%%:*}"
+        alternate_count="${counts#*:}"
+        [[ "$alternate_count" -eq 0 ]] || {
+            echo "chave YAML '$key' usa representação não suportada em $file; use chave top-level sem aspas" >&2
+            return 1
+        }
+        [[ "$plain_count" -le 1 ]] || {
             echo "chave YAML duplicada '$key' em $file" >&2
             return 1
         }
@@ -307,15 +316,18 @@ phase_command_matches_destination() {
     esac
 }
 
-# Validate the complete append-only transition chain. A first event may start
-# in any valid phase because legacy active specs acquire history only on their
-# first transition under this contract.
+# Validate the complete append-only transition chain. New schema-2 specs record
+# origin=specify and therefore must start at specify -> plan. A legacy active
+# spec upgraded by the transition sink records origin=migration explicitly,
+# which authorizes a later first edge without pretending earlier events exist.
 validate_phase_history() {
     local spec_dir="$1" current_phase="$2" expected_last_at="${3:-}"
-    local history="$spec_dir/phase-history.yaml" parsed
+    local history="$spec_dir/phase-history.yaml" parsed meta_schema require_origin=0
     [[ -f "$history" ]] || return 0
+    meta_schema="$(read_spec_meta "$spec_dir" schema)"; meta_schema="${meta_schema:-1}"
+    [[ "$meta_schema" == 2 ]] && require_origin=1
 
-    if ! parsed="$(awk '
+    if ! parsed="$(awk -v require_origin="$require_origin" '
         function value_after_colon(line, value) {
             value=line
             sub(/^[^:]*:[[:space:]]*/, "", value)
@@ -345,6 +357,11 @@ validate_phase_history() {
             schema=value_after_colon($0)
             next
         }
+        /^origin[[:space:]]*:/ {
+            origin_count++
+            origin=value_after_colon($0)
+            next
+        }
         /^transitions[[:space:]]*:[[:space:]]*$/ {
             transitions_count++
             next
@@ -365,16 +382,28 @@ validate_phase_history() {
             if (bad) exit 1
             flush_event()
             if (schema_count != 1 || schema != "1") invalid("schema deve ocorrer uma vez e ser 1")
+            if (origin_count > 1 || (origin_count == 1 && origin != "specify" && origin != "migration")) {
+                invalid("origin deve ocorrer no máximo uma vez e ser specify ou migration")
+            }
+            if (require_origin == 1 && origin_count != 1) {
+                invalid("origin deve ocorrer uma vez no histórico do schema 2")
+            }
             if (transitions_count != 1) invalid("transitions deve ocorrer uma vez")
             if (events < 1) invalid("histórico existente deve conter ao menos um evento")
+            if (origin_count == 0) origin="migration"
+            print "@origin\t" origin
         }
     ' "$history")"; then
         return 1
     fi
 
-    local at from to command previous_to="" previous_at="" last_to="" last_at="" event_count=0
+    local at from to command history_origin="" previous_to="" previous_at="" last_to="" last_at="" event_count=0
     while IFS=$'\t' read -r at from to command; do
         [[ -n "$at" ]] || continue
+        if [[ "$at" == @origin ]]; then
+            history_origin="$from"
+            continue
+        fi
         event_count=$((event_count + 1))
         [[ "$at" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || {
             echo "timestamp inválido no evento $event_count de $history" >&2
@@ -401,6 +430,15 @@ validate_phase_history() {
         last_to="$to"
         last_at="$at"
     done <<< "$parsed"
+
+    if [[ "$history_origin" == specify && "$event_count" -gt 0 ]]; then
+        local first_event
+        first_event="$(printf '%s\n' "$parsed" | awk -F '\t' '$1 != "@origin" { print $2 ":" $3; exit }')"
+        [[ "$first_event" == specify:plan ]] || {
+            echo "phase-history truncado em $spec_dir: origin specify exige primeiro evento specify -> plan" >&2
+            return 1
+        }
+    fi
 
     [[ "$event_count" -gt 0 && "$last_to" == "$current_phase" ]] || {
         echo "phase-history diverge de current_phase em $spec_dir" >&2
@@ -704,6 +742,12 @@ validate_promotion_target() {
         *) echo "destino promote inválido '$target': deve ficar sob docs/" >&2; return 1 ;;
     esac
     case "$target" in
+        docs/specs|docs/specs/*)
+            echo "destino promote inválido '$target': deve ficar na base docs/, fora de docs/specs/" >&2
+            return 1
+            ;;
+    esac
+    case "$target" in
         */) echo "destino promote inválido '$target': informe um arquivo, não um diretório" >&2; return 1 ;;
     esac
 
@@ -738,6 +782,10 @@ validate_promotion_target() {
         echo "destino promote inválido '$target': o arquivo final não pode ser symlink" >&2
         return 1
     fi
+    if [[ "$mode" != manual && -e "$absolute" && ! -f "$absolute" ]]; then
+        echo "destino promote inválido '$target': copy/append exigem arquivo regular" >&2
+        return 1
+    fi
 
     local parent
     parent="$(dirname "$absolute")"
@@ -764,16 +812,91 @@ validate_promotion_target() {
     printf '%s\n' "$absolute"
 }
 
+# Promotion declarations use front-matter only. Quoted/indented critical keys
+# are rejected so the shell reader and a complete YAML parser cannot disagree.
+frontmatter_yaml_key_count() {
+    local file="$1" key="$2"
+    awk -v k="$key" '
+        NR == 1 { if ($0 != "---") exit; inside=1; next }
+        inside && /^---[[:space:]]*$/ { exit }
+        inside && $0 ~ "^[[:space:]]*(\"" k "\"|\047" k "\047|" k ")[[:space:]]*:" { count++ }
+        END { print count + 0 }
+    ' "$file"
+}
+
+read_frontmatter_scalar() {
+    local file="$1" key="$2"
+    awk -v k="$key" '
+        NR == 1 { if ($0 != "---") exit; inside=1; next }
+        inside && /^---[[:space:]]*$/ { exit }
+        inside && $0 ~ "^" k "[[:space:]]*:" {
+            sub("^" k "[[:space:]]*:[[:space:]]*", "", $0)
+            sub("[[:space:]]*#.*$", "", $0)
+            sub("^\"", "", $0); sub("\"$", "", $0)
+            sub("^\047", "", $0); sub("\047$", "", $0)
+            sub("^[[:space:]]+", "", $0); sub("[[:space:]]+$", "", $0)
+            print
+            exit
+        }
+    ' "$file"
+}
+
+validate_promotion_frontmatter() {
+    local file="$1" key counts plain_count alternate_count
+    for key in promote promote_mode; do
+        counts="$(awk -v k="$key" '
+            NR == 1 { if ($0 != "---") exit; inside=1; next }
+            inside && /^---[[:space:]]*$/ { exit }
+            inside && $0 ~ "^[[:space:]]*(\"" k "\"|\047" k "\047|" k ")[[:space:]]*:" {
+                if ($0 ~ "^" k "[[:space:]]*:") plain++
+                else alternate++
+            }
+            END { print plain + 0 ":" alternate + 0 }
+        ' "$file")"
+        plain_count="${counts%%:*}"
+        alternate_count="${counts#*:}"
+        [[ "$alternate_count" -eq 0 ]] || {
+            echo "chave YAML '$key' usa representação não suportada no front-matter de $file" >&2
+            return 1
+        }
+        [[ "$plain_count" -le 1 ]] || {
+            echo "chave YAML duplicada '$key' no front-matter de $file" >&2
+            return 1
+        }
+    done
+}
+
+extract_frontmatter_body() {
+    local file="$1"
+    awk '
+        NR == 1 && $0 == "---" { inside=1; next }
+        inside && /^---[[:space:]]*$/ { inside=0; body=1; next }
+        body || !inside { print }
+    ' "$file"
+}
+
 # Validate every promotion declaration before a spec can enter archived. Manual
 # promotions are intentionally informational; copy/append must already have a
 # materialized target. The same helper is shared by transition and ship-ready.
 validate_spec_promotions_satisfied() {
     local repo_root="$1" spec_dir="$2" promotion_file target mode validated_target failures=0
+    local promote_count mode_count body_tmp body_size target_size
     while IFS= read -r promotion_file; do
         [[ -n "$promotion_file" ]] || continue
-        target="$(awk -F': *' '/^promote:/{print $2; exit}' "$promotion_file" | tr -d '"'"'"' ')"
-        mode="$(awk -F': *' '/^promote_mode:/{print $2; exit}' "$promotion_file" | tr -d '"'"'"' ')"
-        [[ -n "$target" ]] || continue
+        promote_count="$(frontmatter_yaml_key_count "$promotion_file" promote)"
+        mode_count="$(frontmatter_yaml_key_count "$promotion_file" promote_mode)"
+        [[ "$promote_count" -gt 0 || "$mode_count" -gt 0 ]] || continue
+        if ! validate_promotion_frontmatter "$promotion_file"; then
+            failures=$((failures + 1))
+            continue
+        fi
+        [[ "$promote_count" -eq 1 ]] || {
+            echo "promote ausente no front-matter de $(basename "$promotion_file")" >&2
+            failures=$((failures + 1))
+            continue
+        }
+        target="$(read_frontmatter_scalar "$promotion_file" promote)"
+        mode="$(read_frontmatter_scalar "$promotion_file" promote_mode)"
         [[ -n "$mode" ]] || mode=copy
         if ! validated_target="$(validate_promotion_target "$repo_root" "$target" "$mode" 2>&1)"; then
             echo "promote inválido em $(basename "$promotion_file"): $validated_target" >&2
@@ -781,11 +904,33 @@ validate_spec_promotions_satisfied() {
             continue
         fi
         [[ "$mode" == manual ]] && continue
-        if [[ ! -e "$validated_target" ]]; then
+        if [[ ! -f "$validated_target" ]]; then
             echo "promote não aplicado: $(basename "$promotion_file") -> $target" >&2
             failures=$((failures + 1))
+            continue
         fi
-    done < <(grep -rl '^promote:' "$spec_dir" 2>/dev/null || true)
+        case "$mode" in
+            copy)
+                if ! cmp -s "$promotion_file" "$validated_target"; then
+                    echo "promote copy divergente: $(basename "$promotion_file") -> $target" >&2
+                    failures=$((failures + 1))
+                fi
+                ;;
+            append)
+                body_tmp="$(mktemp "${TMPDIR:-/tmp}/mosk-promote-body.XXXXXX")" || return 1
+                extract_frontmatter_body "$promotion_file" > "$body_tmp"
+                body_size="$(wc -c < "$body_tmp" | tr -d ' ')"
+                target_size="$(wc -c < "$validated_target" | tr -d ' ')"
+                if [[ "$body_size" -eq 0 || "$target_size" -lt "$body_size" ]] || \
+                   ! tail -c "$body_size" "$validated_target" | cmp -s - "$body_tmp"; then
+                    echo "promote append divergente: $(basename "$promotion_file") -> $target" >&2
+                    failures=$((failures + 1))
+                fi
+                rm -f "$body_tmp"
+                body_tmp=""
+                ;;
+        esac
+    done < <(find "$spec_dir" -type f -name '*.md' -print 2>/dev/null)
     [[ "$failures" -eq 0 ]]
 }
 
@@ -925,8 +1070,10 @@ transition_spec_phase() (
     trap 'exit 1' HUP INT TERM
     validate_spec_metadata "$spec_dir" || return 1
 
-    local old_phase now
+    local old_phase old_schema history_origin now
     old_phase="$(read_spec_meta "$spec_dir" current_phase)"
+    old_schema="$(read_spec_meta "$spec_dir" schema)"; old_schema="${old_schema:-1}"
+    if [[ "$old_schema" == 2 ]]; then history_origin=specify; else history_origin=migration; fi
     case "$new_phase" in specify|plan|tasks|implement|qa-gate|archived) ;; *) echo "fase desconhecida '$new_phase'" >&2; return 1 ;; esac
     if [[ "$old_phase" == "$new_phase" ]]; then return 0; fi
     [[ "$old_phase" != archived ]] || { echo "archived é estado terminal" >&2; return 1; }
@@ -941,9 +1088,16 @@ transition_spec_phase() (
     if [[ -f "$history" ]]; then
         history_backup="$(mktemp "$spec_dir/.phase-history-backup.XXXXXX")" || return 1
         cp "$history" "$history_backup" || return 1
-        cp "$history" "$history_tmp" || return 1
+        if [[ "$old_schema" == 1 ]] && ! grep -q '^origin[[:space:]]*:' "$history"; then
+            awk '
+                /^schema[[:space:]]*:/ { print; print "origin: migration"; next }
+                { print }
+            ' "$history" > "$history_tmp" || return 1
+        else
+            cp "$history" "$history_tmp" || return 1
+        fi
     else
-        printf 'schema: 1\ntransitions:\n' > "$history_tmp"
+        printf 'schema: 1\norigin: %s\ntransitions:\n' "$history_origin" > "$history_tmp"
     fi
 
     awk -v phase="$new_phase" -v now="$now" '

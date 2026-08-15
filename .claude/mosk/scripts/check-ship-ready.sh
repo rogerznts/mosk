@@ -6,7 +6,7 @@
 # Falha (exit 1) se a spec do branch tiver pontas soltas:
 #   - current_phase != archived (não passou pelo archive do pipeline);
 #   - gate ausente ou diferente de PASS/WAIVED formalizado;
-#   - artefatos com `promote:` (copy/append) cujo alvo ainda não existe;
+#   - artefatos `promote:` sem alvo regular materialmente equivalente;
 #   - working tree sujo (mudanças não commitadas).
 # Branch sem spec ativa (base branch / mudança não-spec) → passa (exit 0): o
 # gate é sobre specs MOSK, não sobre todo branch.
@@ -30,7 +30,7 @@ soltas (lista os motivos); exit 2 = erro de uso.
 Checagens (quando ha spec ativa):
   - current_phase == archived
   - gate PASS ou WAIVED com justificativa, aprovador e timestamp UTC
-  - nenhum artefato promote (copy/append) com alvo faltando
+  - todo promote copy/append possui alvo regular materialmente equivalente
   - working tree limpo
 
 Opcoes:
@@ -136,8 +136,8 @@ if ! gate_failure="$(validate_gate_for_completion "$FEATURE_DIR" 2>&1)"; then
     add_fail "$gate_failure"
 fi
 
-# 3. artefatos promote (copy/append) com alvo faltando. A transição para
-# archived usa o mesmo helper, evitando dois contratos que possam divergir.
+# 3. artefatos promote (copy/append) com alvo regular e conteúdo aplicado. A
+# transição para archived usa o mesmo helper, evitando contratos divergentes.
 if ! promotion_failure="$(validate_spec_promotions_satisfied "$REPO_ROOT" "$FEATURE_DIR" 2>&1)"; then
     add_fail "$promotion_failure"
 fi

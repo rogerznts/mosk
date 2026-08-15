@@ -206,7 +206,11 @@ Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) confirm
 their post-condition through `transition-spec-phase.sh`. The transition validates
 the allowed edge, verifies artifact markers and pending promotions, updates
 `current_phase` with rollback on failures/signals and appends
-`phase-history.yaml`; it never chooses the next phase for the user. `index-docs`
+`phase-history.yaml`. New histories declare `origin: specify` and must start at
+`specify -> plan`; migrated histories declare `origin: migration`. Critical
+YAML keys are unquoted and unique, and `copy`/`append` promotions only count as
+applied when a regular target is materially equivalent. The CLI never chooses
+the next phase for the user. `index-docs`
 reads the current projection to build the Active Specs table in `docs/index.md`.
 
 ## Entry Point: `docs/index.md`
