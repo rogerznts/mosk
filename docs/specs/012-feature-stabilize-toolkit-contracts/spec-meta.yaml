@@ -1,0 +1,9 @@
+spec_number: "012"
+spec_id: "012-feature-stabilize-toolkit-contracts"
+type: "feature"
+branch: "feature/012-stabilize-toolkit-contracts"
+created_at: "2026-08-15T17:07:14Z"
+created_by: "Roger <phpsaux@gmail.com>"
+status: active
+current_phase: specify
+last_phase_change: "2026-08-15T17:07:14Z"
