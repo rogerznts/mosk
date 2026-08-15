@@ -244,6 +244,66 @@ git -C "$ship_repo" commit -qm "test: add unsafe promote fixture"
 expect_fail_contains "ship-ready bloqueia promote com traversal" \
     "promote inválido" run_ship_ready "$ship_repo"
 
+echo "selftest-toolkit: superfície legada"
+legacy_fixture="$TMP_ROOT/legacy-surface"
+mkdir -p "$legacy_fixture/.claude/mosk/data" \
+    "$legacy_fixture/.claude/mosk/tasks" \
+    "$legacy_fixture/.claude/agents"
+printf '# fixture\n' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
+printf '# consumer\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
+printf 'path_pattern\tkind\treason\n' \
+    > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
+write_legacy_catalog() {
+    printf 'task\taction\tdestination\tconsumers\tevidence\treason\n' \
+        > "$legacy_fixture/.claude/mosk/data/task-dispositions.tsv"
+    printf '%b\n' "$1" >> "$legacy_fixture/.claude/mosk/data/task-dispositions.tsv"
+}
+run_legacy_audit() {
+    bash "$SCRIPT_DIR/audit-legacy-surface.sh" \
+        --root "$legacy_fixture" --expected-count 1
+}
+
+base_row="sample.md	keep		.claude/agents/mosk-sample.md	not_applicable	fixture válida"
+write_legacy_catalog "$base_row"
+expect_ok "inventário mínimo válido passa" run_legacy_audit
+
+rm -f "$legacy_fixture/.claude/mosk/tasks/sample.md"
+expect_fail_contains "task ausente falha" "task ausente sem absorção coberta" run_legacy_audit
+printf '# fixture\n' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
+
+write_legacy_catalog "$base_row"
+printf '%b\n' "$base_row" >> "$legacy_fixture/.claude/mosk/data/task-dispositions.tsv"
+expect_fail_contains "task duplicada falha" "task ausente/duplicada" run_legacy_audit
+
+write_legacy_catalog "sample.md	invalid		.claude/agents/mosk-sample.md	pending	ação inválida"
+expect_fail_contains "ação de inventário inválida falha" "ação inválida" run_legacy_audit
+
+write_legacy_catalog "sample.md	merge		.claude/agents/mosk-sample.md	pending	merge sem destino"
+expect_fail_contains "merge sem destino falha" "merge sem destino" run_legacy_audit
+
+write_legacy_catalog "sample.md	keep		.claude/agents/missing.md	not_applicable	consumer inválido"
+expect_fail_contains "consumidor órfão falha" "consumidor órfão" run_legacy_audit
+
+rm -f "$legacy_fixture/.claude/mosk/tasks/sample.md"
+printf '# destino\n' > "$legacy_fixture/.claude/mosk/tasks/destination.md"
+printf 'Use `.claude/mosk/tasks/sample.md`.\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
+write_legacy_catalog "sample.md	merge	.claude/mosk/tasks/destination.md	.claude/agents/mosk-sample.md	covered	capacidade absorvida"
+expect_fail_contains "referência ativa a task removida falha" "referência ativa a path removido" run_legacy_audit
+
+rm -f "$legacy_fixture/.claude/mosk/tasks/destination.md"
+printf '# fixture\n%s%s controla este fluxo.\n' 'BM' 'AD' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
+printf '# consumer\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
+write_legacy_catalog "$base_row"
+expect_fail_contains "legado operacional fora da allowlist falha" "referência legada operacional" run_legacy_audit
+
+printf '# fixture\n<!-- Inspired by %s%s -->\n' 'BM' 'AD' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
+printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tAtribuição histórica da fixture.\n' \
+    > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
+expect_ok "atribuição legada explicitamente permitida passa" run_legacy_audit
+
+echo "selftest-toolkit: classificador adaptativo integrado"
+expect_ok "selftest adaptativo passa" bash "$SCRIPT_DIR/selftest-adaptive-work.sh"
+
 if [[ -n "$FAILURES" ]]; then
     echo "FALHOU" >&2
     printf '%s' "$FAILURES" >&2

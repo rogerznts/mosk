@@ -17,13 +17,13 @@
 
 **Purpose**: Congelar a superfície atual antes de remover ou compactar qualquer comportamento.
 
-- [ ] T001 Confirmar e registrar as 50 tasks atuais contra `docs/specs/archive/012-feature-stabilize-toolkit-contracts/legacy-task-inventory.md` em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/legacy-baseline.md`, destacando qualquer divergência antes de editar o corpus.
-- [ ] T002 Criar `mosk/.claude/mosk/data/task-dispositions.tsv` com exatamente uma linha por task, ação `keep|rewrite|merge|remove`, destino, consumidores, estado de evidência e justificativa conforme FR-001/FR-002.
-- [ ] T003 Medir as linhas operacionais das 18 tasks `rewrite` com fórmula reproduzível e salvar a baseline por arquivo e total em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/legacy-baseline.md`.
-- [ ] T004 [P] Criar allowlist mínima de `license|attribution|archive` em `mosk/.claude/mosk/data/legacy-reference-allowlist.tsv`, sem cobrir fonte operacional ativa por wildcard amplo.
-- [ ] T005 Escrever primeiro testes vermelhos em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para task ausente/duplicada, ação inválida, merge sem destino, consumidor órfão e referência ativa a path removido.
-- [ ] T006 Escrever primeiro testes vermelhos em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para ocorrência BMAD operacional fora da allowlist e para preservação de atribuição/licença permitida.
-- [ ] T007 Implementar `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` para validar T002–T006, reportar contagens/referências e falhar fechado sem depender de rede.
+- [x] T001 Confirmar e registrar as 50 tasks atuais contra `docs/specs/archive/012-feature-stabilize-toolkit-contracts/legacy-task-inventory.md` em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/legacy-baseline.md`, destacando qualquer divergência antes de editar o corpus.
+- [x] T002 Criar `mosk/.claude/mosk/data/task-dispositions.tsv` com exatamente uma linha por task, ação `keep|rewrite|merge|remove`, destino, consumidores, estado de evidência e justificativa conforme FR-001/FR-002.
+- [x] T003 Medir as linhas operacionais das 18 tasks `rewrite` com fórmula reproduzível e salvar a baseline por arquivo e total em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/legacy-baseline.md`.
+- [x] T004 [P] Criar allowlist mínima de `license|attribution|archive` em `mosk/.claude/mosk/data/legacy-reference-allowlist.tsv`, sem cobrir fonte operacional ativa por wildcard amplo.
+- [x] T005 Escrever primeiro testes vermelhos em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para task ausente/duplicada, ação inválida, merge sem destino, consumidor órfão e referência ativa a path removido.
+- [x] T006 Escrever primeiro testes vermelhos em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para ocorrência BMAD operacional fora da allowlist e para preservação de atribuição/licença permitida.
+- [x] T007 Implementar `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` para validar T002–T006, reportar contagens/referências e falhar fechado sem depender de rede.
 
 **Checkpoint**: O inventário e a métrica são reproduzíveis; nenhuma remoção pode ocorrer silenciosamente.
 
@@ -35,13 +35,13 @@
 
 **⚠️ CRITICAL**: Esta fase bloqueia a integração adaptativa em implement, security, QA e orquestração.
 
-- [ ] T008 [P] Copiar e ajustar o contrato aprovado para a fonte canônica `mosk/.claude/mosk/data/adaptive-work-contract.md`, mantendo enums, score, pisos, budgets e limites da Etapa 4.
-- [ ] T009 [P] Criar `mosk/.claude/mosk/schemas/change-profile.schema.json` com `additionalProperties: false`, enums fechados, tipos e campos obrigatórios do output definido em `contracts/adaptive-work-contract.md`.
-- [ ] T010 [P] Criar fixtures de limites, pisos e falhas de input em `mosk/.claude/mosk/data/adaptive-work-fixtures.tsv`, cobrindo scores 2/3, 5/6, 9/10, todos os pisos, elevação manual e duplicidade contraditória.
-- [ ] T011 Escrever primeiro `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para consumir T010 e exigir equivalência semântica em Bash/zsh, ordenação estável, schema válido quando a ferramenta existir e falha sem output para input inválido.
-- [ ] T012 Implementar `mosk/.claude/mosk/scripts/classify-change.sh` com parser allowlisted, score/pisos determinísticos, JSON formado apenas por constantes e status não zero para opções ausentes, desconhecidas ou contraditórias.
-- [ ] T013 Adicionar casos adversariais a `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para command substitution, metacaracteres, argumentos repetidos, tentativa de rebaixamento e valores Unicode inesperados, provando que nada é avaliado como shell/path.
-- [ ] T014 Integrar descoberta e execução dos novos checks em `mosk/.claude/mosk/scripts/doctor.sh` e `mosk/.claude/mosk/scripts/selftest-toolkit.sh`, mantendo a instalação isolada autocontida.
+- [x] T008 [P] Copiar e ajustar o contrato aprovado para a fonte canônica `mosk/.claude/mosk/data/adaptive-work-contract.md`, mantendo enums, score, pisos, budgets e limites da Etapa 4.
+- [x] T009 [P] Criar `mosk/.claude/mosk/schemas/change-profile.schema.json` com `additionalProperties: false`, enums fechados, tipos e campos obrigatórios do output definido em `contracts/adaptive-work-contract.md`.
+- [x] T010 [P] Criar fixtures de limites, pisos e falhas de input em `mosk/.claude/mosk/data/adaptive-work-fixtures.tsv`, cobrindo scores 2/3, 5/6, 9/10, todos os pisos, elevação manual e duplicidade contraditória.
+- [x] T011 Escrever primeiro `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para consumir T010 e exigir equivalência semântica em Bash/zsh, ordenação estável, schema válido quando a ferramenta existir e falha sem output para input inválido.
+- [x] T012 Implementar `mosk/.claude/mosk/scripts/classify-change.sh` com parser allowlisted, score/pisos determinísticos, JSON formado apenas por constantes e status não zero para opções ausentes, desconhecidas ou contraditórias.
+- [x] T013 Adicionar casos adversariais a `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para command substitution, metacaracteres, argumentos repetidos, tentativa de rebaixamento e valores Unicode inesperados, provando que nada é avaliado como shell/path.
+- [x] T014 Integrar descoberta e execução dos novos checks em `mosk/.claude/mosk/scripts/doctor.sh` e `mosk/.claude/mosk/scripts/selftest-toolkit.sh`, mantendo a instalação isolada autocontida.
 
 **Checkpoint**: O mesmo conjunto de sinais produz o mesmo perfil em Bash e zsh e nenhum sinal crítico pode ser rebaixado.
 
