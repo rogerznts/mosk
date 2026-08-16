@@ -86,8 +86,8 @@ run_must_fail_clean() {
     name="$1"
     shift
     output="$(bash "$CLASSIFIER" "$@" 2>/dev/null)"
-    status=$?
-    if [ "$status" -ne 0 ] && [ -z "$output" ]; then ok "$name"; else fail "$name"; fi
+    command_status=$?
+    if [ "$command_status" -ne 0 ] && [ -z "$output" ]; then ok "$name"; else fail "$name"; fi
 }
 
 marker="$TMP_ROOT/command-substitution"
