@@ -55,19 +55,19 @@
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Adicionar fixtures de conversa para pedido claro, ambiguidade material, opt-in avançado e ação irreversível em `mosk/.claude/mosk/data/direct-flow-fixtures.md` com outputs/limites esperados.
-- [ ] T016 [US1] Escrever primeiro regressões em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` que detectem menus obrigatórios `1-9`, hard stop por `elicit: true`, mais de uma rodada de pergunta e ausência de rota opt-in.
+- [x] T015 [P] [US1] Adicionar fixtures de conversa para pedido claro, ambiguidade material, opt-in avançado e ação irreversível em `mosk/.claude/mosk/data/direct-flow-fixtures.md` com outputs/limites esperados.
+- [x] T016 [US1] Escrever primeiro regressões em `mosk/.claude/mosk/scripts/selftest-toolkit.sh` que detectem menus obrigatórios `1-9`, hard stop por `elicit: true`, mais de uma rodada de pergunta e ausência de rota opt-in.
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Reescrever `mosk/.claude/mosk/tasks/create-doc.md` para geração direta, decisão por ambiguidade material e no máximo uma rodada agrupada, referenciando o contrato adaptativo sem duplicá-lo.
-- [ ] T018 [US1] Reescrever `mosk/.claude/mosk/tasks/advanced-elicitation.md` como modo explicitamente opt-in, sem autoativação pelo template nem menu obrigatório no retorno ao happy path.
-- [ ] T019 [P] [US1] Simplificar `mosk/.claude/mosk/tasks/create-brief.md` e `mosk/.claude/mosk/tasks/create-market-research.md` para chamar o contrato direto e remover instruções duplicadas de seleção `1-9`.
-- [ ] T020 [P] [US1] Simplificar `mosk/.claude/mosk/tasks/create-competitor-analysis.md` e `mosk/.claude/mosk/tasks/create-deep-research-prompt.md` com o mesmo contrato de clarificação agrupada.
-- [ ] T021 [US1] Remover hard stops de elicitação dos templates documentais em `mosk/.claude/mosk/templates/project-brief-tmpl.yaml`, `market-research-tmpl.yaml`, `competitor-analysis-tmpl.yaml`, `prd-tmpl.yaml` e templates de arquitetura, preservando seções opcionais acionáveis explicitamente.
-- [ ] T022 [P] [US1] Ajustar `mosk/.claude/mosk/tasks/full-spec.md`, `specify.md`, `plan.md` e `tasks.md` para explicitar o limite de uma rodada agrupada no fluxo e evitar confirmações entre transições reversíveis.
-- [ ] T023 [US1] Atualizar os agentes consumidores em `mosk/.claude/agents/mosk-analyst.md`, `mosk-po.md`, `mosk-pm.md` e `mosk-architect.md` para expor linguagem natural e elicitação opt-in sem replicar menus.
-- [ ] T024 [US1] Executar T015/T016 em pedidos simulados e registrar evidência de 0/1 rodada em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/qa-notes.md`.
+- [x] T017 [US1] Reescrever `mosk/.claude/mosk/tasks/create-doc.md` para geração direta, decisão por ambiguidade material e no máximo uma rodada agrupada, referenciando o contrato adaptativo sem duplicá-lo.
+- [x] T018 [US1] Reescrever `mosk/.claude/mosk/tasks/advanced-elicitation.md` como modo explicitamente opt-in, sem autoativação pelo template nem menu obrigatório no retorno ao happy path.
+- [x] T019 [P] [US1] Simplificar `mosk/.claude/mosk/tasks/create-brief.md` e `mosk/.claude/mosk/tasks/create-market-research.md` para chamar o contrato direto e remover instruções duplicadas de seleção `1-9`.
+- [x] T020 [P] [US1] Simplificar `mosk/.claude/mosk/tasks/create-competitor-analysis.md` e `mosk/.claude/mosk/tasks/create-deep-research-prompt.md` com o mesmo contrato de clarificação agrupada.
+- [x] T021 [US1] Remover hard stops de elicitação dos templates documentais em `mosk/.claude/mosk/templates/project-brief-tmpl.yaml`, `market-research-tmpl.yaml`, `competitor-analysis-tmpl.yaml`, `prd-tmpl.yaml` e templates de arquitetura, preservando seções opcionais acionáveis explicitamente.
+- [x] T022 [P] [US1] Ajustar `mosk/.claude/mosk/tasks/full-spec.md`, `specify.md`, `plan.md` e `tasks.md` para explicitar o limite de uma rodada agrupada no fluxo e evitar confirmações entre transições reversíveis.
+- [x] T023 [US1] Atualizar os agentes consumidores em `mosk/.claude/agents/mosk-analyst.md`, `mosk-po.md`, `mosk-pm.md` e `mosk-architect.md` para expor linguagem natural e elicitação opt-in sem replicar menus.
+- [x] T024 [US1] Executar T015/T016 em pedidos simulados e registrar evidência de 0/1 rodada em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/qa-notes.md`.
 
 **Checkpoint**: O happy path funciona sem cerimônia herdada e mantém limites humanos reais.
 

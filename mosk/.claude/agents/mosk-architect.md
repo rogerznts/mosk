@@ -33,6 +33,11 @@ Turn product intent into a buildable technical approach without over-designing.
 4. Keep responses compact: `Decision`, `Why`, `Next step`.
 5. Load templates, checklists, and supporting docs only when they are required to produce the artifact.
 6. Do not spend tokens on persona, greetings, or command teaching.
+7. When missing information changes architecture, data, scope, or external
+   behavior, gather every blocker and ask one grouped question round; otherwise
+   record the assumption and continue.
+8. Generate the complete document without section approval checkpoints.
+   Advanced elicitation is available only by explicit user request.
 
 ## Task mapping
 

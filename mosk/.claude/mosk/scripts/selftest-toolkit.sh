@@ -58,6 +58,24 @@ expect_fail_contains() {
     fi
 }
 
+file_contains() {
+    grep -Fq "$2" "$1"
+}
+
+file_not_contains_pattern() {
+    ! grep -Eq "$2" "$1"
+}
+
+file_contains_pattern() {
+    grep -Eiq "$2" "$1"
+}
+
+exact_occurrences() {
+    local file="$1" needle="$2" expected="$3" actual
+    actual="$(grep -Fc "$needle" "$file" || true)"
+    [[ "$actual" -eq "$expected" ]]
+}
+
 write_gate() {
     local dir="$1" verdict="$2" active="${3:-false}" reason="${4:-}" owner="${5:-}" at="${6:-}"
     mkdir -p "$dir"
@@ -300,6 +318,106 @@ printf '# fixture\n<!-- Inspired by %s%s -->\n' 'BM' 'AD' > "$legacy_fixture/.cl
 printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tAtribuição histórica da fixture.\n' \
     > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
 expect_ok "atribuição legada explicitamente permitida passa" run_legacy_audit
+
+echo "selftest-toolkit: fluxo documental direto"
+direct_fixture="$INSTALL_ROOT/.claude/mosk/data/direct-flow-fixtures.md"
+create_doc="$INSTALL_ROOT/.claude/mosk/tasks/create-doc.md"
+advanced_elicitation="$INSTALL_ROOT/.claude/mosk/tasks/advanced-elicitation.md"
+
+expect_ok "fixtures do fluxo direto existem" test -f "$direct_fixture"
+expect_ok "pedido claro usa zero rodadas" \
+    exact_occurrences "$direct_fixture" '## clear-request' 1
+expect_ok "ambiguidade material usa uma rodada" \
+    exact_occurrences "$direct_fixture" '`clarification_rounds: 1`' 1
+expect_ok "demais fixtures não abrem entrevista" \
+    exact_occurrences "$direct_fixture" '`clarification_rounds: 0`' 3
+expect_ok "fixture avançada exige ativação explícita" \
+    file_contains "$direct_fixture" '`activation: explicit_only`'
+expect_ok "fixture irreversível preserva pausa humana" \
+    exact_occurrences "$direct_fixture" '`human_pause: true`' 1
+
+expect_ok "create-doc consome contrato adaptativo" \
+    file_contains "$create_doc" '.claude/mosk/data/adaptive-work-contract.md'
+expect_ok "create-doc concentra uma rodada agrupada" \
+    file_contains "$create_doc" 'uma única rodada agrupada'
+expect_ok "create-doc não contém menu obrigatório" \
+    file_not_contains_pattern "$create_doc" 'Select 1-9|Choose a number|MANDATORY.*ELICITATION|ELICITATION IS REQUIRED|1-9 options'
+expect_ok "advanced-elicitation declara opt-in" \
+    file_contains "$advanced_elicitation" 'pedir explicitamente'
+expect_ok "advanced-elicitation não contém menu obrigatório" \
+    file_not_contains_pattern "$advanced_elicitation" 'Choose a number|0-9 selection|re-offer'
+
+direct_tasks="
+$INSTALL_ROOT/.claude/mosk/tasks/create-brief.md
+$INSTALL_ROOT/.claude/mosk/tasks/create-market-research.md
+$INSTALL_ROOT/.claude/mosk/tasks/create-competitor-analysis.md
+$INSTALL_ROOT/.claude/mosk/tasks/create-deep-research-prompt.md
+"
+direct_templates="
+$INSTALL_ROOT/.claude/mosk/templates/project-brief-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/market-research-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/competitor-analysis-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/prd-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/architecture-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/existing-project-architecture-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/front-end-architecture-tmpl.yaml
+$INSTALL_ROOT/.claude/mosk/templates/fullstack-architecture-tmpl.yaml
+"
+pipeline_tasks="
+$INSTALL_ROOT/.claude/mosk/tasks/full-spec.md
+$INSTALL_ROOT/.claude/mosk/tasks/specify.md
+$INSTALL_ROOT/.claude/mosk/tasks/plan.md
+$INSTALL_ROOT/.claude/mosk/tasks/tasks.md
+"
+direct_agents="
+$INSTALL_ROOT/.claude/agents/mosk-analyst.md
+$INSTALL_ROOT/.claude/agents/mosk-po.md
+$INSTALL_ROOT/.claude/agents/mosk-pm.md
+$INSTALL_ROOT/.claude/agents/mosk-architect.md
+"
+
+direct_contract_ok() {
+    local file
+    printf '%s\n' "$direct_tasks" | while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        file_not_contains_pattern "$file" 'Select 1-9|1-9 options|Choose a number|HARD STOP' || exit 1
+        file_contains "$file" 'uma única rodada' || exit 1
+    done
+}
+
+template_contract_ok() {
+    local file
+    printf '%s\n' "$direct_templates" | while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        file_contains "$file" 'mode: direct' || exit 1
+        file_contains "$file" 'clarification: grouped-once' || exit 1
+        file_contains "$file" 'elicitation: opt-in' || exit 1
+        file_not_contains_pattern "$file" 'elicit:[[:space:]]*true|elicitation:[[:space:]]*advanced-elicitation' || exit 1
+    done
+}
+
+pipeline_contract_ok() {
+    local file
+    printf '%s\n' "$pipeline_tasks" | while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        file_contains_pattern "$file" 'uma.*rodada|one.*round|one grouped' || exit 1
+        file_not_contains_pattern "$file" 'Select 1-9|1-9 options|Choose a number|HARD STOP' || exit 1
+    done
+}
+
+agent_contract_ok() {
+    local file
+    printf '%s\n' "$direct_agents" | while IFS= read -r file; do
+        [[ -z "$file" ]] && continue
+        file_contains_pattern "$file" 'uma.*rodada|one.*round' || exit 1
+        file_contains_pattern "$file" 'advanced elicitation.*explicit|elicitação avançada.*explícit' || exit 1
+    done
+}
+
+expect_ok "wrappers documentais usam contrato direto" direct_contract_ok
+expect_ok "templates alvo não impõem hard stop" template_contract_ok
+expect_ok "pipeline limita clarificação a uma rodada" pipeline_contract_ok
+expect_ok "agentes consumidores expõem opt-in explícito" agent_contract_ok
 
 echo "selftest-toolkit: classificador adaptativo integrado"
 expect_ok "selftest adaptativo passa" bash "$SCRIPT_DIR/selftest-adaptive-work.sh"

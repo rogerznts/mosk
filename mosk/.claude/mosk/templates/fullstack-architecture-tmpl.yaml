@@ -9,15 +9,16 @@ template:
     title: "{{project_name}} Fullstack Architecture Document"
 
 workflow:
-  mode: interactive
-  elicitation: advanced-elicitation
+  mode: direct
+  clarification: grouped-once
+  elicitation: opt-in
 
 sections:
   - id: introduction
     title: Introduction
     instruction: |
       If available, review any provided relevant documents to gather all relevant context before beginning. At minimum, you should have access to docs/prd/index.md and docs/ui/index.md. Ask the user for any documents you need but cannot locate. This template creates a unified architecture that covers both backend and frontend concerns to guide AI-driven fullstack development.
-    elicit: true
+    review: optional
     content: |
       This document outlines the complete fullstack architecture for {{project_name}}, including backend systems, frontend implementation, and their integration. It serves as the single source of truth for AI-driven development, ensuring consistency across the entire technology stack.
 
@@ -57,7 +58,7 @@ sections:
   - id: high-level-architecture
     title: High Level Architecture
     instruction: This section contains multiple subsections that establish the foundation. Present all subsections together, then elicit feedback on the complete section.
-    elicit: true
+    review: optional
     sections:
       - id: technical-summary
         title: Technical Summary
@@ -81,7 +82,7 @@ sections:
 
           2. Present 2-3 viable options with clear pros/cons
           3. Make a recommendation with rationale
-          4. Get explicit user confirmation
+          4. Record assumptions and include only materially unresolved choices in the grouped clarification round
 
           Document the choice and key services that will be used.
         template: |
@@ -149,7 +150,7 @@ sections:
       - Monitoring and logging
 
       Upon render, elicit feedback immediately.
-    elicit: true
+    review: optional
     sections:
       - id: tech-stack-table
         title: Technology Stack Table
@@ -209,7 +210,7 @@ sections:
       6. Discuss design decisions with user
 
       Create a clear conceptual model before moving to database schema.
-    elicit: true
+    review: optional
     repeatable: true
     sections:
       - id: model
@@ -245,7 +246,7 @@ sections:
       7. Include example requests/responses
 
       Use appropriate format for the chosen API style. If no API (e.g., static site), skip this section.
-    elicit: true
+    review: optional
     sections:
       - id: rest-api
         title: REST API Specification
@@ -289,7 +290,7 @@ sections:
       - Technology specifics based on tech stack choices
 
       5. Create component diagrams where helpful
-    elicit: true
+    review: optional
     sections:
       - id: component-list
         repeatable: true
@@ -327,7 +328,7 @@ sections:
       5. Note any rate limits or usage constraints
 
       If no external APIs are needed, state this explicitly and skip to next section.
-    elicit: true
+    review: optional
     repeatable: true
     sections:
       - id: api
@@ -359,7 +360,7 @@ sections:
       6. Create both high-level and detailed diagrams as needed
 
       Focus on workflows that clarify architecture decisions or complex interactions.
-    elicit: true
+    review: optional
 
   - id: database-schema
     title: Database Schema
@@ -373,12 +374,12 @@ sections:
       5. For NoSQL, show document structures
 
       Present schema in format appropriate to database type (SQL DDL, JSON schema, etc.)
-    elicit: true
+    review: optional
 
   - id: frontend-architecture
     title: Frontend Architecture
-    instruction: Define frontend-specific architecture details. After each subsection, note if user wants to refine before continuing.
-    elicit: true
+    instruction: Define frontend-specific architecture details as one coherent draft. Refinement is optional after delivery, not a pause after each subsection.
+    review: optional
     sections:
       - id: component-architecture
         title: Component Architecture
@@ -439,7 +440,7 @@ sections:
   - id: backend-architecture
     title: Backend Architecture
     instruction: Define backend-specific architecture details. Consider serverless vs traditional server approaches.
-    elicit: true
+    review: optional
     sections:
       - id: service-architecture
         title: Service Architecture
@@ -503,7 +504,7 @@ sections:
   - id: unified-project-structure
     title: Unified Project Structure
     instruction: Create a monorepo structure that accommodates both frontend and backend. Adapt based on chosen tools and frameworks.
-    elicit: true
+    review: optional
     type: code
     language: plaintext
     examples:
@@ -565,7 +566,7 @@ sections:
   - id: development-workflow
     title: Development Workflow
     instruction: Define the development setup and workflow for the fullstack application.
-    elicit: true
+    review: optional
     sections:
       - id: local-setup
         title: Local Development Setup
@@ -616,7 +617,7 @@ sections:
   - id: deployment-architecture
     title: Deployment Architecture
     instruction: Define deployment strategy based on platform choice.
-    elicit: true
+    review: optional
     sections:
       - id: deployment-strategy
         title: Deployment Strategy
@@ -648,7 +649,7 @@ sections:
   - id: security-performance
     title: Security and Performance
     instruction: Define security and performance considerations for the fullstack application.
-    elicit: true
+    review: optional
     sections:
       - id: security-requirements
         title: Security Requirements
@@ -683,7 +684,7 @@ sections:
   - id: testing-strategy
     title: Testing Strategy
     instruction: Define comprehensive testing approach for fullstack application.
-    elicit: true
+    review: optional
     sections:
       - id: testing-pyramid
         title: Testing Pyramid
@@ -735,7 +736,7 @@ sections:
   - id: coding-standards
     title: Coding Standards
     instruction: Define MINIMAL but CRITICAL standards for AI agents. Focus only on project-specific rules that prevent common mistakes. These will be used by dev agents.
-    elicit: true
+    review: optional
     sections:
       - id: critical-rules
         title: Critical Fullstack Rules
@@ -760,7 +761,7 @@ sections:
   - id: error-handling
     title: Error Handling Strategy
     instruction: Define unified error handling across frontend and backend.
-    elicit: true
+    review: optional
     sections:
       - id: error-flow
         title: Error Flow
@@ -795,7 +796,7 @@ sections:
   - id: monitoring
     title: Monitoring and Observability
     instruction: Define monitoring strategy for fullstack application.
-    elicit: true
+    review: optional
     sections:
       - id: monitoring-stack
         title: Monitoring Stack
@@ -821,4 +822,4 @@ sections:
 
   - id: checklist-results
     title: Checklist Results Report
-    instruction: Before running the checklist, offer to output the full architecture document. Once user confirms, execute the architect-checklist and populate results here.
+    instruction: After drafting the complete architecture, execute the architect-checklist directly and populate results here without an intermediate confirmation.

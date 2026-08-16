@@ -1,36 +1,29 @@
-## <!-- Inspired by BMAD and SpecKit -->
-
 docOutputLocation: docs/discovery/brief.md
-template: '.claude/mosk/templates/project-brief-tmpl.yaml'
+template: `.claude/mosk/templates/project-brief-tmpl.yaml`
 
 ---
 
-# Create Project Brief Task
+# create-brief
 
-Produce the project brief that frames the problem, intended users, success criteria, and MVP shape — written by `mosk-analyst` and stored at `docs/discovery/brief.md`.
+Produza um brief que delimite problema, usuários, critérios de sucesso e MVP.
 
-## When to run
+## Processo
 
-- Project doesn't have a brief yet, or the existing one is stale.
-- Before PRD work: PM needs the brief as the source of truth for goals and constraints.
-- After a brainstorming session, to consolidate insights into a structured deliverable.
+1. Leia o template e execute `.claude/mosk/tasks/create-doc.md` com o pedido e o
+   contexto disponível.
+2. Em pedido claro, gere diretamente. Se uma lacuna mudar o enquadramento,
+   concentre todas as perguntas bloqueantes em uma única rodada agrupada.
+3. Salve em `docs/discovery/brief.md`, preservando blocos `<!-- custom -->`.
 
-## Process
+Elicitação avançada e `custom_elicitation` são opt-in: use somente quando o
+usuário pedir exploração adicional.
 
-1. Load the YAML template at `.claude/mosk/templates/project-brief-tmpl.yaml`.
-2. Apply the execution rules described in `.claude/mosk/tasks/create-doc.md`:
-   - Process each section sequentially.
-   - When a section has `elicit: true`, present the 1-9 options block and wait for user input.
-   - Use the template's `custom_elicitation` actions whenever they fit the section better than the defaults.
-3. Save the populated document to `docs/discovery/brief.md` (overwrite if it already exists; preserve any user blocks marked with `<!-- custom -->...<!-- /custom -->`).
+## Depois
 
-## After saving
+- Sugira `/mosk-pm` quando o brief estiver pronto para virar PRD.
+- Se faltarem evidências de mercado, sugira a pesquisa específica pertinente.
+- Se ligado a uma spec ativa, escreva em `docs/specs/{id}/discovery/` com
+  `promote: copy` para `docs/discovery/brief.md`.
 
-- Suggest the user route the brief to PM via `/mosk-pm` to start the PRD.
-- If the brief surfaced unresolved market questions, suggest `/mosk-analyst market research` next.
-- If the brief is bound to an active spec instead of project-wide, write inside `docs/specs/{id}/discovery/` with `promote: copy` front-matter pointing to `docs/discovery/brief.md`.
-
-## Guardrails
-
-- Do not invent answers when the user is the only source of truth (problem statement, target users, success metrics) — ask.
-- Keep section drafts tight; deep elaboration goes through the elicitation cycle, not the initial draft.
+Não invente problema, público ou métrica que dependam do usuário. Registre
+assumptions não bloqueantes e mantenha o rascunho inicial enxuto.

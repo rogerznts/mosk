@@ -9,8 +9,9 @@ template:
     title: "{{project_name}} Architecture Document"
 
 workflow:
-  mode: interactive
-  elicitation: advanced-elicitation
+  mode: direct
+  clarification: grouped-once
+  elicitation: opt-in
 
 sections:
   - id: introduction
@@ -58,7 +59,7 @@ sections:
           - Note that manual setup will be required for all tooling and configuration
 
           Document the decision here before proceeding with the architecture design. If none, just say N/A
-        elicit: true
+        review: optional
       - id: changelog
         title: Change Log
         type: table
@@ -69,7 +70,7 @@ sections:
     title: High Level Architecture
     instruction: |
       This section contains multiple subsections that establish the foundation of the architecture. Present all subsections together at once.
-    elicit: true
+    review: optional
     sections:
       - id: technical-summary
         title: Technical Summary
@@ -109,7 +110,7 @@ sections:
 
           1. Present 2-3 viable options if multiple exist
           2. Provide your recommendation with clear rationale
-          3. Get user confirmation before finalizing
+          3. Record the recommendation and any assumption that still needs validation
           4. These patterns should align with the PRD's technical assumptions and project goals
 
           Common patterns to consider:
@@ -126,16 +127,16 @@ sections:
   - id: tech-stack
     title: Tech Stack
     instruction: |
-      This is the DEFINITIVE technology selection section. Work with the user to make specific choices:
+      This is the DEFINITIVE technology selection section. Derive specific choices from available evidence:
 
       1. Review PRD technical assumptions and any preferences from `.claude/mosk/data/technical-preferences.md` or an attached technical-preferences
       2. For each category, present 2-3 viable options with pros/cons
       3. Make a clear recommendation based on project needs
-      4. Get explicit user approval for each selection
+      4. Group any materially unresolved selections into the workflow's single clarification round
       5. Document exact versions (avoid "latest" - pin specific versions)
       6. This table is the single source of truth - all other docs must reference these choices
 
-      Key decisions to finalize - before displaying the table, ensure you are aware of or ask the user about - let the user know if they are not sure on any that you can also provide suggestions with rationale:
+      Key decisions to finalize from evidence or, when materially unresolved, the grouped clarification round:
 
       - Starter templates (if any)
       - Languages and runtimes with exact versions
@@ -144,8 +145,8 @@ sections:
       - Database and storage solutions - if unclear suggest sql or nosql or other types depending on the project and depending on cloud provider offer a suggestion
       - Development tools
 
-      Upon render of the table, ensure the user is aware of the importance of this sections choices, should also look for gaps or disagreements with anything, ask for any clarifications if something is unclear why its in the list, and also right away elicit feedback - this statement and the options should be rendered and then prompt right all before allowing user input.
-    elicit: true
+      Render the table with concise rationale and mark assumptions. Do not interrupt the document for section-by-section approval; advanced critique remains opt-in.
+    review: optional
     sections:
       - id: cloud-infrastructure
         title: Cloud Infrastructure
@@ -175,7 +176,7 @@ sections:
       5. Discuss design decisions with user
 
       Create a clear conceptual model before moving to database schema.
-    elicit: true
+    review: optional
     repeatable: true
     sections:
       - id: model
@@ -206,7 +207,7 @@ sections:
       - Technology specifics based on tech stack choices
 
       5. Create component diagrams where helpful
-    elicit: true
+    review: optional
     sections:
       - id: component-list
         repeatable: true
@@ -244,7 +245,7 @@ sections:
       5. Note any rate limits or usage constraints
 
       If no external APIs are needed, state this explicitly and skip to next section.
-    elicit: true
+    review: optional
     repeatable: true
     sections:
       - id: api
@@ -275,7 +276,7 @@ sections:
       5. Create both high-level and detailed diagrams as needed
 
       Focus on workflows that clarify architecture decisions or complex interactions.
-    elicit: true
+    review: optional
 
   - id: rest-api-spec
     title: REST API Spec
@@ -292,7 +293,7 @@ sections:
       5. Include example requests/responses
 
       Use YAML format for better readability. If no REST API, skip this section.
-    elicit: true
+    review: optional
     template: |
       openapi: 3.0.0
       info:
@@ -315,7 +316,7 @@ sections:
       5. For NoSQL, show document structures
 
       Present schema in format appropriate to database type (SQL DDL, JSON schema, etc.)
-    elicit: true
+    review: optional
 
   - id: source-tree
     title: Source Tree
@@ -332,7 +333,7 @@ sections:
       6. Clear separation of concerns
 
       Adapt the structure based on project needs. For monorepos, show service separation. For serverless, show function organization. Include language-specific conventions.
-    elicit: true
+    review: optional
     examples:
       - |
         project-root/
@@ -356,7 +357,7 @@ sections:
       5. Consider security, monitoring, and cost optimization
 
       Get user input on deployment preferences and CI/CD tool choices.
-    elicit: true
+    review: optional
     sections:
       - id: infrastructure-as-code
         title: Infrastructure as Code
@@ -398,7 +399,7 @@ sections:
       5. Ensure security (no sensitive data in logs)
 
       This section guides both AI and human developers in consistent error handling.
-    elicit: true
+    review: optional
     sections:
       - id: general-approach
         title: General Approach
@@ -450,8 +451,8 @@ sections:
       4. Overly detailed standards bloat context and slow development
       5. Standards will be extracted to separate file for dev agent use
 
-      For each standard, get explicit user confirmation it's necessary.
-    elicit: true
+      Include only standards supported by project evidence; mark any material uncertainty for the single grouped clarification round.
+    review: optional
     sections:
       - id: core-standards
         title: Core Standards
@@ -498,7 +499,7 @@ sections:
       6. Plan for test data and external dependencies
 
       Note: Basic info goes in Coding Standards for dev agent. This detailed section is for QA agent and team reference.
-    elicit: true
+    review: optional
     sections:
       - id: testing-philosophy
         title: Testing Philosophy
@@ -565,7 +566,7 @@ sections:
       3. Define clear patterns for common scenarios
       4. These rules directly impact code generation
       5. Work with user to ensure completeness without redundancy
-    elicit: true
+    review: optional
     sections:
       - id: input-validation
         title: Input Validation
@@ -622,7 +623,7 @@ sections:
 
   - id: checklist-results
     title: Checklist Results Report
-    instruction: Before running the checklist, offer to output the full architecture document. Once user confirms, execute the architect-checklist and populate results here.
+    instruction: After drafting the complete architecture, execute the architect-checklist directly and populate results here without an intermediate confirmation.
 
   - id: next-steps
     title: Next Steps

@@ -9,8 +9,9 @@ template:
     title: "Project Brief: {{project_name}}"
 
 workflow:
-  mode: interactive
-  elicitation: advanced-elicitation
+  mode: direct
+  clarification: grouped-once
+  elicitation: opt-in
   custom_elicitation:
     title: "Project Brief Elicitation Actions"
     options:
@@ -29,13 +30,7 @@ sections:
   - id: introduction
     instruction: |
       This template guides creation of a comprehensive Project Brief that serves as the foundational input for product development.
-
-      Start by asking the user which mode they prefer:
-
-      1. **Interactive Mode** - Work through each section collaboratively
-      2. **YOLO Mode** - Generate complete draft for review and refinement
-
-      Before beginning, understand what inputs are available (brainstorming results, market research, competitive analysis, initial ideas) and gather project context.
+      Use the available inputs (brainstorming results, market research, competitive analysis, initial ideas) and generate the complete draft directly. If materially blocking context is missing, include every blocking question in one grouped clarification round.
 
   - id: executive-summary
     title: Executive Summary

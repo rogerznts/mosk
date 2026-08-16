@@ -9,8 +9,9 @@ template:
     title: "Competitive Analysis Report: {{project_product_name}}"
 
 workflow:
-  mode: interactive
-  elicitation: advanced-elicitation
+  mode: direct
+  clarification: grouped-once
+  elicitation: opt-in
   custom_elicitation:
     title: "Competitive Analysis Elicitation Actions"
     options:
