@@ -162,7 +162,7 @@
 - [x] T056 Executar `mosk/.claude/mosk/scripts/sync-agents-skills.sh` nos modos oficiais para sincronizar agentes/skills e depois sincronizar `mosk/.claude/` para `.claude/` sem incluir mudanças locais fora da spec.
 - [x] T057 Rodar syntax Bash/zsh, ShellCheck error, schemas, `selftest-common.sh`, `selftest-pipeline-state.sh`, `selftest-toolkit.sh`, `selftest-adaptive-work.sh`, `doctor.sh`, audit de docs, mirrors e diff-check; registrar comandos/resultados em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/qa-notes.md`.
 - [x] T058 Validar [quickstart.md](./quickstart.md) integralmente em produto, espelho local e instalação isolada, incluindo inputs adversariais e preservação byte a byte quando a operação falhar.
-- [ ] T059 Executar `/mosk-security` diff-aware com foco em parsing de argumentos, command injection, path containment, manipulação de perfil, bypass de pisos e integridade dos gates; corrigir/revalidar até `SECURITY: PASS`.
+- [x] T059 Executar `/mosk-security` diff-aware com foco em parsing de argumentos, command injection, path containment, manipulação de perfil, bypass de pisos e integridade dos gates; corrigir/revalidar até `SECURITY: PASS`.
 - [ ] T060 Executar `/mosk-qa qa-gate 014`, aplicar correções e repetir security/QA automaticamente até `Gate PASS`, pausando somente por dúvida real ou ação irreversível.
 - [ ] T061 Atualizar `docs/index.md`, confirmar `spec-meta.yaml`/`phase-history.yaml`, staging seletivo da spec 014 e ausência das mudanças locais do archive 013 no diff preparado.
 - [ ] T062 Criar commit(s) convencionais, publicar a branch e abrir o PR da Etapa 3; parar no PR sem executar archive nem o E2E final do programa.

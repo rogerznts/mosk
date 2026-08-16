@@ -162,3 +162,68 @@ JSON, e nenhum é avaliado como shell:
 archived` sobre uma spec em `implement` é recusado (`transição proibida:
 implement -> archived`) e o SHA-1 de `spec-meta.yaml` e `phase-history.yaml`
 permanece idêntico antes e depois da tentativa.
+
+---
+
+## Security review independente (T059)
+
+Data: 2026-08-15 · Revisor: Heitor (`/mosk-security`)
+
+Relatório: `docs/qa/security/security-review-014-feature-legacy-cleanup-adaptive-intelligence.md`
+
+Veredito final: **SECURITY: PASS** — 0 HIGH, 0 MEDIUM, 4 LOW. O gate pode
+consumir a linha de veredito no fim do relatório.
+
+- `SEC-1` (allowlist aceita `.claude/*` e silencia a auditoria bloqueante
+  inteira) — **fechado**, revalidado.
+- `SEC-2` (a enumeração de superfície operacional omitia `.claude/mosk/data/`,
+  126 arquivos com os três contratos canônicos, e `.claude/mosk/schemas/`) —
+  **fechado** pela inversão de polaridade, revalidado nos seis vetores.
+- `SEC-3` (o gatilho que detectava curinga era a lista aberta `*`/`?`/`[`, e
+  `.claude/!(zzz)` sob `BASHOPTS=extglob` levava o auditor a `ok:true`/`rc=0`)
+  — **fechado** pela regra de duas formas conhecidas (caminho exato existente
+  ou prefixo sob os dois roots), revalidado com e sem extglob.
+- `SEC-4` (`[ -e "$ROOT/$pattern" ]` prova existência, não literalidade: um
+  arquivo commitado com o nome `*` faz `.claude/*` passar e reabre o bypass
+  completo, `ok:true`/`rc=0`) — **aceito sem correção nesta entrega**, por
+  decisão registrada do time lead. Não alcança a barra de exploração da task:
+  severidade `baixa` e exige commitar um artefato que não passa despercebido.
+  Recomendação documentada em `audit-legacy-surface.sh:456-458` para a próxima
+  vez que o arquivo for tocado.
+
+Pendência não-bloqueante, fora de segurança: o bloco de comentários em
+`audit-legacy-surface.sh:436-449` acumulou dois parágrafos que descrevem regras
+já removidas; só o terceiro descreve o código atual.
+
+### Security review (T059)
+
+`SECURITY: PASS` — 0 HIGH, 0 MEDIUM, 4 LOW. Relatório em
+`docs/qa/security/security-review-014-feature-legacy-cleanup-adaptive-intelligence.md`.
+
+Os quatro achados são a mesma família: a validação de `path_pattern` da
+allowlist em `audit-legacy-surface.sh`. O controle é bloqueante dentro do
+`doctor.sh`, então um pattern que o desligue em silêncio é perda de um check que
+continua sendo citado como evidência.
+
+| Id | Achado | Desfecho |
+|---|---|---|
+| SEC-1 | `.claude/*` passava no guard e allowlistava a árvore inteira (`*` atravessa `/` no `case`) | fechado e revalidado |
+| SEC-2 | a lista de superfície operacional omitia `data/` e `schemas/` | fechado e revalidado |
+| SEC-3 | detectar curinga por metacaractere quebra sob `BASHOPTS=extglob` | fechado e revalidado |
+| SEC-4 | um arquivo commitado com o nome `*` faria `[ -e ]` tratar o pattern como literal | **aceito sem correção** |
+
+A correção final não tenta reconhecer glob. Um `path_pattern` só é aceito em duas
+formas conhecidas: caminho exato existente sob a raiz, ou prefixo sob
+`.claude/mosk/data/hallmark/` ou `docs/specs/archive/` — os dois únicos lugares
+onde curinga é legítimo, já que a allowlist existe para licença e material
+arquivado. Enumerar o que é perigoso convida à omissão; descrever o conjunto
+permitido, que é pequeno e conhecido, elimina a classe.
+
+SEC-4 fica aceito porque sua precondição é commitar no repositório um arquivo
+chamado `*` — não alcança a barra de exploração da task e não concede capacidade
+a quem já não tenha escrita. A precondição do bypass encareceu a cada volta
+(`.claude/*` plausível → arquivo chamado `*`) e o veredito nunca deixou de ser
+`PASS`.
+
+13 fixtures novas em `selftest-toolkit.sh` cobrem a regra nos dois sentidos,
+incluindo `.claude/!(zzz)` com e sem `extglob`. Suíte em **113 asserções**.

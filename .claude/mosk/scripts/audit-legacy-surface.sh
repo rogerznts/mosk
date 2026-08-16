@@ -433,8 +433,35 @@ if [ -f "$ALLOWLIST" ]; then
             *) problem "pattern amplo ou fora do escopo na allowlist: $pattern" ;;
         esac
         case "$pattern" in /*|*'/../'*|../*|*'//') problem "pattern inseguro na allowlist: $pattern" ;; esac
-        if [ "$pattern" = '.claude/**' ] || [ "$pattern" = 'docs/**' ]; then
-            problem "pattern inseguro na allowlist: $pattern"
+        # Abrangência é medida, não comparada com uma lista de literais. No
+        # `case` do shell `*` atravessa `/`, então `.claude/*` allowlista a
+        # árvore inteira e desliga a varredura em silêncio — um check que sempre
+        # passa é pior que um check ausente, porque continua sendo citado como
+        # evidência. Exigimos três segmentos literais antes do primeiro curinga.
+        # Curinga é declarado por inclusão, não por exclusão. No `case` do shell
+        # `*` atravessa `/`, então um pattern raso allowlista a árvore inteira e
+        # desliga a varredura em silêncio, com rc=0 — um check que sempre passa é
+        # pior que um check ausente, porque continua sendo citado como evidência.
+        #
+        # Enumerar o que é operacional convida à omissão: basta um diretório
+        # esquecido para o buraco voltar. A allowlist existe para licença e
+        # material arquivado — um conjunto pequeno e conhecido —, então
+        # descrevemos esse conjunto e recusamos o resto.
+        # Não perguntamos "isto parece um curinga?" — essa pergunta depende de
+        # enumerar metacaracteres, e a lista muda com o shell e com opções como
+        # `extglob`, onde `!(…)` casa tudo sem conter `*`, `?` ou `[`. Em vez
+        # disso, exigimos que o pattern seja uma de duas coisas conhecidas:
+        # um caminho exato que existe, ou algo sob os dois roots onde curinga é
+        # legítimo. Qualquer outra forma é recusada sem precisar ser reconhecida.
+        if [ -e "$ROOT/$pattern" ]; then
+            :
+        else
+            case "$pattern" in
+                .claude/mosk/data/hallmark/*|docs/specs/archive/*) ;;
+                *)
+                    problem "pattern não permitido na allowlist: $pattern (use caminho exato existente, ou curinga sob .claude/mosk/data/hallmark/ ou docs/specs/archive/)"
+                    ;;
+            esac
         fi
     done < "$TMP_DIR/allow-data"
 fi

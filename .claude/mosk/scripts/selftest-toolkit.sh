@@ -354,6 +354,39 @@ printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tA
     > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
 expect_ok "atribuição legada explicitamente permitida passa" run_legacy_audit
 
+# SEC-1: no `case` do shell `*` atravessa `/`, então um pattern raso allowlista
+# a árvore inteira e desliga a varredura em silêncio, com rc=0. A abrangência é
+# medida pela profundidade literal antes do primeiro curinga — não comparada
+# com uma lista de literais, que era o guard anterior e deixava `.claude/*`
+# passar. Um check que sempre passa é pior que um check ausente.
+# Mantém a cobertura de sample.md que os casos vizinhos assumem e acrescenta o
+# pattern sob teste — isolando a abrangência como única variável.
+write_allowlist_pattern() {
+    printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tAtribuição histórica da fixture.\n%s\tattribution\tFixture de abrangência.\n' "$1" \
+        > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
+}
+for broad_pattern in '.claude/*' '.claude/**' '.claude/mosk/**' '.claude/mosk/tasks/*' \
+                     '.claude/mosk/data/*' '.claude/mosk/schemas/*' '.claude/mosk/data/?*' \
+                     '.claude/agents/*' '.claude/skills/*' 'docs/specs/*'; do
+    write_allowlist_pattern "$broad_pattern"
+    expect_fail_contains "allowlist recusa pattern amplo $broad_pattern" \
+        "pattern não permitido" run_legacy_audit
+done
+
+# extglob: `!(…)` casa tudo sem conter `*`, `?` ou `[`. Um detector que enumera
+# metacaracteres não o vê; a regra por forma conhecida recusa dos dois lados.
+write_allowlist_pattern '.claude/!(zzz)'
+expect_fail_contains "allowlist recusa glob estendido sem extglob" \
+    "pattern não permitido" run_legacy_audit
+run_legacy_audit_extglob() { BASHOPTS=extglob run_legacy_audit; }
+expect_fail_contains "allowlist recusa glob estendido sob extglob" \
+    "pattern não permitido" run_legacy_audit_extglob
+for allowed_pattern in '.claude/mosk/data/hallmark/upstream/**' '.claude/mosk/data/hallmark/*' \
+                       'docs/specs/archive/**'; do
+    write_allowlist_pattern "$allowed_pattern"
+    expect_ok "allowlist aceita curinga permitido $allowed_pattern" run_legacy_audit
+done
+
 # `.claude/rules/` é contexto do projeto consumidor, não superfície do toolkit:
 # um projeto que usa a ferramenta legada pode dizer isso na própria rule sem que
 # a auditoria do MOSK o repreenda. Sem este caso, a exclusão seria comportamento
