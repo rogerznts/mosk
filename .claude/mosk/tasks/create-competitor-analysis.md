@@ -1,37 +1,31 @@
-## <!-- Inspired by BMAD and SpecKit -->
-
 docOutputLocation: docs/discovery/competitor-analysis.md
-template: '.claude/mosk/templates/competitor-analysis-tmpl.yaml'
+template: `.claude/mosk/templates/competitor-analysis-tmpl.yaml`
 
 ---
 
-# Create Competitor Analysis Task
+# create-competitor-analysis
 
-Produce a competitive analysis report covering direct and indirect competitors, their positioning, strengths/weaknesses, and the resulting differentiation opportunities — written by `mosk-analyst` and stored at `docs/discovery/competitor-analysis.md`.
+Produza uma análise de concorrentes diretos e indiretos, posicionamento,
+forças, lacunas e oportunidades de diferenciação.
 
-## When to run
+## Processo
 
-- Project needs an explicit competitive frame before nailing positioning or feature scope.
-- A direct competitor surfaced and needs a structured assessment (not a tactical reaction).
-- Differentiation claims in the brief or PRD need stress-testing.
+1. Leia o template e execute `.claude/mosk/tasks/create-doc.md` com as fontes e
+   o contexto disponíveis.
+2. Gere diretamente quando objetivo e recorte competitivo estiverem claros.
+   Agrupe em uma única rodada as lacunas que mudem competidores, mercado ou
+   decisão estratégica.
+3. Salve em `docs/discovery/competitor-analysis.md`, preservando blocos
+   `<!-- custom -->`.
 
-## Process
+War-gaming, cenários de parceria e demais ações do template são elicitação
+avançada opt-in; sua mera presença não interrompe o documento.
 
-1. Load the YAML template at `.claude/mosk/templates/competitor-analysis-tmpl.yaml`.
-2. Apply the execution rules described in `.claude/mosk/tasks/create-doc.md`:
-   - Process each section sequentially.
-   - When a section has `elicit: true`, present the 1-9 options block and wait for user input.
-   - Use the template's `custom_elicitation` actions for war-gaming, partnership-vs-competition, and disruption analysis.
-3. Save the populated document to `docs/discovery/competitor-analysis.md` (overwrite; preserve `<!-- custom -->` blocks).
+## Evidência e destino
 
-## After saving
-
-- Surface differentiation opportunities into `docs/discovery/brief.md` and `docs/prd/` if those exist.
-- If the analysis exposed a defensibility gap, suggest `/mosk-architect` to evaluate technical moats.
-- If bound to an active spec, write inside `docs/specs/{id}/discovery/` with `promote: copy` to `docs/discovery/competitor-analysis.md`.
-
-## Guardrails
-
-- Distinguish observed facts (pricing, public features) from inferred strategy.
-- Avoid one-sided narratives: each competitor section must include both threats they pose and gaps they leave.
-- Keep the diff vs. our project explicit — vague "we are better at UX" claims must be replaced with concrete deltas.
+- Separe fatos públicos de inferências e explicite confiança/limitações.
+- Mostre ameaças e lacunas de cada concorrente, com deltas concretos.
+- Se ligado a uma spec ativa, escreva em `docs/specs/{id}/discovery/` com
+  `promote: copy` para `docs/discovery/competitor-analysis.md`.
+- Propague oportunidades relevantes ao brief/PRD existente sem sobrescrever
+  conteúdo do usuário.

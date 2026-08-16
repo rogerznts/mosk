@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-15T21:07:24Z
+Last updated: 2026-08-16T04:32:42Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -57,7 +57,10 @@ Corporativo).
   (`SECURITY: PASS`; contenção de destinos de promoção revalidada) e
   [`security-review-013-feature-deterministic-pipeline-state.md`](./qa/security/security-review-013-feature-deterministic-pipeline-state.md)
   (`SECURITY: PASS`; seis variantes de mapping raiz indentada foram bloqueadas
-  em Bash e zsh e o gate QA final passou).
+  em Bash e zsh e o gate QA final passou) e
+  [`security-review-014-feature-legacy-cleanup-adaptive-intelligence.md`](./qa/security/security-review-014-feature-legacy-cleanup-adaptive-intelligence.md)
+  (`SECURITY: PASS`; quatro achados `LOW` na validação de `path_pattern` da
+  allowlist — três fechados e revalidados, SEC-4 aceito sem correção).
 
 ## Planejamento (épicos ↔ Plane)
 
@@ -76,12 +79,13 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 013 | [feature-deterministic-pipeline-state](./specs/013-feature-deterministic-pipeline-state/) | qa-gate | feature/013-deterministic-pipeline-state | 2026-08-15 |
+| 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas; PR #20) | qa-gate | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-15 |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 013 | [feature-deterministic-pipeline-state](./specs/archive/013-feature-deterministic-pipeline-state/) (máquina de estados determinística, schemas versionados, histórico atômico e validação fail-closed — gate `PASS`, score 100) | archived | feature/013-deterministic-pipeline-state | 2026-08-15 |
 | 012 | [feature-stabilize-toolkit-contracts](./specs/archive/012-feature-stabilize-toolkit-contracts/) (doctor autocontido, conclusão fail-closed e inventário para remover legado BMAD — gate `PASS`, score 100) | archived | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 | 004 | [feature-orchestration-graph](./specs/archive/004-feature-orchestration-graph/) (grafo de orquestração consultivo — **revertida** pelo ADR-0018) | archived | 004-feature-orchestration-graph | 2026-08-14 |
 | 011 | [feature-direct-agents](./specs/archive/011-feature-direct-agents/) (template ship a camada de agentes; protocolo de invocação; nome de branch — gate `WAIVED`) | archived | 011-feature-direct-agents | 2026-08-05 |

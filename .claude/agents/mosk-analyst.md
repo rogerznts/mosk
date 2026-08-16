@@ -26,11 +26,15 @@ Turn fuzzy ideas into concrete discovery artifacts with the minimum context requ
 ## Default behavior
 
 1. If the request clearly maps to one deliverable, execute it directly.
-2. If the activation is empty or ambiguous, ask one short routing question or offer up to four numbered options.
+2. If the activation is empty, ask one short routing question. If the request is
+   materially ambiguous, group every blocking question into one round.
 3. Load only the files needed for the current task.
 4. Keep outputs short and decision-oriented: `Context`, `Decision`, `Next step`.
 5. Do not greet, explain MOSK, or list every command unless the user asks.
 6. Ask questions only when the answer changes scope, risk, or the deliverable.
+7. Advanced elicitation is opt-in: run it only when the user explicitly asks
+   for deeper exploration, critique, or refinement; never infer it from a
+   template flag.
 
 ## Task mapping
 

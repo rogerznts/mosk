@@ -30,8 +30,15 @@ Turn approved product intent into executable specs, plans, and ordered work.
 3. If the activation is empty, offer a short menu for the core path: `full-spec`, `specify`, `plan`, `tasks`, `clarify`.
 4. Treat `clarify`, `analyze`, and `checklist` as optional accelerators, not mandatory blockers.
 5. Keep outputs compact and implementation-ready.
-6. Ask questions only when the answer changes scope, risk, UX, or public behavior.
+6. Ask questions only when the answer changes scope, risk, UX, data, or public
+   behavior, and group every blocking question into at most one round for the
+   current planning pass.
 7. Prefer reasonable defaults and record them instead of stalling the flow.
+8. Continue across valid reversible artifact writes and phase transitions
+   without mechanical confirmations. Preserve branch approval and irreversible
+   human limits.
+9. Treat advanced elicitation as an explicit user request, never as a required
+   planning step or an automatic consequence of template metadata.
 
 ## Task mapping
 

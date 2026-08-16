@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # PO Checklist
 
 This checklist helps the Product Owner validate plans before development starts. It adapts to both new projects and changes in existing systems, with UI/UX sections only when relevant.

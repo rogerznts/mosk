@@ -125,6 +125,44 @@ When the gate returns `CONCERNS`/`FAIL`, the work goes back to `/mosk-dev apply-
 
 It is distinct from the bench's automated `loop-until-green`: this cycle serves a **technical operator** and pauses for questions; the bench serves a layperson and never does.
 
+## How the agents work
+
+**One request, one document.** Writing a brief, a PRD, an architecture doc or a
+spec is a single pass. There is no numbered menu between sections and no
+approval stop on reversible writes — the agent produces the whole artifact and
+tells you what it decided.
+
+Questions are asked when — and only when — the answer changes the scope, the
+architecture, the data model or an external effect. When that happens the agent
+gathers everything it needs and asks **one grouped round**, then finishes.
+Whatever a safe default can settle is settled and reported as an assumption
+next to the delivered file. If a decision only the user can make is still
+missing after that round, the agent stops and states the real question instead
+of opening a second round.
+
+**Advanced elicitation is opt-in.** Ask for critique, alternatives or a
+stress-test of a specific passage and the agent runs a deep pass on exactly
+that, then returns to the document. No template flag switches it on, and
+finishing it does not restart the clarification round.
+
+**Rigor is proportional to the change.** `implement`, `qa-gate`,
+`security-review` and `/mosk-orq` size their work against one shared rule that
+weighs how far a change reaches, how reversible it is, whether it touches
+sensitive surface, and how much evidence backs it. A localized edit gets a
+narrow read and a focused check; a change to data, security, a public contract
+or production gets wider context, independent verification, and a security pass
+feeding the gate. Each agent states in one line how it sized the work and can
+raise that level mid-flight — **never lower it**, and never turn missing
+evidence into a `PASS`. Asking for more depth always works; what was computed
+is a floor.
+
+This governs how much work an agent does, never who routes it. Phase changes,
+gate verdicts and detours remain the human's call.
+
+**Reference material loads per phase.** Long catalogs — elicitation methods,
+test-level frameworks, runtime references — live under `.claude/mosk/data/` and
+are pulled in by the task that needs them, instead of riding in every prompt.
+
 ## Document Organization
 
 MOSK uses two mirrored layers: the **base** (project-wide truth) and **per-spec** (scope of a single feature/fix).

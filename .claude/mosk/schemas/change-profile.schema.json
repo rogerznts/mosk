@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mosk.dev/schemas/change-profile.schema.json",
+  "title": "MOSK adaptive work profile",
+  "type": "object",
+  "required": [
+    "schema",
+    "profile",
+    "score",
+    "floor",
+    "reasons",
+    "context_budget",
+    "validation_floor",
+    "specialists",
+    "human_pause"
+  ],
+  "properties": {
+    "schema": { "const": 1 },
+    "profile": { "enum": ["compact", "standard", "elevated", "critical"] },
+    "score": { "type": "integer", "minimum": 0, "maximum": 15 },
+    "floor": { "enum": ["compact", "standard", "elevated", "critical"] },
+    "reasons": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "score:0-2",
+          "score:3-5",
+          "score:6-9",
+          "score:10+",
+          "floor:data_security",
+          "floor:production_critical",
+          "floor:irreversible",
+          "floor:cross_domain_absent",
+          "floor:requested_standard",
+          "floor:requested_elevated",
+          "floor:requested_critical",
+          "pause:material_ambiguity"
+        ]
+      }
+    },
+    "context_budget": { "enum": ["compact", "standard", "elevated", "critical"] },
+    "validation_floor": { "enum": ["focused", "domain", "independent", "release"] },
+    "specialists": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["security", "qa"] }
+    },
+    "human_pause": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}

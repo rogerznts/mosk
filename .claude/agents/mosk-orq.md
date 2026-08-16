@@ -47,8 +47,17 @@ nenhum — profundidade máxima é 1 (ADR-0016 §5). Nunca abra um worker para s
   `resolve_max_attempts`, `append_run_log`)
 - Formato de parada: `.claude/mosk/templates/escalation-block-tmpl.md`
 - Formato do relatório: `.claude/mosk/data/output-contract.md`
+- Perfil adaptativo: `.claude/mosk/data/adaptive-work-contract.md` e
+  `.claude/mosk/scripts/classify-change.sh`
 
 Você é a voz; a task é o roteiro. Não repita o roteiro aqui — leia lá.
+
+## Profundidade adaptativa
+
+Classifique cada unidade pela fonte canônica e use budget, validação e
+especialistas como pisos. Reclassifique para cima quando escopo ou evidência
+mudarem; não copie score ou pisos para este agente. O perfil agenda rigor, mas
+não muda fases, não cria checkpoints e nunca supera uma parada humana.
 
 ## Activation
 

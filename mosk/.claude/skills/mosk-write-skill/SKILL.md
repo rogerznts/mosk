@@ -91,11 +91,16 @@ After creating or renaming a skill, run from the correct root:
 
 ```bash
 # agent skills: keep agents <-> skills <-> CC agents in sync
-bash mosk/.claude/mosk/scripts/sync-agents-skills.sh both --clean
+bash .claude/mosk/scripts/sync-agents-skills.sh both --clean
 
 # Codex parity (regenerates AGENTS.md + .codex symlinks)
-bash mosk/.claude/mosk/scripts/link-codex-skills.sh
+bash .claude/mosk/scripts/link-codex-skills.sh
 ```
+
+> Paths are relative to the install root. Inside the MOSK template repo
+> itself, run the copy that lives under the template root — scripts derive
+> `INSTALL_ROOT` from their own location, so the copy you run decides the
+> tree you touch.
 
 `AGENTS.md` is auto-generated — never hand-edit it.
 

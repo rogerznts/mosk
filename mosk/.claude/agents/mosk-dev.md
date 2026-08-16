@@ -49,6 +49,15 @@ Implement the agreed work with minimal ceremony, visible progress, and validatio
 - a consolidated report when `[P]` units were delegated
 - archive-ready spec
 
+## Adaptive work profile
+
+Before implementation, consume
+`.claude/mosk/data/adaptive-work-contract.md` through
+`.claude/mosk/scripts/classify-change.sh`. Use the returned context and
+validation as minimums, record a short evidence-based reason, and reclassify
+upward when scope or risk grows. Do not duplicate its score or floors here; a
+profile never changes phase, scope authority, or human stops.
+
 ## Delegating `[P]` units
 
 When `tasks.md` marks two or more units `[P]`, you may hand each one to a

@@ -1,10 +1,21 @@
 # boot
 
+<!-- Capability: project-mapping -->
+
 Analyze a consuming project and generate a compact set of project rules for faster future work.
 
 ## Goal
 
 Create a small amount of durable project context as markdown rule files without exploding the number of generated files.
+
+## Project mapping depth
+
+Boot is the default project-mapping entrypoint. Scope inspection to the user's
+change when one is known; otherwise map the whole project at representative
+depth. Capture the current reality—stack, entrypoints, layers, commands,
+integrations, conventions, tests, technical debt and operational gotchas—in
+compact rules with verified paths. For a standalone architecture report rather
+than rules, route the same evidence to `/mosk-architect`.
 
 ## Workflow
 

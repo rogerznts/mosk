@@ -37,9 +37,17 @@ Encontrar vulnerabilidades exploráveis reais nas mudanças, com ruído mínimo,
 
 ## Expected outputs
 
-- findings priorizados: `file:line`, severity (HIGH/MEDIUM/LOW), confidence (0–1), category, exploit scenario, recommendation
+- findings priorizados na forma de `.claude/mosk/data/output-contract.md` (id `SEC-#`, bloco com título), acrescidos de severity (HIGH/MEDIUM/LOW), confidence (0–1) e category
 - veredito de segurança (`SECURITY: PASS | CONCERNS | FAIL`) que o gate de QA pode consumir
 - caminho do relatório gravado sob `{qa.qaLocation}/security/`
+
+## Adaptive work profile
+
+Consume `.claude/mosk/data/adaptive-work-contract.md` through
+`.claude/mosk/scripts/classify-change.sh`; do not duplicate its score or floors.
+Treat context, validation and specialists as minimums, reclassify upward when
+the traced surface grows, and keep the security verdict independent. An
+explicit review request is always valid regardless of the calculated minimum.
 
 ## Escalation signals
 

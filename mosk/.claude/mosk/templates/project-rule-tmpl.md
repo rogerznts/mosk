@@ -28,35 +28,17 @@ idioma do projeto, edite apenas o valor acima (o padrão é português / pt-BR).
 
 ### Contrato de saída (MOSK-invariante)
 
-Um identificador é um **ponteiro**. Citá-lo sem o valor ao lado transfere
-trabalho de quem escreve para quem lê — e quem escreve é justamente quem acabou
-de olhar o artefato. Quatro regras, válidas para toda saída que um humano lê:
+Toda saída que um humano vai ler — achado de gate, relatório de segurança,
+avaliação de risco e NFR, rastreabilidade, análise de consistência — segue
+**`.claude/mosk/data/output-contract.md`**, que é a fonte única do formato:
+vocabulário de ids, as quatro regras de citação, formato de achado, severidade
+e resumo antes do detalhe.
 
-1. **Primeira menção carrega o significado.** `SC-004 — "toda busca deve
-   estreitar por collection"`. Aspas = citação literal; sem aspas = paráfrase
-   de até ~12 palavras. Depois disso, no mesmo bloco, pode ser seco.
-2. **Id nunca é sujeito de uma afirmação.** Não: "SC-004 não satisfeito". Sim:
-   "A busca não estreita por coleção — contraria SC-004".
-3. **Caminho diz o que há lá.** Não: `spec.md:174–181`. Sim:
-   `spec.md:174–181 (seção "Medidas de sucesso")`.
-4. **Título se sustenta sozinho.** Quem lê só os títulos sai sabendo o que está
-   errado.
-
-**Vocabulário canônico — não invente prefixos.**
-Planejamento: `FR-###` requisito funcional · `NFR-###` requisito não-funcional ·
-`SC-###` critério de sucesso · `US-#` user story · `AC-#` critério de aceite ·
-`T###` tarefa · `ADR-####` decisão de arquitetura.
-Avaliação: `QA-#` achado de gate · `SEC-#` achado de segurança ·
-`RISK-<CAT>-#` risco (`CAT` ∈ `SEC` `PERF` `DATA` `BUS` `OPS` `TECH`).
-Ids de achado são **estáveis dentro da spec**: `QA-1` na segunda volta é o mesmo
-defeito da primeira.
-
-**Achado é bloco, não linha de tabela** — `### <id> · <severidade> · <título>`,
-um parágrafo de evidência com número concreto, e os marcadores `Contraria:` /
-`Também:` / `Onde:` / `Custo:` quando houver o que dizer. Tabela serve para
-inventário (matriz de risco, cobertura), não para achado.
-
-Contrato completo, com exemplos: `.claude/mosk/data/output-contract.md`.
+Ele é curto e é obrigatório. **Leia o arquivo antes de escrever o primeiro
+achado**, não de memória — a regra vale mesmo para o agente que não declarou o
+contrato entre as suas dependências. Em uma linha, para você reconhecer quando
+precisa dele: *id citado carrega a sua glossa na primeira menção, e achado é
+bloco com título, nunca linha de tabela.*
 
 ## Stack
 

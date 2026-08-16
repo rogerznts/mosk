@@ -1,0 +1,5 @@
+path_pattern	kind	reason
+.claude/mosk/data/hallmark/VENDOR.md	license	Registro legal e de proveniência do fork vendorizado.
+.claude/mosk/data/hallmark/LICENSE	license	Texto de licença do material vendorizado.
+.claude/mosk/data/hallmark/upstream/**	attribution	Arquivos preservados do upstream podem conter atribuição histórica.
+docs/specs/archive/**	archive	Specs arquivadas são evidência histórica e não controlam o produto ativo.

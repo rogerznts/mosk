@@ -232,3 +232,8 @@ evidências e promoções e produz o mesmo resultado em nova execução.
   idempotência, concorrência e interrupção de escrita.
 - **SC-010**: O pacote termina sem marcadores `NEEDS CLARIFICATION` e sem decisão
   de arquitetura ou produto pendente.
+
+---
+**Arquivado em:** 2026-08-15
+**Status final:** Concluído
+**Promoções aplicadas:** nenhuma promoção declarada

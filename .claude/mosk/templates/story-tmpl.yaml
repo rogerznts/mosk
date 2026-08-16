@@ -1,4 +1,3 @@
-# <!-- Inspired by BMAD and SpecKit -->
 template:
   id: story-template-v2
   name: Story Document
@@ -131,8 +130,7 @@ sections:
         owner: dev-agent
         editors: [dev-agent]
 
-  - id: qa-results
-    title: QA Results
-    instruction: Results from QA Agent QA review of the completed story implementation
-    owner: qa-agent
-    editors: [qa-agent]
+  # A revisão pós-implementação foi absorvida pelo modo story de `qa-gate.md`,
+  # que grava o veredito em `gate.yaml` sob `qa.qaLocation`. Uma seção de QA
+  # aqui nasceria vazia e permaneceria vazia — o gate é o destino explícito, e
+  # dois lugares para o mesmo registro é o que a fusão veio desfazer.

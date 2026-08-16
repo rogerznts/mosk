@@ -1,4 +1,4 @@
-# <!-- Inspired by BMAD and SpecKit -->
+# MOSK existing-project PRD template
 template:
   id: existing-project-prd-template-v2
   name: Existing Project Enhancement PRD
@@ -22,7 +22,7 @@ sections:
 
       1. **Assess Enhancement Complexity**: If this is a simple feature addition or bug fix that could be completed in 1-2 focused development sessions, STOP and recommend: "For simpler changes, consider using the create-epic or create-story task with the Product Owner instead. This full PRD process is designed for substantial enhancements that require architectural planning and multiple coordinated stories."
 
-      2. **Project Context**: Determine if we're working in an IDE with the project already loaded or if the user needs to provide project information. If project files are available, analyze existing documentation in the docs folder. If insufficient documentation exists, recommend running the map-project task first.
+      2. **Project Context**: Determine if the project is loaded or if the user needs to provide material. If documentation is insufficient, use `/mosk-boot` for compact project rules or `/mosk-architect` for a factual current-state architecture report.
 
       3. **Deep Assessment Requirement**: You MUST thoroughly analyze the existing project structure, patterns, and constraints before making ANY suggestions. Every recommendation must be grounded in actual project analysis, not assumptions.
 
@@ -34,26 +34,26 @@ sections:
     sections:
       - id: existing-project-overview
         title: Existing Project Overview
-        instruction: Check if map-project analysis was already performed. If yes, reference that output instead of re-analyzing.
+        instruction: Check if boot rules or a current-state architecture report already exist. If yes, reference that evidence instead of re-analyzing.
         sections:
           - id: analysis-source
             title: Analysis Source
             instruction: |
               Indicate one of the following:
-              - map-project output available at: {{path}}
+              - MOSK project mapping available at: {{path}}
               - IDE-based fresh analysis
               - User-provided information
           - id: current-state
             title: Current Project State
             instruction: |
-              - If map-project output exists: Extract summary from "High Level Architecture" and "Technical Summary" sections
+              - If project mapping exists: Extract its current-state architecture and technical summary
               - Otherwise: Brief description of what the project currently does and its primary purpose
       - id: documentation-analysis
         title: Available Documentation Analysis
         instruction: |
-          If map-project was run:
-          - Note: "map-project analysis available - using existing technical documentation"
-          - List key documents created by map-project
+          If MOSK project mapping exists:
+          - Note: "Using existing MOSK project mapping evidence"
+          - List its key rules/documents
           - Skip the missing documentation check below
 
           Otherwise, check for existing documentation:
@@ -62,17 +62,17 @@ sections:
             title: Available Documentation
             type: checklist
             items:
-              - Tech Stack Documentation [[LLM: If from map-project, check ✓]]
-              - Source Tree/Architecture [[LLM: If from map-project, check ✓]]
-              - Coding Standards [[LLM: If from map-project, may be partial]]
-              - API Documentation [[LLM: If from map-project, check ✓]]
-              - External API Documentation [[LLM: If from map-project, check ✓]]
-              - UX/UI Guidelines [[LLM: May not be in map-project]]
-              - Technical Debt Documentation [[LLM: If from map-project, check ✓]]
+              - Tech Stack Documentation [[LLM: Check when present in project mapping]]
+              - Source Tree/Architecture [[LLM: Check when present in project mapping]]
+              - Coding Standards [[LLM: May be partial]]
+              - API Documentation [[LLM: Check when present]]
+              - External API Documentation [[LLM: Check when present]]
+              - UX/UI Guidelines [[LLM: Check when present]]
+              - Technical Debt Documentation [[LLM: Check when present]]
               - "Other: {{other_docs}}"
             instruction: |
-              - If map-project was already run: "Using existing project analysis from map-project output."
-              - If critical documentation is missing and no map-project: "I recommend running the map-project task first..."
+              - If project mapping exists: "Using existing MOSK project mapping."
+              - If critical documentation is missing: recommend `/mosk-boot` or `/mosk-architect` according to the needed output.
       - id: enhancement-scope
         title: Enhancement Scope Definition
         instruction: Work with user to clearly define what type of enhancement this is. This is critical for scoping and approach.
@@ -176,7 +176,7 @@ sections:
       - id: existing-tech-stack
         title: Existing Technology Stack
         instruction: |
-          If map-project output available:
+          If MOSK project mapping is available:
           - Extract from "Actual Tech Stack" table in High Level Architecture section
           - Include version numbers and any noted constraints
 
@@ -214,7 +214,7 @@ sections:
       - id: risk-assessment
         title: Risk Assessment and Mitigation
         instruction: |
-          If map-project output available:
+          If MOSK project mapping is available:
           - Reference "Technical Debt and Known Issues" section
           - Include "Workarounds and Gotchas" that might impact enhancement
           - Note any identified constraints from "Critical Technical Debt"

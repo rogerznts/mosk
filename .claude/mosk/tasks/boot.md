@@ -1,18 +1,51 @@
 # boot
 
+<!-- Capability: project-mapping -->
+
 Analyze a consuming project and generate a compact set of project rules for faster future work.
 
 ## Goal
 
 Create a small amount of durable project context as markdown rule files without exploding the number of generated files.
 
+## Project mapping depth
+
+Boot is the default project-mapping entrypoint. Scope inspection to the user's
+change when one is known; otherwise map the whole project at representative
+depth. Capture the current reality—stack, entrypoints, layers, commands,
+integrations, conventions, tests, technical debt and operational gotchas—in
+compact rules with verified paths. For a standalone architecture report rather
+than rules, route the same evidence to `/mosk-architect`.
+
 ## Workflow
 
 ### Phase 0 - Check CLAUDE.md
 
-1. Check if `CLAUDE.md` exists in the project root, if exists update it with .claude/mosk/claude_boot.md file.
-2. If it does **not** exist, create the base `CLAUDE.md` from .claude/mosk/claude_boot.md file.
-3. Only proceed to Phase 1 after confirming `CLAUDE.md` is present.
+The MOSK directives from `.claude/mosk/claude_boot.md` are inserted as a
+**delimited block** so they can be refreshed without clobbering
+project-specific instructions:
+
+```
+<!-- MOSK:DIRECTIVES:START -->
+... contents of claude_boot.md ...
+<!-- MOSK:DIRECTIVES:END -->
+```
+
+1. If `CLAUDE.md` does **not** exist in the project root: create it from
+   `.claude/mosk/claude_boot.md`, wrapping the imported content in the
+   `MOSK:DIRECTIVES` markers above.
+2. If `CLAUDE.md` **exists**:
+   - If the `MOSK:DIRECTIVES` markers are present, replace **only** the
+     content between them with the current `claude_boot.md`. Leave
+     everything outside the markers untouched.
+   - If the markers are absent, **prepend** the marked block to the file
+     without modifying any existing content. Never overwrite or
+     paraphrase project-specific instructions already in `CLAUDE.md`.
+   - If a near-duplicate of the directives exists unmarked (from an older
+     boot), point it out and ask the user before removing it — do not
+     delete it silently.
+3. Only proceed to Phase 1 after confirming `CLAUDE.md` is present and the
+   directives block is delimited by the markers.
 
 ### Phase 1 - Inspect the project
 
@@ -54,9 +87,12 @@ Create the `.claude/rules/` directory if it does not exist, then write these fil
 
 When generating `project.md`, start from the canonical template at
 `.claude/mosk/templates/project-rule-tmpl.md` and fill in the project
-placeholders (`{{PROJECT_NAME}}`, `{{LANGUAGE_RUNTIME}}`, `{{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}`,
+placeholders (`{{PROJECT_NAME}}`, `{{LANGUAGE_RUNTIME}}`, `{{COMMUNICATION_LANGUAGE}}`, `{{ARCHITECTURE_PATTERN_AND_KEY_LAYERS}}`,
 `{{FOLDER_CONVENTIONS_DISCOVERED_IN_THE_CODEBASE}}`, `{{HOW_TO_RUN_TESTS_UNIT_INTEGRATION_E2E}}`,
 `{{PROJECT_SPECIFIC_AI_RULES}}`) with information discovered in Phase 1.
+For `{{COMMUNICATION_LANGUAGE}}` (the language every MOSK agent/skill replies in),
+default to **português (pt-BR)** unless `CLAUDE.md` or the user's request clearly
+indicates another communication language.
 **Keep the MOSK-invariant sections** (Document Organization, Promotion
 Convention, Agent Roles, Escalation Policy, Spec Numbering, docs/index.md)
 exactly as they appear in the template — they are the framework
@@ -81,14 +117,48 @@ Each README.md briefly explains:
 - the distinction between base and per-spec content (base = project-wide; per-spec = `docs/specs/{id}/<domain>/`)
 - what gets promoted from spec to base at archive time (see Promotion Convention in `project.md`)
 
-Brownfield detection: if any of `docs/prd.md`, `docs/architecture.md`,
-`docs/stories/`, `docs/brainstorming-session-results.md`, or
-`docs/front-end-spec.md` exists, **stop and suggest** the user run
-`bash .claude/mosk/scripts/migrate-docs-structure.sh` before continuing.
-Do not run it automatically.
+### Phase 2.6 - Docs conformance scan (greenfield **and** brownfield)
 
-After scaffolding, call the `../tasks/index-docs.md` task to generate
-an initial `docs/index.md` reflecting the new structure.
+A MOSK project must never have documents lying loose in `docs/`. Run this
+scan on every boot, regardless of greenfield/brownfield — even an
+otherwise-empty `docs/` can contain stray files.
+
+1. **Enumerate** everything under `docs/` and classify each entry as
+   either **conformant** or **non-conformant**:
+   - Conformant: lives under a canonical domain (`discovery/`, `prd/`,
+     `architecture/`, `ui/`, `qa/`, `specs/`), or is `index.md` / a
+     per-domain `README.md`. Resolve the canonical roots from
+     `.claude/mosk/core-config.yaml` (`discovery.root`, `prd.root`,
+     `architecture.root`, `ui.root`, `qa.gatesDir`, `specs.root`).
+   - Non-conformant: anything else — e.g. loose files at the `docs/`
+     root, legacy monoliths (`docs/prd.md`, `docs/architecture.md`),
+     `docs/stories/`, `docs/epics/`, `docs/brainstorming-session-results.md`,
+     `docs/front-end-spec.md`, or folders outside the canonical domains.
+
+2. **If non-conformant content exists, do not leave it.** Resolve it in
+   this order, **without running anything destructive automatically**:
+   - **a) Suggest the migration script** when legacy monoliths/structures
+     are present: `bash .claude/mosk/scripts/migrate-docs-structure.sh`
+     (recommend `--dry-run` first). The script handles the bulk,
+     mechanical moves. Stop and let the user run it.
+   - **b) Hand off residuals to the organizer** for whatever the script
+     cannot place mechanically (loose root files, orphan stories/epics,
+     ambiguous domains): load and execute the companion prompt
+     `.claude/mosk/utils/post-migration-organize.md`, which reads each
+     residual, classifies it by domain heuristics, and allocates it into
+     the right base domain or spec. Nothing is moved without user
+     confirmation.
+   - **c) Manual last mile.** For anything still unclassified, read the
+     file, propose a canonical destination (base vs `specs/{id}/<domain>/`
+     per the base×spec rule), and ask the user to confirm before moving.
+
+3. The exit condition for this phase: `docs/` contains only conformant
+   entries, or every remaining non-conformant file has an explicit,
+   user-approved disposition. Report anything left unresolved.
+
+After scaffolding and the conformance scan, call the
+`../tasks/index-docs.md` task to generate an initial `docs/index.md`
+reflecting the structure.
 
 ### Phase 3 - Suggest additional rules
 
@@ -136,12 +206,15 @@ MOSK agents read every file in `.claude/rules/*.md` automatically before executi
 Report:
 - files created or updated (including `CLAUDE.md` and each `.claude/rules/*.md`)
 - stack detected
+- docs conformance: non-conformant entries found and their disposition (migrated, organized, manually placed, or still unresolved)
 - additional rules suggested vs. approved
 - areas that were not identified cleanly
 
 ## Rules
 
 - Do not invent project conventions. Only document what is actually found.
+- Never leave non-conformant documents loose in `docs/`. Always run the conformance scan and resolve or get explicit user disposition for every stray file.
+- Never run `migrate-docs-structure.sh` or move/delete docs automatically. Suggest the script, hand residuals to the organizer, and confirm manual moves with the user.
 - Keep each generated rule file short and prescriptive.
 - Prefer one strong `project.md` rule file over many narrow rule files.
 - Never create additional rule files without explicit user approval.

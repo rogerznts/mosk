@@ -1,0 +1,17 @@
+name	expect_status	scope	reversibility	sensitive_surface	evidence	ambiguity	requested_floor	expect_profile	expect_score	expect_floor	expect_validation	expect_specialists	expect_pause
+score-2	0	cross_domain	easy	none	strong	clear	-	compact	2	compact	focused	-	false
+score-3	0	public_contract	easy	none	strong	clear	-	standard	3	compact	domain	-	false
+score-5	0	public_contract	easy	none	absent	clear	-	standard	5	compact	domain	-	false
+score-6	0	public_contract	coordinated	paths_state	strong	clear	-	elevated	6	compact	independent	qa	false
+score-9	0	public_contract	easy	data_security	absent	bounded	-	elevated	9	elevated	independent	security,qa	false
+score-10	0	public_contract	easy	production_critical	absent	clear	-	critical	10	critical	release	security,qa	true
+floor-data-security	0	localized	easy	data_security	strong	clear	-	elevated	3	elevated	independent	security,qa	false
+floor-production	0	localized	easy	production_critical	strong	clear	-	critical	5	critical	release	security,qa	true
+floor-irreversible	0	localized	irreversible	none	strong	clear	-	critical	3	critical	release	security,qa	true
+floor-cross-absent	0	cross_domain	easy	none	absent	clear	-	elevated	4	elevated	independent	qa	false
+requested-standard	0	localized	easy	none	strong	clear	standard	standard	0	standard	domain	-	false
+requested-elevated	0	localized	easy	none	strong	clear	elevated	elevated	0	elevated	independent	qa	false
+requested-critical	0	localized	easy	none	strong	clear	critical	critical	0	critical	release	security,qa	false
+material-pause	0	localized	easy	none	strong	material	-	compact	2	compact	focused	-	true
+invalid-scope	2	unknown	easy	none	strong	clear	-	-	-	-	-	-	-
+contradictory-duplicate	2	localized	easy	none	strong	clear	-	-	-	-	-	-	-

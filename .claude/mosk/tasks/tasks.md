@@ -22,6 +22,10 @@ Produce an immediately executable task list that is short, specific, and aligned
    - required: `spec.md`, `plan.md`
    - optional: `data-model.md`, `research.md`, `contracts/`, `quickstart.md`
 
+   Reuse decisions already recorded there. If an independently invoked task
+   still has material ambiguity, gather all blocking questions and ask at most
+   one grouped clarification round; bounded gaps receive documented defaults.
+
 3. Generate `tasks.md` using `.claude/mosk/templates/tasks-template.md`.
 
 4. Organize work in this order:
@@ -65,3 +69,5 @@ Optional markers:
 - Prefer executable tasks over exhaustive decomposition.
 - Reference exact file paths whenever possible.
 - Do not add a separate dependency graph or long narrative unless the user asks.
+- Do not ask for confirmation before a valid reversible phase transition or
+  index refresh.

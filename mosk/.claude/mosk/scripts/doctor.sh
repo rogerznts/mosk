@@ -15,6 +15,7 @@ doctor.sh [--json] [--help]
 Verifica a integridade da instalação MOSK sem modificar arquivos:
   - sintaxe de todos os scripts Bash;
   - self-tests do toolkit;
+  - inventário de tasks e referências legadas;
   - referências internas entre agents/skills/tasks/templates/scripts;
   - caminhos documentais e chaves do core-config;
   - paridade agent -> skill em dry-run;
@@ -125,6 +126,14 @@ check_required_files() {
         "$MOSK_ROOT/data/output-contract.md" \
         "$MOSK_ROOT/schemas/spec-meta.schema.json" \
         "$MOSK_ROOT/schemas/qa-gate.schema.json" \
+        "$MOSK_ROOT/schemas/change-profile.schema.json" \
+        "$MOSK_ROOT/data/adaptive-work-contract.md" \
+        "$MOSK_ROOT/data/adaptive-work-fixtures.tsv" \
+        "$MOSK_ROOT/data/task-dispositions.tsv" \
+        "$MOSK_ROOT/data/legacy-reference-allowlist.tsv" \
+        "$SCRIPT_DIR/classify-change.sh" \
+        "$SCRIPT_DIR/audit-legacy-surface.sh" \
+        "$SCRIPT_DIR/selftest-adaptive-work.sh" \
         "$SCRIPT_DIR/transition-spec-phase.sh" \
         "$SCRIPT_DIR/selftest-pipeline-state.sh" \
         "$MOSK_ROOT/templates/spec-meta-tmpl.yaml" \
@@ -180,6 +189,7 @@ main() {
 
     run_check "sintaxe-bash" check_bash_syntax
     run_check "self-tests" check_selftests
+    run_check "superfície-legada" bash "$SCRIPT_DIR/audit-legacy-surface.sh"
     run_check "referências-internas" check_references
     run_check "paths-documentais" bash "$SCRIPT_DIR/audit-docs-paths.sh" --quiet
     run_check "agent-skill-sync" check_agent_skill_sync

@@ -1,0 +1,67 @@
+# Quality gate — spec 014
+# Veredito independente de QA. Escrito e mantido apenas por /mosk-qa.
+# Score calculado, nao estimado: 100 - (20 x FAILs) - (10 x CONCERNS),
+# conforme ../../../mosk/.claude/mosk/data/qa-evidence-contract.md.
+# Volta 1: 0 FAIL, 3 CONCERNS -> 70.
+# Volta 2: 0 FAIL, 1 CONCERNS -> 90.
+# Volta 3: 0 FAIL, 0 CONCERNS -> 100.
+
+schema: 2
+story: "014-feature-legacy-cleanup-adaptive-intelligence"
+story_title: "Limpeza do legado e inteligência adaptativa"
+gate: "PASS"
+quality_score: 100
+score_history: [70, 90, 100]
+status_reason: "Os quatro achados das três voltas estão fechados e revalidados contra o disco, não contra o relato. As dez medidas de sucesso e os 28 requisitos funcionais têm evidência verificada, incluindo mutação em cópia isolada provando que os guards de US1, US2 e de vocabulário legado acusam de verdade."
+reviewer: "Joaquim (MOSK QA)"
+updated: "2026-08-16T03:20:24Z"
+evidence_ref: "qa-notes.md"
+
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: ""
+
+# Perfil adaptativo desta revisao (classify-change.sh, contrato unico).
+# Sinais inalterados nas tres voltas: escopo public_contract, reversibilidade
+# coordinated, superficie tratada conservadoramente como data_security por
+# SEC-1..4, evidencia strong, ambiguidade clear. Piso atendido: security
+# independente (PASS) + QA independente (este gate).
+adaptive_profile:
+  profile: "elevated"
+  score: 7
+  floor: "elevated"
+  context_budget: "elevated"
+  validation_floor: "independent"
+  specialists: ["security", "qa"]
+  floor_satisfied: true
+
+top_issues: []
+
+# Achados fechados. Ids nao sao reciclados: o numero morre com o achado
+# (../../../mosk/.claude/mosk/data/output-contract.md).
+resolved_issues:
+  - id: "QA-1"
+    severity: medium
+    title: "Template do gate assina toda revisão com uma persona que não existe no MOSK"
+    verification: "qa-gate-tmpl.yaml:19 é Joaquim (MOSK QA), e o regex do auditor passou a cobrir três personas do roster antigo além da sigla. Mutação em cópia isolada: persona legada reposta no template é acusada e derruba o selftest; plantada em doctor.sh e em mosk-ux-expert.md também é acusada, então excluir o próprio audit-legacy-surface.sh da varredura não vazou para o resto da árvore. As fixtures escrevem o literal completo em disco via printf — a quebra do nome está só no código-fonte do selftest, não no arquivo testado."
+  - id: "QA-2"
+    severity: low
+    title: "Story ganha uma seção de QA que nenhuma task preenche"
+    verification: "qa-results removido de story-tmpl.yaml, com comentário apontando o gate como destino. Direção correta: escrever na story recriaria o segundo lugar de verdade que a fusão veio desfazer."
+  - id: "QA-3"
+    severity: low
+    title: "T054 marcada concluída cita dois arquivos que nunca existiram"
+    verification: "tasks.md:160 nomeia mosk/.claude/README.md, a skill mosk-help e README.md/TASKS.md da raiz, com nota do redirecionamento. Reconcilia com o disco sem depender do run-log.md."
+  - id: "QA-4"
+    severity: low
+    title: "Documento de exemplo ainda ensina a seção de QA que o template acabou de remover"
+    verification: "O bloco do exemplo em utils/doc-template.md virou file-list, que existe de fato em story-tmpl.yaml:127-131 com owner dev-agent e editors [dev-agent]. Grep por qa-results e QA Results em mosk/.claude/, fora do fork vendorizado, retorna vazio: a seção não sobrevive em nenhum ponto do produto. A perda da ilustração de readonly true não gera achado derivado — nenhum template do produto usa readonly, o campo segue documentado em doc-template.md:78, e mostrar a forma no exemplo seria reintroduzir a classe do próprio QA-4."
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 0 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "SEC-4 (relatório de segurança): um arquivo commitado com o nome `*` faria `[ -e ]` tratar `.claude/*` como caminho literal e reabriria o bypass da allowlist. Aceito sem correção por decisão do time lead. Reavaliar na próxima vez que o arquivo for tocado — o archive não deve perder o registro."
+      - "As correções das voltas 2 e 3 estão no working tree, não commitadas, e espelhadas em .claude/ (diff -rq limpo, exceto o symlink intencional de hallmark). check-ship-ready.sh exige árvore limpa e current_phase archived, então commit e transição de fase seguem pendentes do fluxo."

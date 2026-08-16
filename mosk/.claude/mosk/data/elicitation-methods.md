@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Elicitation Methods Data
 
 ## Core Reflective Methods

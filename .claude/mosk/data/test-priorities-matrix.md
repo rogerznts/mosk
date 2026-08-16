@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Test Priorities Matrix
 
 Guide for prioritizing test scenarios based on risk, criticality, and business impact.

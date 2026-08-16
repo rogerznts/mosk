@@ -2,6 +2,15 @@
 
 Execute the active `tasks.md` and keep progress visible with minimal process overhead.
 
+## Dependencies
+
+```yaml
+data:
+  - adaptive-work-contract.md
+scripts:
+  - classify-change.sh
+```
+
 ## User Input
 
 ```text
@@ -19,6 +28,18 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
 2. Load only the artifacts needed for the active work:
    - required: `tasks.md`, `plan.md`
    - optional when referenced by the task: `spec.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
+
+   Before expanding beyond those sources, select the observable change signals
+   and run `.claude/mosk/scripts/classify-change.sh` as defined by
+   `.claude/mosk/data/adaptive-work-contract.md`. Record one short line with the
+   selected signals, profile and reason. Use `context_budget` as the initial
+   loading boundary and `validation_floor` as the minimum validation; neither
+   grants permission to broaden the agreed scope.
+
+   Reclassify when a direct reference, failing test, changed scope or newly
+   discovered sensitive surface requires more context. Record the trigger and
+   keep the most rigorous result. A profile never changes pipeline phase or
+   removes a human pause.
 
 3. Scan `FEATURE_DIR/checklists/` if it exists.
    - If there are incomplete checklist items, warn once and continue unless the user tells you to stop.
