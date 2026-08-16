@@ -47,6 +47,7 @@ DATA_DIR="$ROOT/.claude/mosk/data"
 TASK_DIR="$ROOT/.claude/mosk/tasks"
 CATALOG="$DATA_DIR/task-dispositions.tsv"
 ALLOWLIST="$DATA_DIR/legacy-reference-allowlist.tsv"
+MERGED_FIXTURES="$DATA_DIR/merged-task-fixtures.md"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
 ERRORS="$TMP_DIR/errors"
@@ -74,6 +75,24 @@ safe_product_path() {
 catalog_count=0
 task_count=0
 legacy_count=0
+
+extract_merged_fixtures() {
+    [ -f "$MERGED_FIXTURES" ] || return 1
+    awk '
+        /<!-- merged-task-fixtures:start -->/ { inside = 1; next }
+        /<!-- merged-task-fixtures:end -->/ { inside = 0 }
+        inside { print }
+    ' "$MERGED_FIXTURES"
+}
+
+if [ -f "$MERGED_FIXTURES" ]; then
+    extract_merged_fixtures > "$TMP_DIR/merged-fixtures"
+    fixture_header="$(sed -n '1p' "$TMP_DIR/merged-fixtures")"
+    [ "$fixture_header" = "legacy_task	capability	entrypoints	destinations	expected_result	evidence" ] || \
+        problem "header inválido em merged-task-fixtures.md"
+else
+    : > "$TMP_DIR/merged-fixtures"
+fi
 
 if [ -f "$CATALOG" ]; then
     header="$(sed -n '1p' "$CATALOG")"
@@ -115,6 +134,49 @@ if [ -f "$CATALOG" ]; then
             problem "merge sem destino: $task"
         fi
 
+        if [ "$action" = merge ] && [ "$evidence" = covered ]; then
+            fixture_rows="$(awk -F '\t' -v task="$task" 'NR > 1 && $1 == task { count++ } END { print count + 0 }' "$TMP_DIR/merged-fixtures")"
+            if [ "$fixture_rows" -ne 1 ]; then
+                problem "fixture de capacidade ausente/duplicada para merge coberto: $task"
+            else
+                fixture_line="$(awk -F '\t' -v task="$task" 'NR > 1 && $1 == task { print; exit }' "$TMP_DIR/merged-fixtures")"
+                fixture_fields="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print NF }')"
+                if [ "$fixture_fields" -ne 6 ]; then
+                    problem "fixture de capacidade deve possuir 6 campos TSV: $task"
+                else
+                    capability="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print $2 }')"
+                    entrypoints="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print $3 }')"
+                    fixture_destinations="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print $4 }')"
+                    expected_result="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print $5 }')"
+                    fixture_evidence="$(printf '%s\n' "$fixture_line" | awk -F '\t' '{ print $6 }')"
+                    case "$capability" in ''|*[!a-z0-9-]*) problem "capability inválida para $task: $capability" ;; esac
+                    [ -n "$expected_result" ] || problem "resultado esperado ausente na fixture: $task"
+                    [ "$fixture_evidence" = covered ] || problem "fixture sem cobertura para merge: $task"
+
+                    printf '%s\n%s\n' "$entrypoints" "$fixture_destinations" | tr '|' '\n' > "$TMP_DIR/fixture-routes"
+                    while IFS= read -r rel; do
+                        [ -n "$rel" ] || { problem "rota vazia na fixture: $task"; continue; }
+                        if ! safe_product_path "$rel"; then
+                            problem "rota inválida na fixture para $task: $rel"
+                        elif [ ! -f "$ROOT/$rel" ]; then
+                            problem "rota ausente na fixture para $task: $rel"
+                        elif ! grep -Fq "Capability: $capability" "$ROOT/$rel"; then
+                            problem "rota sem marcador de capability para $task: $rel"
+                        fi
+                    done < "$TMP_DIR/fixture-routes"
+
+                    printf '%s\n' "$destination" | tr '|' '\n' > "$TMP_DIR/catalog-destinations"
+                    while IFS= read -r rel; do
+                        [ -z "$rel" ] && continue
+                        case "|$fixture_destinations|" in
+                            *"|$rel|"*) ;;
+                            *) problem "destino do catálogo não coberto pela fixture para $task: $rel" ;;
+                        esac
+                    done < "$TMP_DIR/catalog-destinations"
+                fi
+            fi
+        fi
+
         printf '%s\n' "$destination" | tr '|' '\n' > "$TMP_DIR/destinations"
         while IFS= read -r rel; do
             [ -n "$rel" ] || continue
@@ -143,6 +205,7 @@ if [ -f "$CATALOG" ]; then
         elif { [ "$action" = merge ] || [ "$action" = remove ]; } && [ "$evidence" = covered ]; then
             refs="$TMP_DIR/refs-$task"
             grep -RFn --exclude=task-dispositions.tsv --exclude=legacy-reference-allowlist.tsv \
+                --exclude=merged-task-fixtures.md \
                 -e ".claude/mosk/tasks/$task" -e "../tasks/$task" "$ROOT/.claude" > "$refs" 2>/dev/null || true
             if [ -s "$refs" ]; then
                 problem "referência ativa a path removido: $task"
@@ -163,6 +226,15 @@ if [ -d "$TASK_DIR" ]; then
             [ -z "$task" ] || problem "task sem decisão no catálogo: $task"
         done < "$TMP_DIR/untracked"
     fi
+fi
+
+if [ -s "$TMP_DIR/merged-fixtures" ] && [ -f "$CATALOG" ]; then
+    tail -n +2 "$TMP_DIR/merged-fixtures" > "$TMP_DIR/merged-fixture-data"
+    while IFS="$(printf '\t')" read -r legacy_task capability entrypoints destinations expected_result fixture_evidence; do
+        [ -n "$legacy_task" ] || continue
+        catalog_rows="$(awk -F '\t' -v task="$legacy_task" 'NR > 1 && $1 == task && $2 == "merge" && $5 == "covered" { count++ } END { print count + 0 }' "$CATALOG")"
+        [ "$catalog_rows" -eq 1 ] || problem "fixture sem merge covered correspondente no catálogo: $legacy_task"
+    done < "$TMP_DIR/merged-fixture-data"
 fi
 
 allow_path() {

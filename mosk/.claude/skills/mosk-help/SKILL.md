@@ -48,4 +48,4 @@ Notes:
 - `create-story` (`/mosk-po`): **emite** a story formal a partir do épico/PRD. Primeiro passo.
 - `enrich-story` (`/mosk-sm`): **enriquece** a story existente com contexto técnico (Dev Notes, citações de arquitetura) antes do dev pegar. Era chamada `draft-story`.
 - `review-story-draft` (`/mosk-sm` ou `/mosk-po`): valida a story **antes** do dev — "a spec está completa e implementável?"
-- `review-story` (`/mosk-qa`): revisa a story **depois** do dev — "o código atende à spec, aos padrões e aos ACs?" Gera o `gate.yaml`.
+- `qa-gate <story>` (`/mosk-qa`): revisa a story **depois** do dev — "o código atende à spec, aos padrões e aos ACs?" Gera o gate de story.

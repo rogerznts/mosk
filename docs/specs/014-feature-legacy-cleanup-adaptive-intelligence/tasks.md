@@ -81,22 +81,26 @@
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Criar fixtures de capacidade para mapear projeto via boot/Architect em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `map-project.md`.
-- [ ] T026 [P] [US2] Criar fixtures de capability para revisão de story via qa-gate story mode em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `review-story.md`.
-- [ ] T027 [P] [US2] Criar fixtures de capability para saída webdesign via UI Expert/Hallmark em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `webdesign-output.md`.
-- [ ] T028 [US2] Estender `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para executar T025–T027 e exigir destino/rota/cobertura antes de aceitar ausência dos arquivos antigos.
+- [x] T025 [P] [US2] Criar fixtures de capacidade para mapear projeto via boot/Architect em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `map-project.md`.
+- [x] T026 [P] [US2] Criar fixtures de capability para revisão de story via qa-gate story mode em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `review-story.md`.
+- [x] T027 [P] [US2] Criar fixtures de capability para saída webdesign via UI Expert/Hallmark em `mosk/.claude/mosk/data/merged-task-fixtures.md` antes de remover `webdesign-output.md`.
+- [x] T028 [US2] Estender `mosk/.claude/mosk/scripts/selftest-toolkit.sh` para executar T025–T027 e exigir destino/rota/cobertura antes de aceitar ausência dos arquivos antigos.
 
 ### Implementation for User Story 2
 
-- [ ] T029 [P] [US2] Consolidar readiness em `mosk/.claude/mosk/checklists/story-readiness-checklist.md`, reescrevendo `mosk/.claude/mosk/tasks/enrich-story.md` e `review-story-draft.md` para uma única fonte de critérios.
-- [ ] T030 [US2] Consolidar o contrato de evidência de QA entre `mosk/.claude/mosk/tasks/assess-risk.md`, `assess-nfr.md`, `design-tests.md`, `trace-spec.md` e `qa-gate.md`, mantendo tarefas especializadas somente quando agregarem saída distinta.
-- [ ] T031 [P] [US2] Reescrever `mosk/.claude/mosk/tasks/apply-qa-fixes.md`, `correct-course.md` e `execute-checklist.md` para remover lineage operacional, termos de story incompatíveis e procedimentos duplicados.
-- [ ] T032 [P] [US2] Reescrever `mosk/.claude/mosk/tasks/create-epic.md`, `create-story.md` e `shard-doc.md` para linguagem MOSK e referências canônicas.
-- [ ] T033 [US2] Absorver `mosk/.claude/mosk/tasks/map-project.md` em `boot.md` e no agente `mosk/.claude/agents/mosk-architect.md`; atualizar rotas/fixtures e só então remover o arquivo antigo e marcar sua evidência `covered`.
-- [ ] T034 [US2] Absorver `mosk/.claude/mosk/tasks/review-story.md` no modo story de `qa-gate.md` e no agente `mosk/.claude/agents/mosk-qa.md`; atualizar rotas/fixtures e só então remover o arquivo antigo.
-- [ ] T035 [US2] Absorver `mosk/.claude/mosk/tasks/webdesign-output.md` em `hallmark.md` e no agente `mosk/.claude/agents/mosk-ui-expert.md`; preservar a semântica visual legítima de menu e só então remover o arquivo antigo.
-- [ ] T036 [US2] Reconciliar todas as tasks restantes em `mosk/.claude/mosk/data/task-dispositions.tsv`, integrando qualquer task sem entrypoint ao agente/skill correto ou removendo-a com prova de não uso.
+- [x] T029 [P] [US2] Consolidar readiness em `mosk/.claude/mosk/checklists/story-readiness-checklist.md`, reescrevendo `mosk/.claude/mosk/tasks/enrich-story.md` e `review-story-draft.md` para uma única fonte de critérios.
+- [x] T030 [US2] Consolidar o contrato de evidência de QA entre `mosk/.claude/mosk/tasks/assess-risk.md`, `assess-nfr.md`, `design-tests.md`, `trace-spec.md` e `qa-gate.md`, mantendo tarefas especializadas somente quando agregarem saída distinta.
+- [x] T031 [P] [US2] Reescrever `mosk/.claude/mosk/tasks/apply-qa-fixes.md`, `correct-course.md` e `execute-checklist.md` para remover lineage operacional, termos de story incompatíveis e procedimentos duplicados.
+- [x] T032 [P] [US2] Reescrever `mosk/.claude/mosk/tasks/create-epic.md`, `create-story.md` e `shard-doc.md` para linguagem MOSK e referências canônicas.
+- [x] T033 [US2] Absorver `mosk/.claude/mosk/tasks/map-project.md` em `boot.md` e no agente `mosk/.claude/agents/mosk-architect.md`; atualizar rotas/fixtures e só então remover o arquivo antigo e marcar sua evidência `covered`.
+- [x] T034 [US2] Absorver `mosk/.claude/mosk/tasks/review-story.md` no modo story de `qa-gate.md` e no agente `mosk/.claude/agents/mosk-qa.md`; atualizar rotas/fixtures e só então remover o arquivo antigo.
+- [x] T035 [US2] Absorver `mosk/.claude/mosk/tasks/webdesign-output.md` em `hallmark.md` e no agente `mosk/.claude/agents/mosk-ui-expert.md`; preservar a semântica visual legítima de menu e só então remover o arquivo antigo.
+- [x] T036 [US2] Reconciliar todas as tasks restantes em `mosk/.claude/mosk/data/task-dispositions.tsv`, integrando qualquer task sem entrypoint ao agente/skill correto ou removendo-a com prova de não uso.
 - [ ] T037 [US2] Executar `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` após cada fusão e fechar a fase somente com 50/50 decisões, zero órfã e zero referência quebrada.
+  - Dependência registrada: catálogo, rotas e fusões estão íntegros (50 decisões,
+    47 tasks ativas, 3 merges `covered`, zero referência antiga); o audit global
+    ainda falha exclusivamente pelas 23 ocorrências BMAD que a US4 remove em
+    T046/T050/T051. Reexecutar e marcar T037 após essa limpeza.
 
 **Checkpoint**: A superfície é menor, mas todas as capacidades públicas da baseline permanecem demonstráveis.
 

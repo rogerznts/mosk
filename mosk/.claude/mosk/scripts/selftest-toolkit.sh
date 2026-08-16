@@ -280,6 +280,15 @@ run_legacy_audit() {
     bash "$SCRIPT_DIR/audit-legacy-surface.sh" \
         --root "$legacy_fixture" --expected-count 1
 }
+write_merged_fixture() {
+    local evidence="${1:-covered}"
+    {
+        printf '%s\n' '<!-- merged-task-fixtures:start -->'
+        printf 'legacy_task\tcapability\tentrypoints\tdestinations\texpected_result\tevidence\n'
+        printf 'sample.md\tsample-capability\t.claude/agents/mosk-sample.md\t.claude/mosk/data/destination.md\tcapacidade preservada\t%s\n' "$evidence"
+        printf '%s\n' '<!-- merged-task-fixtures:end -->'
+    } > "$legacy_fixture/.claude/mosk/data/merged-task-fixtures.md"
+}
 
 base_row="sample.md	keep		.claude/agents/mosk-sample.md	not_applicable	fixture válida"
 write_legacy_catalog "$base_row"
@@ -303,12 +312,28 @@ write_legacy_catalog "sample.md	keep		.claude/agents/missing.md	not_applicable	c
 expect_fail_contains "consumidor órfão falha" "consumidor órfão" run_legacy_audit
 
 rm -f "$legacy_fixture/.claude/mosk/tasks/sample.md"
-printf '# destino\n' > "$legacy_fixture/.claude/mosk/tasks/destination.md"
+printf '# destino\n' > "$legacy_fixture/.claude/mosk/data/destination.md"
 printf 'Use `.claude/mosk/tasks/sample.md`.\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
-write_legacy_catalog "sample.md	merge	.claude/mosk/tasks/destination.md	.claude/agents/mosk-sample.md	covered	capacidade absorvida"
+write_legacy_catalog "sample.md	merge	.claude/mosk/data/destination.md	.claude/agents/mosk-sample.md	covered	capacidade absorvida"
+expect_fail_contains "merge coberto sem fixture falha" "fixture de capacidade ausente/duplicada" run_legacy_audit
+
+write_merged_fixture pending
+expect_fail_contains "fixture sem cobertura falha" "fixture sem cobertura" run_legacy_audit
+
+write_merged_fixture covered
+expect_fail_contains "rota sem marcador de capability falha" "rota sem marcador de capability" run_legacy_audit
+
+printf '# destino\n<!-- Capability: sample-capability -->\n' > "$legacy_fixture/.claude/mosk/data/destination.md"
+printf '<!-- Capability: sample-capability -->\nUse `.claude/mosk/tasks/sample.md`.\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
 expect_fail_contains "referência ativa a task removida falha" "referência ativa a path removido" run_legacy_audit
 
-rm -f "$legacy_fixture/.claude/mosk/tasks/destination.md"
+printf '<!-- Capability: sample-capability -->\n# consumer\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
+expect_ok "merge removido com destino, rota e cobertura passa" run_legacy_audit
+
+rm -f "$legacy_fixture/.claude/mosk/data/destination.md"
+expect_fail_contains "destino removido depois da fusão falha" "destino ausente" run_legacy_audit
+
+rm -f "$legacy_fixture/.claude/mosk/data/merged-task-fixtures.md"
 printf '# fixture\n%s%s controla este fluxo.\n' 'BM' 'AD' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
 printf '# consumer\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
 write_legacy_catalog "$base_row"
@@ -318,6 +343,24 @@ printf '# fixture\n<!-- Inspired by %s%s -->\n' 'BM' 'AD' > "$legacy_fixture/.cl
 printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tAtribuição histórica da fixture.\n' \
     > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
 expect_ok "atribuição legada explicitamente permitida passa" run_legacy_audit
+
+echo "selftest-toolkit: capacidades fundidas"
+merged_fixtures="$INSTALL_ROOT/.claude/mosk/data/merged-task-fixtures.md"
+expect_ok "fixtures de fusão existem" test -f "$merged_fixtures"
+expect_ok "project mapping possui uma fixture" exact_occurrences "$merged_fixtures" $'map-project.md\tproject-mapping\t' 1
+expect_ok "story review possui uma fixture" exact_occurrences "$merged_fixtures" $'review-story.md\tpost-implementation-story-review\t' 1
+expect_ok "entrega UI completa possui uma fixture" exact_occurrences "$merged_fixtures" $'webdesign-output.md\tcomplete-ui-delivery\t' 1
+expect_ok "boot expõe project mapping" file_contains "$INSTALL_ROOT/.claude/mosk/tasks/boot.md" 'Capability: project-mapping'
+expect_ok "Architect expõe project mapping" file_contains "$INSTALL_ROOT/.claude/agents/mosk-architect.md" 'Capability: project-mapping'
+expect_ok "qa-gate expõe revisão pós-implementação" file_contains "$INSTALL_ROOT/.claude/mosk/tasks/qa-gate.md" 'Capability: post-implementation-story-review'
+expect_ok "QA expõe revisão pós-implementação" file_contains "$INSTALL_ROOT/.claude/agents/mosk-qa.md" 'Capability: post-implementation-story-review'
+expect_ok "Hallmark expõe entrega completa" file_contains "$INSTALL_ROOT/.claude/mosk/tasks/hallmark.md" 'Capability: complete-ui-delivery'
+expect_ok "UI Expert expõe entrega completa" file_contains "$INSTALL_ROOT/.claude/agents/mosk-ui-expert.md" 'Capability: complete-ui-delivery'
+removed_task_dir="$INSTALL_ROOT/.claude/mosk/tasks"
+expect_fail "task antiga de project mapping foi removida" test -e "$removed_task_dir/map-project.md"
+expect_fail "task antiga de story review foi removida" test -e "$removed_task_dir/review-story.md"
+expect_fail "task antiga de output visual foi removida" test -e "$removed_task_dir/webdesign-output.md"
+expect_ok "auditoria aceita as três fusões" bash "$SCRIPT_DIR/audit-legacy-surface.sh" --root "$INSTALL_ROOT" --expected-count 50 --quiet
 
 echo "selftest-toolkit: fluxo documental direto"
 direct_fixture="$INSTALL_ROOT/.claude/mosk/data/direct-flow-fixtures.md"
