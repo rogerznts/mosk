@@ -3,7 +3,7 @@
 > Entry point gerado/atualizado pelo fluxo `planner` (mosk-pm). Ponto de
 > partida para navegar a documentação viva do projeto.
 
-Last updated: 2026-08-16T03:25:00Z
+Last updated: 2026-08-16T04:32:42Z
 
 Toolkit health can be checked with
 `bash .claude/mosk/scripts/doctor.sh`. A spec is only considered closed when
@@ -79,7 +79,7 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas) | implement | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-15 |
+| 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas; PR #20) | qa-gate | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-15 |
 
 ### Arquivadas
 

@@ -13,3 +13,7 @@ transitions:
     from: tasks
     to: implement
     command: implement
+  - at: "2026-08-16T04:32:42Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate
