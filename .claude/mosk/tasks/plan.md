@@ -39,7 +39,10 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
    - `quickstart.md` only if there is a meaningful end-to-end verification flow worth documenting
 
 5. Use reasonable defaults.
-   - Ask questions only when a missing decision blocks architecture, data modeling, or public behavior.
+   - Reuse answers already captured by `specify`/`full-spec`.
+   - If invoked independently, gather every missing decision that blocks
+     architecture, data modeling or public behavior and ask at most one grouped
+     clarification round.
    - Otherwise, record the chosen assumption in `plan.md`.
 
 6. If the plan introduces new technologies or conventions, run `.claude/mosk/scripts/update-agent-context.sh update_agent_file`.
@@ -65,3 +68,5 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
 - Keep the plan implementation-oriented.
 - Do not create every optional document by default.
 - Prefer short sections and explicit decisions over long prose.
+- Do not ask for confirmation before a valid reversible phase transition or
+  index refresh.

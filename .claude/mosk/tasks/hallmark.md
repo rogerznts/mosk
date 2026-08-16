@@ -1,5 +1,7 @@
 # Task: Hallmark
 
+<!-- Capability: complete-ui-delivery -->
+
 Run the Hallmark anti-slop design system — structural variety, not just visual polish.
 
 ## When to use
@@ -58,6 +60,13 @@ Resolved path: `.claude/mosk/data/hallmark/`.
 5. **Write the artifacts to the MOSK path.** Code goes where the brief points.
    Design documents follow `hallmark.md` § MOSK integration: `docs/ui/` normally,
    `docs/specs/{id}/ui/` with `promote:` front-matter when a spec is active.
+
+6. **Deliver every requested artifact completely.** Count files/components before
+   building and cross-check the same count before delivery. Do not replace code
+   with `...`, TODOs, “same as above” or prose describing omitted sections. If a
+   response limit is reached, pause at a clean file/section boundary and identify
+   the exact remaining artifact. This rule does not alter Hallmark's legitimate
+   visual menus, navigation or macrostructure choices.
 
 ## Loading discipline
 

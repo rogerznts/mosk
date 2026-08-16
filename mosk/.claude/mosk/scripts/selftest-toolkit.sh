@@ -173,7 +173,10 @@ expect_ok "audit-docs-paths roda sem PyYAML" bash "$SCRIPT_DIR/audit-docs-paths.
 
 audit_fixture="$TMP_ROOT/audit"
 mkdir -p "$audit_fixture"
-cp -R "$INSTALL_ROOT/.claude" "$audit_fixture/"
+# -L dereferencia symlinks: o espelho local aponta `data/hallmark` para o
+# vendor do template, e o degit entrega arquivo real. A fixture precisa ser a
+# instalação, não o atalho de quem desenvolve.
+cp -RL "$INSTALL_ROOT/.claude" "$audit_fixture/"
 printf '**Save to:** `docs/legacy/output.md`\n' > "$audit_fixture/.claude/mosk/tasks/selftest-invalid-path.md"
 expect_fail "path fora do domínio canônico falha" \
     bash "$audit_fixture/.claude/mosk/scripts/audit-docs-paths.sh" --quiet
@@ -351,6 +354,16 @@ printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tA
     > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
 expect_ok "atribuição legada explicitamente permitida passa" run_legacy_audit
 
+# `.claude/rules/` é contexto do projeto consumidor, não superfície do toolkit:
+# um projeto que usa a ferramenta legada pode dizer isso na própria rule sem que
+# a auditoria do MOSK o repreenda. Sem este caso, a exclusão seria comportamento
+# sem prova e a primeira refatoração a reintroduziria.
+mkdir -p "$legacy_fixture/.claude/rules"
+printf '# regra local\nO time ainda descreve o fluxo antigo do %s%s aqui.\n' 'BM' 'AD' \
+    > "$legacy_fixture/.claude/rules/project.md"
+expect_ok "termo legado em rules do projeto não é cobrado" run_legacy_audit
+rm -rf "$legacy_fixture/.claude/rules"
+
 echo "selftest-toolkit: capacidades fundidas"
 merged_fixtures="$INSTALL_ROOT/.claude/mosk/data/merged-task-fixtures.md"
 expect_ok "fixtures de fusão existem" test -f "$merged_fixtures"
@@ -476,7 +489,7 @@ echo "selftest-toolkit: instalação isolada"
 # se sustenta sozinha depois de instalada.
 iso_root="$TMP_ROOT/isolated"
 mkdir -p "$iso_root"
-cp -R "$INSTALL_ROOT/.claude" "$iso_root/.claude"
+cp -RL "$INSTALL_ROOT/.claude" "$iso_root/.claude"
 
 # Superfície de instrução: o que o agente lê para agir. Scripts ficam de fora
 # de propósito — são código, e suas referências internas já são cobertas pelo

@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Brainstorming Techniques Data
 
 ## Creative Expansion

@@ -1,4 +1,3 @@
-# <!-- Inspired by BMAD and SpecKit -->
 template:
   id: prd-template-v2
   name: Product Requirements Document
@@ -9,8 +8,9 @@ template:
     title: "{{project_name}} Product Requirements Document (PRD)"
 
 workflow:
-  mode: interactive
-  elicitation: advanced-elicitation
+  mode: direct
+  clarification: grouped-once
+  elicitation: opt-in
 
 sections:
   - id: goals-context
@@ -35,7 +35,7 @@ sections:
   - id: requirements
     title: Requirements
     instruction: Draft the list of functional and non functional requirements under the two child sections
-    elicit: true
+    review: optional
     sections:
       - id: functional
         title: Functional
@@ -63,7 +63,7 @@ sections:
       3. Clearly let the user know where assumptions were made
       4. Ask targeted questions for unclear/missing elements or areas needing more specification
       5. This is NOT detailed UI spec - focus on product vision and user goals
-    elicit: true
+    review: optional
     choices:
       accessibility: [None, WCAG AA, WCAG AAA]
       platforms: [Web Responsive, Mobile Only, Desktop Only, Cross-Platform]
@@ -105,7 +105,7 @@ sections:
       3. For unknowns, offer guidance based on project goals and MVP scope
       4. Document ALL technical choices with rationale (why this choice fits the project)
       5. These become constraints for the Architect - be specific and complete
-    elicit: true
+    review: optional
     choices:
       repository: [Monorepo, Polyrepo]
       architecture: [Monolith, Microservices, Serverless]
@@ -136,7 +136,7 @@ sections:
       - Not every project needs multiple epics, an epic needs to deliver value. For example, an API completed can deliver value even if a UI is not complete and planned for a separate epic.
       - Err on the side of less epics, but let the user know your rationale and offer options for splitting them if it seems some are too large or focused on disparate things.
       - Cross Cutting Concerns should flow through epics and stories and not be final stories. For example, adding a logging framework as a last story of an epic, or at the end of a project as a final epic or story would be terrible as we would not have logging from the beginning.
-    elicit: true
+    review: optional
     examples:
       - "Epic 1: Foundation & Core Infrastructure: Establish project setup, authentication, and basic user management"
       - "Epic 2: Core Business Entities: Create and manage primary domain objects with CRUD operations"
@@ -162,7 +162,7 @@ sections:
       - Size stories for AI agent execution: Each story must be completable by a single AI agent in one focused session without context overflow
       - Think "junior developer working for 2-4 hours" - stories must be small, focused, and self-contained
       - If a story seems complex, break it down further as long as it can deliver a vertical slice
-    elicit: true
+    review: optional
     template: "{{epic_goal}}"
     sections:
       - id: story
@@ -190,7 +190,7 @@ sections:
 
   - id: checklist-results
     title: Checklist Results Report
-    instruction: Before running the checklist and drafting the prompts, offer to output the full updated PRD. If outputting it, confirm with the user that you will be proceeding to run the checklist and produce the report. Once the user confirms, execute the pm-checklist and populate the results in this section.
+    instruction: After drafting the complete PRD, execute the pm-checklist directly and populate the report without an intermediate confirmation.
 
   - id: next-steps
     title: Next Steps

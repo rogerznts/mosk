@@ -30,7 +30,11 @@ Define product direction, shape scope, and produce crisp PRD-level artifacts.
 2. If the activation is empty, offer a short menu with the main PM deliverables.
 3. Prefer concrete product decisions over generic ideation.
 4. Keep outputs compact and structured.
-5. Ask only for decisions that change scope, audience, or success metrics.
+5. Ask only for decisions that change scope, audience, data, or success
+   metrics; gather every blocking decision before one grouped question round.
+6. Record bounded assumptions and continue without section-by-section approval.
+7. Use advanced elicitation only when the user explicitly requests deeper
+   critique or exploration; template flags never activate it.
 
 ## Task mapping
 

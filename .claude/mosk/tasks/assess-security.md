@@ -7,6 +7,9 @@ Full-codebase security audit. Same methodology and taxonomy as `security-review.
 ```yaml
 data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+  - adaptive-work-contract.md
+scripts:
+  - classify-change.sh
 ```
 
 ## Goal
@@ -19,6 +22,15 @@ The entire codebase (respecting any `exclude` hints in `.claude/rules/*.md`, and
 
 ## Workflow
 
+Classify the audit before loading broad context, using
+`.claude/mosk/scripts/classify-change.sh` and the canonical
+`.claude/mosk/data/adaptive-work-contract.md`. A whole-codebase audit requests
+at least `elevated`; use the returned context, validation and specialist floors
+without copying their rules here. Reclassify upward when a higher-risk entry
+point or wider trust boundary is discovered. The explicit audit request remains
+valid regardless of the calculated minimum, and the security assessment stays
+independent from implementation and QA.
+
 Follow the same phases as `../tasks/security-review.md`:
 
 1. **Phase 1 — Repository Context Research**: frameworks, secure patterns, threat model.
@@ -29,7 +41,7 @@ Follow the same phases as `../tasks/security-review.md`:
 6. **Phase 6 — Write the report**:
    - Resolve `qa.qaLocation` from `.claude/mosk/core-config.yaml`.
    - Write to `{qa.qaLocation}/security/security-audit-{date}.md` (use the date from the environment, ISO `YYYYMMDD`).
-   - Same findings table + summary. Group findings by module/area when the codebase is large.
+   - Same finding form and summary as `security-review.md`, i.e. `../data/output-contract.md`: one block per finding, never a table row. Group the blocks by module/area when the codebase is large.
    - Because this is not tied to a single change, replace the gate verdict line with an **overall risk posture**: `RISK: LOW | MEDIUM | HIGH`.
 
 ## Rules

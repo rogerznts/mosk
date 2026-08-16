@@ -8,8 +8,11 @@ passar: implementar as unidades em paralelo, verificar, corrigir, repetir.
 ```yaml
 data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+  - adaptive-work-contract.md
 templates:
   - run-log-tmpl.md    # o registro das decisões autônomas
+scripts:
+  - classify-change.sh
 ```
 
 ## Goal
@@ -72,6 +75,26 @@ construindo sobre um alicerce inexistente é a forma mais cara de descobrir isso
 independência lendo o código: o custo é assimétrico — um par erradamente paralelo
 escrevendo o mesmo arquivo corrompe trabalho que teria dado certo sozinho.
 
+### Perfil adaptativo de cada unidade
+
+Para cada unidade, selecione sinais observáveis e rode
+`.claude/mosk/scripts/classify-change.sh` conforme
+`.claude/mosk/data/adaptive-work-contract.md`. Registre no `run-log.md` uma
+justificativa curta, o `context_budget`, o `validation_floor` e os
+`specialists` resultantes. O perfil é piso de contexto e validação; não cria
+fase, estado, worktree ou checkpoint.
+
+- O worker começa pelo budget retornado e expande apenas pelos gatilhos do
+  contrato.
+- O QA independente continua obrigatório em toda onda; security também entra
+  quando constar em `specialists` ou quando a revisão for pedida explicitamente.
+- `human_pause: true` faz a corrida parar antes da ação quando houver dúvida
+  material ou irreversibilidade. Perfil crítico nunca autoriza ultrapassar a
+  lista fechada do Step 6.
+- Reclassifique antes dos oráculos quando implementação, referência direta ou
+  falha de teste revelar escopo maior, evidência mais fraca ou superfície mais
+  sensível. Mantenha o resultado mais rigoroso e registre o gatilho.
+
 ---
 
 ## Step 2 — Preflight. O único momento em que você pergunta.
@@ -89,6 +112,9 @@ Unidades detectadas: 5
 Como vou verificar:
 - Testes: `npm test`  ← o oráculo mecânico
 - Gate: `/mosk-qa` em contexto limpo, a cada onda
+
+Perfis mínimos:
+- US-1: `<perfil>` · contexto `<budget>` · validação `<piso>` · especialistas `<lista>`
 
 Limites: 3 voltas por unidade · 3 worktrees simultâneos
 
@@ -151,6 +177,10 @@ Nada de push.
 Rode **`mosk-security`** em paralelo ao QA quando o diff acumulado tocar
 superfície sensível (auth/authz, entrada de usuário, queries, segredos,
 endpoints, desserialização, cripto, path). O verdicto `SECURITY:` alimenta o gate.
+O especialista também é obrigatório quando o perfil adaptativo o listar, mesmo
+que a superfície só tenha ficado evidente depois da implementação. Ausência de
+evidência exigida pelo `validation_floor` volta como falha; nunca é convertida
+em confiança implícita pelo runner.
 
 > **Você nunca decide se o loop continua** — só *como* corrigir. Quem decide é o
 > veredito. Um runner que julga o próprio trabalho não é um runner, é uma opinião

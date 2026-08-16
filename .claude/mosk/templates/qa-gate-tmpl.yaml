@@ -1,4 +1,4 @@
-# <!-- Inspired by BMAD and SpecKit -->
+# MOSK quality gate template
 template:
   id: qa-gate-template-v1
   name: Quality Gate Decision
@@ -21,8 +21,8 @@ updated: "{{iso_timestamp}}"
 evidence_ref: "qa-notes.md" # caminho relativo à spec; obrigatório no schema 2
 
 # Sobre `quality_score`:
-# - CALCULADO, não estimado, pela fórmula canônica do toolkit — a mesma de
-#   review-story.md e assess-nfr.md:
+# - CALCULADO, não estimado, pela fórmula canônica em
+#   ../data/qa-evidence-contract.md:
 #       quality_score = 100 - (20 × FAILs) - (10 × CONCERNS), limitado a [0,100]
 #   Pesos customizados em technical-preferences.md sobrescrevem.
 # - `gate` é o ÚNICO árbitro. O score não decide nada sozinho.

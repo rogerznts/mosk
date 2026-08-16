@@ -6,19 +6,19 @@ This is the installed MOSK toolkit inside your project. Twelve specialist agents
 
 ```
 .claude/
-├── agents/            # Claude Code agent definitions (synced from mosk/agents/)
+├── agents/            # the agent definitions — source of truth
 ├── mosk/
-│   ├── agents/        # canonical persona prompts (source of truth)
 │   ├── tasks/         # executable workflows (specify, plan, tasks, implement, qa-gate, archive, boot, index-docs, …)
 │   ├── templates/     # *-tmpl.yaml / *-tmpl.md (prd, architecture, story, spec-meta, docs-index, project-rule, …)
 │   ├── checklists/
+│   ├── data/          # reference material a task loads only when that phase needs it
 │   ├── scripts/       # lifecycle scripts (see below)
 │   └── core-config.yaml
 ├── rules/             # generated per project by /mosk-boot (project.md + frontend.md + optional extras)
-└── skills/            # slash-command wrappers pointing at agents/tasks
+└── skills/            # generated slash-command wrappers
 ```
 
-Each skill becomes a slash command based on its frontmatter `name`. Example: `name: mosk-po` → `/mosk-po`.
+Each skill becomes a slash command based on its frontmatter `name`. Example: `name: mosk-po` → `/mosk-po`. The wrapper is generated from the agent — edit the agent under `.claude/agents/`, never the wrapper.
 
 The consuming project's documentation is shaped by the same toolkit into this canonical `docs/`:
 
@@ -46,11 +46,11 @@ docs/
     └── archive/                 # completed specs
 ```
 
-See the project-level `README.md` (installed at the repo root) for the full Document Organization reference.
+`/mosk-boot` writes the full Document Organization reference into `.claude/rules/project.md` — that file is the installed copy of the contract, generated from `.claude/mosk/templates/project-rule-tmpl.md`.
 
 ## Agents
 
-Main agents:
+Pipeline and preamble:
 
 - `mosk-analyst` — discovery, research, brainstorming
 - `mosk-pm` — PRD, product scope, PRD delta
@@ -62,7 +62,13 @@ Main agents:
 - `mosk-dev` — implementation, QA fixes, archive
 - `mosk-qa` — quality gates, test strategy, reviews
 
-Helpers:
+On demand:
+
+- `mosk-security` — diff-aware vulnerability review; its report feeds the gate
+- `mosk-bench` — workbench mode for non-technical users
+- `mosk-orq` — autonomous delivery run, opt-in each time you start one
+
+Helper skills:
 
 - `mosk-boot` — generates `.claude/rules/` and scaffolds `docs/` on first install
 - `mosk-help` — short reference guide
@@ -72,7 +78,7 @@ UX Expert and UI Expert coexist in `docs/ui/` with distinct focus: UX owns struc
 
 ## Preferred Usage
 
-Use agents with natural language:
+Describe what you want in natural language. The agent maps the request to the right task and produces the result:
 
 ```text
 /mosk-po full-spec checkout com cupom
@@ -81,7 +87,15 @@ Use agents with natural language:
 /mosk-ui-expert redesign da home atual
 ```
 
-Advanced `*commands` still work as compatibility shortcuts, but natural language is the primary UX.
+You can also name a task directly (`/mosk-architect grill`). Advanced `*commands` still work as compatibility shortcuts, but natural language is the primary UX.
+
+**Documents are written in one pass.** Creating a brief, a PRD, an architecture doc or a spec does not walk you through a numbered menu and does not stop for approval between sections. The agent asks questions only when a genuine ambiguity would change the scope, the architecture, the data or an external effect — and when it asks, it asks **once**, grouping everything it needs. Anything it can settle with a safe default is settled and reported as an assumption alongside the finished document.
+
+**Deeper exploration is opt-in.** Ask for it — "critique this", "explore alternatives", "stress-test this section" — and the agent runs an advanced-elicitation pass on the part you named, then hands the document back. Nothing in a template turns that mode on by itself, and finishing it does not reopen the questions round.
+
+**Rigor scales with the change.** `implement`, `qa-gate`, `security-review` and the autonomous runner size their work against the same shared rule: how far the change reaches, how hard it is to undo, whether it touches sensitive surface, and how much evidence exists. A rename in one file gets a short read and a focused check; anything touching data, security, a public contract or production gets more context, independent verification and a security pass before the gate. The agent states in one line how it sized the work, and it can raise that level mid-flight but never lower it. Ask for more depth and you get it; the level it computed is a floor, not a ceiling.
+
+This changes how much work an agent does — never who decides. Phase changes, gate verdicts and detours are still yours.
 
 ## Flow
 

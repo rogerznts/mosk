@@ -11,6 +11,15 @@ name the task directly (e.g. `/mosk-architect grill`, `/mosk-po artefact`).
 
 See the [README](README.md) for the overall flow and document layout.
 
+**How a task runs.** Describe what you want; the agent maps it to a task and
+produces the result in one pass — no numbered menus, no section-by-section
+approval. Questions come in a single grouped round, and only when the answer
+would change scope, architecture, data or an external effect. Deeper
+exploration is opt-in: ask for critique or alternatives and you get them.
+Tasks that touch code — `implement`, `qa-gate`, `security-review`, `orq-run` —
+size their own depth against the risk of the change and say in one line how
+they sized it.
+
 ---
 
 ## Preamble agents
@@ -52,7 +61,13 @@ See the [README](README.md) for the overall flow and document layout.
 ```
 /mosk-architect design doc para o serviço de cupom
 /mosk-architect grill o plano da spec 012
+/mosk-architect mapear a arquitetura atual do projeto
 ```
+
+Mapping an existing codebase is no longer a separate task. `/mosk-boot` is the
+default entrypoint and turns the survey into compact rules; ask the architect
+instead when you want a standalone architecture document out of the same
+evidence.
 
 ### `/mosk-ux-expert` — Salete · flows, wireframes, UX behavior
 
@@ -79,7 +94,12 @@ loading protocol.
 | `webdesign-soft` | $150k+ agency feel, haptic depth, cinematic motion. | `/mosk-ui-expert soft pricing page` |
 | `webdesign-redesign` | Audits and upgrades an existing interface. | `/mosk-ui-expert redesign da home atual` |
 | `webdesign-stitch` | Generates a `DESIGN.md` for Google Stitch. | `/mosk-ui-expert stitch` |
-| `webdesign-output` | Enforces full code generation, no truncation. | `/mosk-ui-expert output completo` |
+
+Complete delivery is no longer a task you invoke: it is an agent-wide rule on
+**every** UI Expert output. The agent counts the requested deliverables before
+building, ships each one without omission placeholders, and — if it hits a
+response limit — stops at a clean boundary and names the exact artifact still
+missing instead of claiming it is done.
 
 **What taste enforces:**
 
@@ -163,8 +183,7 @@ hand.
 
 | Task | What it does |
 |---|---|
-| `qa-gate` | Creates/updates the quality gate decision (`gate.yaml`). |
-| `review-story` | Comprehensive test-architecture review + gate decision. |
+| `qa-gate` | Independent verification + gate decision. **Spec mode** (default) reviews the active spec into `gate.yaml`; **story mode** (pass a story id) reviews that delivered story into `docs/qa/gates/`. Story mode replaces the former separate post-implementation review. |
 | `design-tests` | Test scenarios with recommended test levels. |
 | `trace-spec` | Maps requirements to test cases (Given-When-Then) for traceability. |
 | `assess-risk` | Risk matrix via probability × impact. |
@@ -173,7 +192,7 @@ hand.
 
 ```
 /mosk-qa qa-gate a spec 012
-/mosk-qa review a story 2.1
+/mosk-qa qa-gate a story 2.1     # story mode
 ```
 
 ### `/mosk-security` — Heitor · vulnerability review & audit
@@ -198,7 +217,7 @@ On-demand security reviewer (inspired by Anthropic's `claude-code-security-revie
 |---|---|
 | `/mosk-bench` (Bento) | Self-contained **workbench mode** for non-technical users: grills a business briefing, then autonomously runs the SDD pipeline to build & iterate an internal tool — Docker-based, pt-BR, zero technical decisions for the user. Active stack: Payload (pluggable adapter). (task: `bench-mode`) |
 | `/mosk-deploy` (Bento) | Publishes a `/mosk-bench` tool to a hosting provider (Railway today) using the **user's own account** — remote build (INV-4 preserved), managed Postgres/Redis, public URL, all in pt-BR. Opt-in, separate from the local bench flow (ADR-0005). Stack × provider pluggable. (task: `deploy-mode`) |
-| `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Run first; re-run when structure changes. (task: `boot`) |
+| `/mosk-boot` | Analyzes a consuming project and generates `.claude/rules/` + scaffolds the canonical `docs/` layout. Also the default **project-mapping** entrypoint: stack, entrypoints, layers, commands, integrations, conventions, tests and gotchas, scoped to your change when there is one. Run first; re-run when structure changes. (task: `boot`) |
 | `/mosk-handoff` | Compacts the current session into a handoff document saved to `docs/handoff/handoff-<YYYY-MM-DD>-<slug>.md` in the **current workspace** (never OS temp), anchored to the active spec/documentation. |
 | `/mosk-suggestion` | Reads the current session state (active spec, `current_phase`, on-disk artifacts, conversation focus) and suggests the **next** MOSK agent to call, with a ready-to-paste prompt. Suggest-only — never invokes another agent. |
 > **Agentes shipam em duas camadas** (ADR-0015): `.claude/agents/mosk-<n>.md` é a
@@ -236,5 +255,4 @@ invoke them by name:
 | `create-doc` | The template-driven doc engine behind analyst/pm/architect/ux `create-doc` entries. |
 | `execute-checklist` | Generic checklist validation engine (pm, architect, sm, dev). |
 | `shard-doc` | Splits any monolithic `raw.md` into `index.md` + sections. |
-| `advanced-elicitation` | Elicitation-method menu offered by document templates during `create-doc`. |
-| `map-project` | Maps an existing project's structure; used by `create-story` and the existing-project PRD template. |
+| `advanced-elicitation` | Deep pass over a passage you name — critique, alternatives, stress-test. **Opt-in only:** it runs when you ask for it, never because a template carries an `elicit` flag. |

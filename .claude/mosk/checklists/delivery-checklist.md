@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Delivery Checklist
 
 ## Instructions for Developer Agent

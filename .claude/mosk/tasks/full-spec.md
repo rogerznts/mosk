@@ -19,9 +19,14 @@ Run the compact planning flow from `specify` through `tasks` without moving into
 1. Start with the `specify` workflow.
    - Create or update the active `spec.md`.
    - Reuse the same branch and feature directory selected during `specify`.
+   - Read `.claude/mosk/data/adaptive-work-contract.md`; use its ambiguity
+     signal without duplicating the scoring policy here.
 
 2. Check whether planning is safe.
-   - If the resulting spec still has critical ambiguity that changes scope, risk, UX, or public behavior, stop and ask one grouped clarification round.
+   - Gather every ambiguity that changes scope, risk, UX, data, or public
+     behavior and ask at most one grouped clarification round for the entire
+     `specify -> plan -> tasks` pass.
+   - Reuse the answer in all later artifacts; do not reopen the interview.
    - If the spec is safe to continue, move on immediately.
 
 3. Continue with the `plan` workflow.
@@ -47,3 +52,6 @@ Run the compact planning flow from `specify` through `tasks` without moving into
 - Keep the same quality bar as running `specify`, `plan`, and `tasks` separately.
 - Do not force optional support artifacts by default.
 - Prefer one compact clarification round over repeated interruptions.
+- Do not ask for confirmation between artifact writes or valid reversible phase
+  transitions. Preserve the explicit approval required to create/push a branch
+  and every existing human limit for irreversible actions.

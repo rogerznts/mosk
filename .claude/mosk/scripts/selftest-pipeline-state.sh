@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -u
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
+CLASSIFIER="$SCRIPT_DIR/classify-change.sh"
 
 VERBOSE=false
 case "${1:-}" in
@@ -305,6 +306,54 @@ printf '[NEEDS CLARIFICATION: decisão pendente]\n' >> "$marker_spec/plan.md"
 marker_before="$(state_digest "$marker_spec")"
 expect_fail "marcador bloqueante em plan.md impede tasks" transition_spec_phase "$marker_spec" tasks tasks "$repo"
 expect_eq "falha por marcador preserva estado" "$marker_before" "$(state_digest "$marker_spec")"
+
+echo "selftest-pipeline-state: perfil adaptativo é evidência, não estado"
+adaptive_spec="$(make_state_spec "$repo" 187 plan)"
+bash "$CLASSIFIER" --scope public_contract --reversibility irreversible \
+    --sensitive-surface data_security --evidence partial --ambiguity clear \
+    > "$adaptive_spec/adaptive-evidence.json"
+adaptive_profile_before="$(cksum "$adaptive_spec/adaptive-evidence.json")"
+adaptive_state_before="$(state_digest "$adaptive_spec")"
+expect_fail "perfil crítico não autoriza salto de fase" \
+    transition_spec_phase "$adaptive_spec" implement implement "$repo"
+expect_eq "salto com perfil preserva metadata e histórico" \
+    "$adaptive_state_before" "$(state_digest "$adaptive_spec")"
+expect_eq "salto recusado preserva evidência adaptativa" \
+    "$adaptive_profile_before" "$(cksum "$adaptive_spec/adaptive-evidence.json")"
+cp "$adaptive_spec/phase-history.yaml" "$TMP_ROOT/adaptive-history-before"
+adaptive_history_lines="$(wc -l < "$TMP_ROOT/adaptive-history-before" | tr -d ' ')"
+expect_ok "perfil crítico não bloqueia transição válida" \
+    transition_spec_phase "$adaptive_spec" tasks tasks "$repo"
+head -n "$adaptive_history_lines" "$adaptive_spec/phase-history.yaml" > "$TMP_ROOT/adaptive-history-prefix"
+expect_ok "transição com perfil não trunca histórico" \
+    cmp "$TMP_ROOT/adaptive-history-before" "$TMP_ROOT/adaptive-history-prefix"
+expect_eq "transição válida preserva evidência adaptativa" \
+    "$adaptive_profile_before" "$(cksum "$adaptive_spec/adaptive-evidence.json")"
+
+adaptive_gate="$(make_state_spec "$repo" 188 qa-gate)"
+cp "$adaptive_spec/adaptive-evidence.json" "$adaptive_gate/adaptive-evidence.json"
+cat > "$adaptive_gate/gate.yaml" <<'EOF'
+schema: 2
+story: "188"
+story_title: "Adaptive profile cannot bypass evidence"
+gate: PASS
+quality_score: 100
+score_history: [100]
+status_reason: "missing evidence reference"
+reviewer: "Self Test"
+updated: "2026-08-15T00:00:04Z"
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: ""
+EOF
+adaptive_gate_before="$(state_digest "$adaptive_gate")"
+expect_fail "perfil crítico não enfraquece gate sem evidência" \
+    validate_gate_for_completion "$adaptive_gate"
+expect_fail "perfil crítico não permite archive fail-open" \
+    transition_spec_phase "$adaptive_gate" archived archive "$repo"
+expect_eq "gate adaptativo recusado preserva estado" \
+    "$adaptive_gate_before" "$(state_digest "$adaptive_gate")"
 
 echo "selftest-pipeline-state: transições"
 expect_ok "specify para plan" transition_spec_phase "$spec" plan plan

@@ -1,0 +1,51 @@
+task	action	destination	consumers	evidence	reason
+advanced-elicitation.md	rewrite	.claude/mosk/tasks/advanced-elicitation.md	.claude/mosk/tasks/create-doc.md	pending	Manter apenas como aprofundamento explícito e opcional.
+analyze.md	keep		.claude/agents/mosk-po.md	not_applicable	Revisão cruzada curta e opcional com função distinta.
+apply-qa-fixes.md	rewrite	.claude/mosk/tasks/apply-qa-fixes.md	.claude/agents/mosk-dev.md|.claude/agents/mosk-qa.md	covered	Compactar correção por finding e eliminar contrato duplicado.
+archive.md	keep		.claude/agents/mosk-dev.md	not_applicable	Gate determinístico e promoção são capacidade única.
+artefact.md	keep		.claude/agents/mosk-po.md	not_applicable	Adendo escopado à spec ativa já usa fluxo moderno.
+assess-nfr.md	rewrite	.claude/mosk/tasks/assess-nfr.md	.claude/agents/mosk-qa.md	covered	Consumir evidência comum e remover exemplos extensos.
+assess-risk.md	rewrite	.claude/mosk/tasks/assess-risk.md	.claude/agents/mosk-qa.md	covered	Substituir relatório prescritivo por matriz adaptativa.
+assess-security.md	keep		.claude/agents/mosk-security.md	not_applicable	Auditoria ampla continua separada da revisão de diff.
+audit-docs-paths.md	keep		.claude/agents/mosk-dev.md	not_applicable	Wrapper direto para validação documental existente.
+bench-mode.md	rewrite	.claude/mosk/tasks/bench-mode.md	.claude/agents/mosk-bench.md	pending	Reduzir duplicação sem alterar a capacidade pública do Bench.
+boot.md	keep		.claude/skills/mosk-boot/SKILL.md	not_applicable	Bootstrap e migração de regras são contratos críticos.
+checklist.md	keep		.claude/agents/mosk-po.md	not_applicable	Suporte opcional curto e já roteado.
+clarify.md	keep		.claude/agents/mosk-po.md	not_applicable	Clarificação agrupada opcional já tem limite explícito.
+correct-course.md	rewrite	.claude/mosk/tasks/correct-course.md	.claude/agents/mosk-sm.md	covered	Remover escolha cerimonial de modo e diagnosticar diretamente.
+create-brief.md	keep		.claude/agents/mosk-analyst.md	not_applicable	Wrapper de capacidade distinto que pode usar criação direta.
+create-competitor-analysis.md	keep		.claude/agents/mosk-analyst.md	not_applicable	Wrapper de análise competitiva continua público.
+create-deep-research-prompt.md	rewrite	.claude/mosk/tasks/create-deep-research-prompt.md	.claude/agents/mosk-analyst.md	pending	Gerar prompt em uma passagem sem opções obrigatórias.
+create-doc.md	rewrite	.claude/mosk/tasks/create-doc.md	.claude/agents/mosk-analyst.md|.claude/agents/mosk-pm.md|.claude/agents/mosk-architect.md|.claude/agents/mosk-ux-expert.md	pending	Tornar criação direta e elicitação opt-in.
+create-epic.md	rewrite	.claude/mosk/tasks/create-epic.md	.claude/agents/mosk-po.md	covered	Compactar estrutura e manter vínculo verificável com PRD/spec.
+create-market-research.md	keep		.claude/agents/mosk-analyst.md	not_applicable	Wrapper público de pesquisa de mercado.
+create-story.md	rewrite	.claude/mosk/tasks/create-story.md	.claude/agents/mosk-po.md	covered	Reduzir perguntas e exemplos mantendo AC verificáveis.
+deploy-mode.md	keep		.claude/skills/mosk-deploy/SKILL.md	not_applicable	Fluxo especializado e escopado de publicação.
+design-tests.md	rewrite	.claude/mosk/tasks/design-tests.md	.claude/agents/mosk-qa.md	covered	Selecionar testes pelo risco real e contrato compartilhado.
+draft-frontend-prompt.md	keep		.claude/agents/mosk-ux-expert.md	not_applicable	Saída única e curta para implementação de frontend.
+enrich-story.md	rewrite	.claude/mosk/tasks/enrich-story.md	.claude/agents/mosk-sm.md	covered	Consolidar readiness sobre uma fonte de critérios.
+execute-checklist.md	rewrite	.claude/mosk/tasks/execute-checklist.md	.claude/agents/mosk-dev.md|.claude/agents/mosk-sm.md|.claude/agents/mosk-pm.md|.claude/agents/mosk-architect.md	covered	Executar checklist explícito sem menu ou metodologia duplicada.
+facilitate-brainstorming-session.md	rewrite	.claude/mosk/tasks/facilitate-brainstorming-session.md	.claude/agents/mosk-analyst.md	pending	Escolher dinâmica proporcional sem workshop longo por padrão.
+full-spec.md	keep		.claude/agents/mosk-po.md	not_applicable	Composição canônica e curta do planejamento completo.
+grill.md	keep		.claude/agents/mosk-architect.md|.claude/agents/mosk-bench.md	not_applicable	Entrevista escopada com teto explícito.
+hallmark.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Integração explícita do material visual vendorizado.
+implement.md	keep		.claude/agents/mosk-dev.md	not_applicable	Execução atual preservada antes do runner da Etapa 4.
+index-docs.md	keep		.claude/agents/mosk-dev.md	not_applicable	Atualização do índice é uma capacidade funcional necessária.
+map-project.md	merge	.claude/mosk/tasks/boot.md|.claude/agents/mosk-architect.md	none	covered	Absorver descoberta técnica em boot e Architect antes de remover.
+orq-run.md	keep		.claude/agents/mosk-orq.md	not_applicable	Orquestração atual permanece até a Etapa 4.
+plan.md	keep		.claude/agents/mosk-po.md	not_applicable	Fase canônica de planejamento com contrato estável.
+planner.md	rewrite	.claude/mosk/tasks/planner.md	.claude/agents/mosk-pm.md	pending	Separar leitura mecânica de síntese e reduzir responsabilidades.
+qa-gate.md	keep		.claude/agents/mosk-qa.md	not_applicable	Gate independente e fail-closed estabilizado.
+review-story-draft.md	rewrite	.claude/mosk/tasks/review-story-draft.md	.claude/agents/mosk-po.md|.claude/agents/mosk-sm.md	covered	Compartilhar readiness e emitir findings acionáveis.
+review-story.md	merge	.claude/mosk/tasks/qa-gate.md|.claude/agents/mosk-qa.md	.claude/agents/mosk-qa.md	covered	Absorver revisão de story como modo do gate antes de remover.
+security-review.md	keep		.claude/agents/mosk-security.md	not_applicable	Revisão diff-aware independente já é objetiva.
+shard-doc.md	rewrite	.claude/mosk/tasks/shard-doc.md	.claude/agents/mosk-pm.md|.claude/agents/mosk-architect.md	covered	Compactar transformação mecânica e fallback.
+specify.md	keep		.claude/agents/mosk-po.md	not_applicable	Fase canônica de especificação e numeração.
+tasks.md	keep		.claude/agents/mosk-po.md	not_applicable	Geração canônica de trabalho ordenado.
+trace-spec.md	rewrite	.claude/mosk/tasks/trace-spec.md	.claude/agents/mosk-qa.md	covered	Gerar rastreabilidade compacta por AC.
+webdesign-brutalist.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Estilo visual especializado e distinto.
+webdesign-minimalist.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Estilo visual especializado e distinto.
+webdesign-output.md	merge	.claude/mosk/tasks/hallmark.md|.claude/agents/mosk-ui-expert.md	.claude/agents/mosk-ui-expert.md	covered	Absorver integridade de saída no UI Expert e Hallmark.
+webdesign-redesign.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Auditoria e redesign visual especializados.
+webdesign-soft.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Estilo visual especializado e distinto.
+webdesign-stitch.md	keep		.claude/agents/mosk-ui-expert.md	not_applicable	Geração especializada de design system.

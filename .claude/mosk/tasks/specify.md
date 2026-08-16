@@ -14,6 +14,10 @@ Use the input as the source of truth for the requested change.
 
 Produce a short, implementation-safe specification that is ready for planning without turning every unknown into a blocker.
 
+Use `.claude/mosk/data/adaptive-work-contract.md` to distinguish bounded from
+material ambiguity. When clarification is material, collect every blocking
+question first and ask them in one grouped round.
+
 ## Workflow
 
 1. Determine the spec type:
@@ -55,6 +59,8 @@ Produce a short, implementation-safe specification that is ready for planning wi
 5. Use defaults aggressively.
    - Only insert `[NEEDS CLARIFICATION: ...]` when the answer changes scope, risk, UX, or public behavior.
    - Hard limit: 3 markers total.
+   - Do not start a second clarification round. After the grouped answer,
+     record safe defaults or report the remaining real blocker.
 
 6. Do not generate checklists automatically.
    - `clarify`, `analyze`, and `checklist` are optional follow-up steps.
@@ -78,3 +84,5 @@ Produce a short, implementation-safe specification that is ready for planning wi
 - Keep the spec readable by both product and engineering.
 - Do not leak implementation detail unless the request explicitly requires it.
 - Do not ask the user to repeat the original request unless the input is empty.
+- Refreshing the index and recording a valid reversible transition do not need
+  intermediate confirmation. Branch creation keeps its explicit approval.
