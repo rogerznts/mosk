@@ -20,9 +20,10 @@ Não use ausência de evidência como prova de sucesso. Um item aplicável sem f
 
 ## Achados
 
-Achados seguem `.claude/mosk/data/output-contract.md`: ids estáveis, título que
-se sustenta sozinho, severidade `low|medium|high`, evidência concreta e critério
-com significado. Relatórios humanos usam blocos, não tabelas comprimidas.
+Este contrato diz **qual evidência precisa existir**; a **forma escrita** dela é
+de `.claude/mosk/data/output-contract.md` — vocabulário de ids, citação, formato
+de achado, severidade e resumo. Leia lá antes de escrever qualquer relatório;
+não há uma segunda redação dessas regras aqui.
 
 ## Saídas distintas
 

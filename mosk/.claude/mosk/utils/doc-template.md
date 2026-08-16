@@ -6,7 +6,7 @@
 
 MOSK document templates are defined in YAML format to drive interactive document generation and agent interaction. Templates separate structure definition from content generation, making them both human and LLM-agent-friendly.
 
-The model is inspired by the structured artifact approach popularized by BMAD and SpecKit, but adapted here for MOSK's lighter default workflow.
+The model favors a light default: a template declares the structure, and the agent fills it in a single pass. Elicitation, choices, and nested sections are opt-in features of a section — never a mandatory step of the workflow.
 
 ## Template Structure
 

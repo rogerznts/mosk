@@ -36,5 +36,6 @@ Emita:
 - `NEEDS_REVISION`: gaps são corrigíveis na própria story;
 - `BLOCKED`: falta decisão externa de produto, UX ou arquitetura.
 
-Para cada gap, informe severidade, evidência ausente, impacto e correção mínima.
+Cada gap vira um achado escrito conforme `.claude/mosk/data/output-contract.md`,
+com a severidade, a evidência que falta e a correção mínima.
 Não use score subjetivo como substituto dos achados.

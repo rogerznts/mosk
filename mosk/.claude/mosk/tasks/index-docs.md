@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Index Documentation Task
 
 ## Purpose

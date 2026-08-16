@@ -37,7 +37,7 @@ Encontrar vulnerabilidades exploráveis reais nas mudanças, com ruído mínimo,
 
 ## Expected outputs
 
-- findings priorizados: `file:line`, severity (HIGH/MEDIUM/LOW), confidence (0–1), category, exploit scenario, recommendation
+- findings priorizados na forma de `.claude/mosk/data/output-contract.md` (id `SEC-#`, bloco com título), acrescidos de severity (HIGH/MEDIUM/LOW), confidence (0–1) e category
 - veredito de segurança (`SECURITY: PASS | CONCERNS | FAIL`) que o gate de QA pode consumir
 - caminho do relatório gravado sob `{qa.qaLocation}/security/`
 

@@ -1,5 +1,7 @@
 # Contrato de perfil adaptativo de trabalho
 
+<!-- contract-normative:start -->
+
 ## Objetivo
 
 Um único contrato decide quanta investigação, contexto e validação uma mudança
@@ -94,3 +96,17 @@ ou execução paralela; essas capacidades pertencem à Etapa 4.
 - Elevação manual nunca rebaixa o piso calculado.
 - Não há rede, segredos, YAML arbitrário ou dependência obrigatória de `jq`.
 - Compatibilidade: Bash 3.2+ e zsh executando o script diretamente.
+
+<!-- contract-normative:end -->
+
+## Fonte única
+
+Tudo acima, entre os comentários `contract-normative:start` e
+`contract-normative:end`, é a redação normativa deste contrato. Task, agente ou
+skill que precise dela **referencia este arquivo pelo caminho**; copiar o texto
+cria uma segunda fonte que passa a divergir em silêncio.
+
+`audit-legacy-surface.sh` falha quando três ou mais linhas normativas — as de 30
+caracteres ou mais, comparadas com espaçamento normalizado — reaparecem
+literalmente em outro arquivo do produto. Mencionar, linkar ou citar uma linha
+isolada continua correto e não dispara nada.

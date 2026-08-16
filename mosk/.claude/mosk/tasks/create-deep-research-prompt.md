@@ -3,6 +3,11 @@
 Transforme um objetivo de investigação em um prompt executável, com perguntas,
 métodos, evidência esperada e formato de entrega.
 
+## Dependências
+
+- `.claude/mosk/tasks/advanced-elicitation.md` — aprofundamento opt-in; carregue
+  somente sob pedido explícito do usuário.
+
 ## Entrada
 
 Use brief, brainstorming, pesquisa anterior ou pergunta do usuário como fonte.

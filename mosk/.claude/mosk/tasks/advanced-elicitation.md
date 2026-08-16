@@ -4,6 +4,11 @@ Aprofunde um conteúdo quando o usuário pedir explicitamente exploração,
 crítica ou refinamento avançado. Esta task nunca é ativada por flags do template
 e não faz parte do happy path de criação documental.
 
+## Dependências
+
+- `.claude/mosk/data/elicitation-methods.md` — catálogo de métodos; carregue
+  apenas o método selecionado, nunca a lista inteira.
+
 ## Entrada
 
 - conteúdo ou decisão a explorar;

@@ -96,11 +96,10 @@
 - [x] T034 [US2] Absorver `mosk/.claude/mosk/tasks/review-story.md` no modo story de `qa-gate.md` e no agente `mosk/.claude/agents/mosk-qa.md`; atualizar rotas/fixtures e só então remover o arquivo antigo.
 - [x] T035 [US2] Absorver `mosk/.claude/mosk/tasks/webdesign-output.md` em `hallmark.md` e no agente `mosk/.claude/agents/mosk-ui-expert.md`; preservar a semântica visual legítima de menu e só então remover o arquivo antigo.
 - [x] T036 [US2] Reconciliar todas as tasks restantes em `mosk/.claude/mosk/data/task-dispositions.tsv`, integrando qualquer task sem entrypoint ao agente/skill correto ou removendo-a com prova de não uso.
-- [ ] T037 [US2] Executar `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` após cada fusão e fechar a fase somente com 50/50 decisões, zero órfã e zero referência quebrada.
-  - Dependência registrada: catálogo, rotas e fusões estão íntegros (50 decisões,
-    47 tasks ativas, 3 merges `covered`, zero referência antiga); o audit global
-    ainda falha exclusivamente pelas 23 ocorrências BMAD que a US4 remove em
-    T046/T050/T051. Reexecutar e marcar T037 após essa limpeza.
+- [x] T037 [US2] Executar `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` após cada fusão e fechar a fase somente com 50/50 decisões, zero órfã e zero referência quebrada.
+  - Fechada após T051: o audit global sai `ok:true` com 50 decisões, 47 tasks
+    ativas, 3 merges `covered`, zero referência antiga e zero ocorrência legada.
+    A dependência registrada era exatamente a limpeza das 23 ocorrências.
 
 **Checkpoint**: A superfície é menor, mas todas as capacidades públicas da baseline permanecem demonstráveis.
 
@@ -138,17 +137,17 @@
 
 ### Tests for User Story 4
 
-- [ ] T046 [US4] Estender `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` para medir com a mesma fórmula da baseline, detectar cópias divergentes de contratos e falhar abaixo de 30% de redução no corpus-alvo final.
-- [ ] T047 [US4] Adicionar ao `mosk/.claude/mosk/scripts/selftest-toolkit.sh` verificações de referências autocontidas e carregamento sob demanda em instalação isolada.
+- [x] T046 [US4] Estender `mosk/.claude/mosk/scripts/audit-legacy-surface.sh` para medir com a mesma fórmula da baseline, detectar cópias divergentes de contratos e falhar abaixo de 30% de redução no corpus-alvo final.
+- [x] T047 [US4] Adicionar ao `mosk/.claude/mosk/scripts/selftest-toolkit.sh` verificações de referências autocontidas e carregamento sob demanda em instalação isolada.
 
 ### Implementation for User Story 4
 
-- [ ] T048 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/bench-mode.md` para mover exemplos extensos/regras raras a referências sob demanda, preservando a persona e capacidades públicas do Bento.
-- [ ] T049 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/planner.md` para contrato direto e contexto adaptativo, preservando planejamento vivo e integração documental.
-- [ ] T050 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/advanced-elicitation.md`, `create-deep-research-prompt.md` e `facilitate-brainstorming-session.md` para consumir catálogos em `mosk/.claude/mosk/data/` sem incorporar listas extensas no prompt principal.
-- [ ] T051 [US4] Revisar as demais 18 tasks `rewrite` listadas em `task-dispositions.tsv`, mover exemplos raros para `mosk/.claude/mosk/data/` somente quando reutilizáveis e eliminar duplicação sem perder fixtures.
-- [ ] T052 [US4] Atualizar `mosk/.claude/skills/` por meio do gerador oficial para wrappers mínimos que apontem aos agentes como fonte, sem editar skills geradas manualmente.
-- [ ] T053 [US4] Atualizar `mosk/.claude/mosk/data/output-contract.md` e consumidores para uma única forma de resposta, eliminando schemas/instruções equivalentes que a auditoria identificar.
+- [x] T048 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/bench-mode.md` para mover exemplos extensos/regras raras a referências sob demanda, preservando a persona e capacidades públicas do Bento.
+- [x] T049 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/planner.md` para contrato direto e contexto adaptativo, preservando planejamento vivo e integração documental.
+- [x] T050 [P] [US4] Reescrever `mosk/.claude/mosk/tasks/advanced-elicitation.md`, `create-deep-research-prompt.md` e `facilitate-brainstorming-session.md` para consumir catálogos em `mosk/.claude/mosk/data/` sem incorporar listas extensas no prompt principal.
+- [x] T051 [US4] Revisar as demais 18 tasks `rewrite` listadas em `task-dispositions.tsv`, mover exemplos raros para `mosk/.claude/mosk/data/` somente quando reutilizáveis e eliminar duplicação sem perder fixtures.
+- [x] T052 [US4] Atualizar `mosk/.claude/skills/` por meio do gerador oficial para wrappers mínimos que apontem aos agentes como fonte, sem editar skills geradas manualmente.
+- [x] T053 [US4] Atualizar `mosk/.claude/mosk/data/output-contract.md` e consumidores para uma única forma de resposta, eliminando schemas/instruções equivalentes que a auditoria identificar.
 
 **Checkpoint**: O toolkit carrega menos texto no caminho principal e mantém detalhes raros acessíveis apenas quando relevantes.
 

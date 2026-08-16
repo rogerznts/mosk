@@ -271,6 +271,13 @@ printf '# fixture\n' > "$legacy_fixture/.claude/mosk/tasks/sample.md"
 printf '# consumer\n' > "$legacy_fixture/.claude/agents/mosk-sample.md"
 printf 'path_pattern\tkind\treason\n' \
     > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
+# A auditoria falha fechada sem baseline de medição e sem os contratos
+# canônicos; a fixture mínima precisa dos dois para exercitar o resto.
+printf 'task\tbaseline_lines\n' \
+    > "$legacy_fixture/.claude/mosk/data/legacy-baseline-metrics.tsv"
+cp "$INSTALL_ROOT/.claude/mosk/data/adaptive-work-contract.md" \
+    "$INSTALL_ROOT/.claude/mosk/data/output-contract.md" \
+    "$legacy_fixture/.claude/mosk/data/"
 write_legacy_catalog() {
     printf 'task\taction\tdestination\tconsumers\tevidence\treason\n' \
         > "$legacy_fixture/.claude/mosk/data/task-dispositions.tsv"
@@ -461,6 +468,259 @@ expect_ok "wrappers documentais usam contrato direto" direct_contract_ok
 expect_ok "templates alvo não impõem hard stop" template_contract_ok
 expect_ok "pipeline limita clarificação a uma rodada" pipeline_contract_ok
 expect_ok "agentes consumidores expõem opt-in explícito" agent_contract_ok
+
+echo "selftest-toolkit: instalação isolada"
+# Materialização distribuível: apenas o conteúdo que o degit entrega a partir
+# de mosk/. Toda verificação desta seção roda contra ela, nunca contra o
+# repositório de desenvolvimento — é a única forma de provar que a instrução
+# se sustenta sozinha depois de instalada.
+iso_root="$TMP_ROOT/isolated"
+mkdir -p "$iso_root"
+cp -R "$INSTALL_ROOT/.claude" "$iso_root/.claude"
+
+# Superfície de instrução: o que o agente lê para agir. Scripts ficam de fora
+# de propósito — são código, e suas referências internas já são cobertas pelo
+# bloco anterior e pelo doctor.
+iso_surface=(
+    "$iso_root/.claude/agents"
+    "$iso_root/.claude/skills"
+    "$iso_root/.claude/mosk/tasks"
+    "$iso_root/.claude/mosk/templates"
+    "$iso_root/.claude/mosk/checklists"
+    "$iso_root/.claude/mosk/utils"
+    "$iso_root/.claude/README.md"
+)
+# data/ entra arquivo a arquivo: data/hallmark/ é fork vendorizado com 100+
+# arquivos upstream e não segue as regras de referência do MOSK.
+for iso_data in "$iso_root"/.claude/mosk/data/*; do
+    [[ -f "$iso_data" ]] && iso_surface+=("$iso_data")
+done
+
+# Raiz que contém docs/specs — o repositório de desenvolvimento quando o
+# toolkit é editado a partir de mosk/. Numa materialização pura ela não
+# existe, e a comparação vira no-op de propósito.
+resolve_dev_specs_root() {
+    local candidate
+    for candidate in "$INSTALL_ROOT" "$(cd "$INSTALL_ROOT/.." && pwd)"; do
+        if [[ -d "$candidate/docs/specs" ]]; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Falha quando uma instrução depende de caminho disponível apenas no
+# repositório de desenvolvimento: o prefixo `mosk/`, que o degit não entrega,
+# ou uma spec concreta de docs/specs/ que só existe lá.
+validate_isolated_refs() {
+    local iso="$1" dev_specs="$2"
+    shift 2
+    local failed=0 scan file line ref
+    for scan in "$@"; do
+        [[ -e "$scan" ]] || continue
+        while IFS=: read -r file line ref; do
+            [[ -n "$ref" ]] || continue
+            case "$ref" in
+                */|*'<'*|*'{'*|*'*'*|*NAME*) continue ;;
+            esac
+            case "$ref" in
+                mosk/.claude/*)
+                    echo "${file#$iso/}:$line :: ISOLADA :: '$ref' usa o prefixo 'mosk/', ausente na instalação"
+                    failed=1
+                    ;;
+                docs/specs/*)
+                    [[ -n "$dev_specs" ]] || continue
+                    [[ -e "$dev_specs/$ref" ]] || continue
+                    echo "${file#$iso/}:$line :: ISOLADA :: '$ref' só existe no repositório de desenvolvimento"
+                    failed=1
+                    ;;
+            esac
+        done < <(grep -rnEo '(mosk/\.claude|docs/specs/[0-9]{3})[A-Za-z0-9._/-]*' "$scan" 2>/dev/null || true)
+    done
+    return "$failed"
+}
+
+iso_dev_specs="$(resolve_dev_specs_root || true)"
+expect_ok "instalação isolada não depende do repositório de desenvolvimento" \
+    validate_isolated_refs "$iso_root" "$iso_dev_specs" "${iso_surface[@]}"
+expect_ok "referências internas resolvem na materialização" \
+    validate_internal_refs "$iso_root" "${iso_surface[@]}"
+
+printf 'Rode `%s/.claude/mosk/scripts/sync-agents-skills.sh`.\n' 'mosk' \
+    > "$iso_root/.claude/mosk/tasks/selftest-dev-prefix.md"
+expect_fail_contains "prefixo do repositório de desenvolvimento falha" \
+    "ausente na instalação" \
+    validate_isolated_refs "$iso_root" "$iso_dev_specs" "$iso_root/.claude/mosk/tasks/selftest-dev-prefix.md"
+rm -f "$iso_root/.claude/mosk/tasks/selftest-dev-prefix.md"
+
+iso_fake_dev="$TMP_ROOT/fake-dev"
+mkdir -p "$iso_fake_dev/docs/specs/099-feature-selftest"
+printf 'Leia `docs/specs/099-feature-selftest`.\n' \
+    > "$iso_root/.claude/mosk/tasks/selftest-dev-spec.md"
+expect_fail_contains "spec concreta do repositório de desenvolvimento falha" \
+    "só existe no repositório de desenvolvimento" \
+    validate_isolated_refs "$iso_root" "$iso_fake_dev" "$iso_root/.claude/mosk/tasks/selftest-dev-spec.md"
+expect_ok "exemplo de spec inexistente não é cobrado" \
+    validate_isolated_refs "$iso_root" "$TMP_ROOT/sem-docs" "$iso_root/.claude/mosk/tasks/selftest-dev-spec.md"
+rm -f "$iso_root/.claude/mosk/tasks/selftest-dev-spec.md"
+
+printf 'Use `.claude/mosk/data/selftest-inexistente.md`.\n' \
+    > "$iso_root/.claude/mosk/tasks/selftest-broken-ref.md"
+expect_fail "referência quebrada na materialização falha" \
+    validate_internal_refs "$iso_root" "$iso_root/.claude/mosk/tasks/selftest-broken-ref.md"
+rm -f "$iso_root/.claude/mosk/tasks/selftest-broken-ref.md"
+
+echo "selftest-toolkit: carregamento sob demanda"
+# Material movido para referência só é carregado se a task o declarar e o
+# arquivo existir. As duas pontas são verificadas: declaração sem arquivo, e
+# arquivo sem nenhum consumidor que o declare.
+
+dependency_dir_for_key() {
+    case "$1" in
+        data) printf '.claude/mosk/data' ;;
+        scripts) printf '.claude/mosk/scripts' ;;
+        templates) printf '.claude/mosk/templates' ;;
+        schemas) printf '.claude/mosk/schemas' ;;
+        checklists) printf '.claude/mosk/checklists' ;;
+        tasks) printf '.claude/mosk/tasks' ;;
+        utils) printf '.claude/mosk/utils' ;;
+        *) return 1 ;;
+    esac
+}
+
+trim_ws() {
+    local value="$1"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    printf '%s' "$value"
+}
+
+# Aceita as duas formas de declaração em uso: bloco YAML com basenames por
+# domínio (`data:`, `scripts:`, …) e bullets em prosa com o path completo.
+validate_declared_dependencies() {
+    local root="$1" failed=0 file rel
+    local in_section in_block dir line item key rest lineno
+    for file in "$root"/.claude/mosk/tasks/*.md; do
+        [[ -f "$file" ]] || continue
+        rel="${file#$root/}"
+        in_section=0
+        in_block=0
+        dir=""
+        lineno=0
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            lineno=$((lineno + 1))
+            case "$line" in
+                '## Depend'*) in_section=1; in_block=0; dir=""; continue ;;
+                '## '*) in_section=0 ;;
+            esac
+            [[ "$in_section" -eq 1 ]] || continue
+            case "$line" in
+                '```'*) in_block=$((1 - in_block)); dir=""; continue ;;
+            esac
+            if [[ "$in_block" -eq 1 ]]; then
+                case "$line" in
+                    [a-z]*:)
+                        key="${line%:}"
+                        dir="$(dependency_dir_for_key "$key" || true)"
+                        continue
+                        ;;
+                    *-\ *) ;;
+                    *) continue ;;
+                esac
+                [[ -n "$dir" ]] || continue
+                item="${line#*- }"
+                item="${item%%#*}"
+                item="$(trim_ws "$item")"
+                [[ -n "$item" ]] || continue
+                case "$item" in
+                    */|*'<'*|*'{'*|*'*'*) continue ;;
+                esac
+                if [[ ! -e "$root/$dir/$item" ]]; then
+                    echo "$rel:$lineno :: DEP :: '$dir/$item' declarado e ausente"
+                    failed=1
+                fi
+            else
+                rest="$line"
+                while [[ "$rest" == *'`'*'`'* ]]; do
+                    rest="${rest#*\`}"
+                    item="${rest%%\`*}"
+                    rest="${rest#*\`}"
+                    case "$item" in
+                        .claude/mosk/*) ;;
+                        *) continue ;;
+                    esac
+                    case "$item" in
+                        */|*'<'*|*'{'*|*'*'*) continue ;;
+                    esac
+                    if [[ ! -e "$root/$item" ]]; then
+                        echo "$rel:$lineno :: DEP :: '$item' declarado e ausente"
+                        failed=1
+                    fi
+                done
+            fi
+        done < "$file"
+    done
+    return "$failed"
+}
+
+# Referência que ninguém declara é material que nunca é carregado. O match é
+# pelo radical do nome: um consumidor declara o arquivo ao nomeá-lo, com ou
+# sem extensão. data/hallmark/ está fora — fork vendorizado, não é referência
+# MOSK.
+validate_no_orphan_references() {
+    local root="$1" failed=0 file base stem
+    for file in "$root"/.claude/mosk/data/*; do
+        [[ -f "$file" ]] || continue
+        base="$(basename "$file")"
+        stem="${base%.*}"
+        if ! grep -rlF --exclude-dir=data "$stem" "$root/.claude" >/dev/null 2>&1; then
+            echo ".claude/mosk/data/$base :: ÓRFÃ :: nenhum consumidor declara esta referência"
+            failed=1
+        fi
+    done
+    return "$failed"
+}
+
+expect_ok "dependências declaradas existem na materialização" \
+    validate_declared_dependencies "$iso_root"
+expect_ok "referências de data têm ao menos um consumidor" \
+    validate_no_orphan_references "$iso_root"
+
+expect_ok "par sob demanda do bench declara a referência" \
+    file_contains "$iso_root/.claude/mosk/tasks/bench-mode.md" \
+    '.claude/mosk/data/bench-runtime-reference.md'
+expect_ok "par sob demanda do planner declara a referência" \
+    file_contains "$iso_root/.claude/mosk/tasks/planner.md" \
+    '.claude/mosk/data/planner-reference.md'
+
+printf '# t\n\n## Dependencies\n\n```yaml\ndata:\n  - selftest-ausente.md\n```\n' \
+    > "$iso_root/.claude/mosk/tasks/selftest-dep-yaml.md"
+expect_fail_contains "dependência declarada em bloco e ausente falha" \
+    "declarado e ausente" validate_declared_dependencies "$iso_root"
+rm -f "$iso_root/.claude/mosk/tasks/selftest-dep-yaml.md"
+
+printf '# t\n\n## Dependências\n\n- `%s` — referência sob demanda.\n' \
+    '.claude/mosk/data/selftest-ausente.md' \
+    > "$iso_root/.claude/mosk/tasks/selftest-dep-prose.md"
+expect_fail_contains "dependência declarada em prosa e ausente falha" \
+    "declarado e ausente" validate_declared_dependencies "$iso_root"
+rm -f "$iso_root/.claude/mosk/tasks/selftest-dep-prose.md"
+
+# O radical é montado em partes: este script vive dentro da materialização, e
+# o nome escrito por extenso aqui tornaria a própria fixture seu consumidor.
+iso_orphan_stem="selftest-$(printf '%s%s' 'orph' 'an')-probe"
+printf '# ninguém carrega isto\n' \
+    > "$iso_root/.claude/mosk/data/$iso_orphan_stem.md"
+expect_fail_contains "referência sem consumidor falha" \
+    "nenhum consumidor declara" validate_no_orphan_references "$iso_root"
+rm -f "$iso_root/.claude/mosk/data/$iso_orphan_stem.md"
+
+printf '# vendor upstream\n' \
+    > "$iso_root/.claude/mosk/data/hallmark/selftest-orphan-vendor.md"
+expect_ok "arquivo do fork vendorizado não é cobrado como referência" \
+    validate_no_orphan_references "$iso_root"
+rm -f "$iso_root/.claude/mosk/data/hallmark/selftest-orphan-vendor.md"
 
 echo "selftest-toolkit: classificador adaptativo integrado"
 expect_ok "selftest adaptativo passa" bash "$SCRIPT_DIR/selftest-adaptive-work.sh"

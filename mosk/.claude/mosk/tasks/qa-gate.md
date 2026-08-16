@@ -53,14 +53,9 @@ readiness remains `review-story-draft`.
    `FAIL`; `SECURITY: CONCERNS` implies at least `CONCERNS`. If sensitive surface
    changed with no report, pause with the standard security-review suggestion
    before deciding.
-6. Choose `PASS|CONCERNS|FAIL|WAIVED`. Compute, do not estimate:
-
-   ```text
-   quality_score = 100 - (20 × FAILs) - (10 × CONCERNS)
-   ```
-
-   Bound to `0..100`, honoring documented custom weights. The score shows
-   trajectory and never overrides the verdict.
+6. Choose `PASS|CONCERNS|FAIL|WAIVED`, then compute `quality_score` with the
+   canonical formula in `.claude/mosk/data/qa-evidence-contract.md` — count, do
+   not estimate. The score shows trajectory and never overrides the verdict.
 7. Write schema 2 YAML using `qa-gate-tmpl.yaml`: stable issue ids, score and
    appended `score_history`, evidence path, reviewer/timestamp, waiver fields
    and concise reason. Preserve prior issue ids across rounds.

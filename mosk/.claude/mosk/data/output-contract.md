@@ -1,5 +1,7 @@
 # Contrato de saída — como um agente MOSK escreve para um humano
 
+<!-- contract-normative:start -->
+
 Fonte única do **formato de comunicação** dos agentes MOSK. Vale para toda saída
 que um humano vai ler: achados de gate, relatórios de segurança, avaliações de
 risco e NFR, rastreabilidade, análises de consistência.
@@ -123,9 +125,12 @@ que produziu o exemplo do topo.
 | `Contraria:` | o critério ou requisito violado, com a glossa |
 | `Também:` | ids irmãos e **por que** estão ligados |
 | `Onde:` | `arquivo:linha` com o que há naquele ponto |
+| `Correção:` | o conserto proposto, em uma linha |
 | `Custo:` | a natureza do conserto — texto, código ou arquitetura |
 
-Um marcador vazio é ruído: omita em vez de escrever "n/a".
+Um marcador vazio é ruído: omita em vez de escrever "n/a". Esta é a lista
+inteira: task que precise de outro rótulo o declara na própria task, em vez de
+publicar um vocabulário paralelo.
 
 ### Severidade
 
@@ -157,3 +162,19 @@ Cinco dos seis são reescrita de texto; nenhum pede decisão de arquitetura.
 ```
 
 Isso existe para que quem só lê a primeira linha saia com a informação certa.
+
+<!-- contract-normative:end -->
+
+---
+
+## 6. Fonte única
+
+Tudo acima, entre os comentários `contract-normative:start` e
+`contract-normative:end`, é a redação normativa deste contrato. Task, agente ou
+skill que precise dela **referencia este arquivo pelo caminho**; copiar o texto
+cria uma segunda fonte que passa a divergir em silêncio.
+
+`audit-legacy-surface.sh` falha quando três ou mais linhas normativas — as de 30
+caracteres ou mais, comparadas com espaçamento normalizado — reaparecem
+literalmente em outro arquivo do produto. Mencionar, linkar ou citar uma linha
+isolada continua correto e não dispara nada.

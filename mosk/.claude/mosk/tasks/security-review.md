@@ -107,23 +107,12 @@ Exclude a finding when it is any of:
 1. Read `.claude/mosk/core-config.yaml` and resolve `qa.qaLocation`. Write the report under `{qa.qaLocation}/security/`.
 2. Filename: `security-review-{spec-id}.md` when a spec is active, else `security-review-{branch}.md`.
 3. Report contents:
-   - **One block per finding**, per `../data/output-contract.md` — never a
-     table, because a cell cannot hold both the claim and what it means:
-
-     ```markdown
-     ### SEC-1 · alta · Chave de API sobrevive à revogação do titular
-
-     `auth/keys.ts:88` revoga o usuário mas não invalida as chaves emitidas por
-     ele; um token antigo segue autenticando após o desligamento.
-
-     - Onde: `auth/keys.ts:88` (handler `revokeUser`, sem cascata)
-     - Contraria: NFR-003 — "acesso revogado encerra toda sessão ativa"
-     - Correção: apagar as chaves do titular na mesma transação da revogação
-     ```
-
-     Ids are `SEC-#`, sequential within the report and **stable across rounds**.
-     Severity is written in the project's language; the verdict line below keeps
-     the canonical uppercase values.
+   - Findings written exactly as `../data/output-contract.md` defines them —
+     read it before writing the first one. What this task adds on top: ids are
+     `SEC-#`, sequential within the report; the `Correção:` marker carries the
+     fix and is expected on every finding; severity in the block header is
+     written in the project's language, while the verdict line below keeps the
+     canonical uppercase values.
    - A summary: files reviewed, counts per severity, review completed (yes/no).
    - A final **security verdict** line the QA gate consumes:
      `SECURITY: PASS` (no HIGH/MEDIUM), `SECURITY: CONCERNS` (MEDIUM present, or a HIGH with a clear fix), or `SECURITY: FAIL` (unresolved HIGH).
@@ -132,7 +121,7 @@ Exclude a finding when it is any of:
 ## Rules
 
 - Start with the findings and the final verdict.
-- One block per finding — plain-language title, the exploit path, the fix. Any id cited carries its meaning on first mention (`../data/output-contract.md`).
+- Every finding says the exploit path and the fix; the written form is `../data/output-contract.md`.
 - Use HIGH/MEDIUM/LOW severity only.
 - This is not a pipeline phase: do **not** change `current_phase` in `spec-meta.yaml`.
 - Not hardened against prompt injection — run only on trusted code; warn the user for untrusted diffs.

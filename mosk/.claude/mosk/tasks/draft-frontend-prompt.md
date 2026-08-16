@@ -1,5 +1,3 @@
-<!-- Inspired by BMAD and SpecKit -->
-
 # Draft Frontend Prompt Task
 
 ## Purpose
