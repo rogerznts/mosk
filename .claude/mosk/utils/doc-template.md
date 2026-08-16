@@ -194,12 +194,12 @@ choices:
       editors: [dev-agent]
       readonly: false
       instruction: Implementation notes and technical details
-    - id: qa-results
-      title: QA Results
-      owner: qa-agent
-      editors: [qa-agent]
-      readonly: true
-      instruction: Quality assurance test results
+    - id: file-list
+      title: File List
+      owner: dev-agent
+      editors: [dev-agent]
+      readonly: false
+      instruction: Files created, modified, or affected during implementation
 ```
 
 ### Repeatable Sections

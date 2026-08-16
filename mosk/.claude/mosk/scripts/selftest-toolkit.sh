@@ -387,6 +387,24 @@ for allowed_pattern in '.claude/mosk/data/hallmark/upstream/**' '.claude/mosk/da
     expect_ok "allowlist aceita curinga permitido $allowed_pattern" run_legacy_audit
 done
 
+# Vocabulário herdado não é só a sigla: a persona de QA do roster antigo
+# assinava todo gate gerado pelo template e sobreviveu a três auditorias porque
+# a varredura procurava um token só — e chegava ao consumidor dentro do
+# artefato, que é o pior lugar para uma herança passar despercebida.
+printf 'path_pattern\tkind\treason\n.claude/mosk/tasks/sample.md\tattribution\tAtribuição histórica da fixture.\n' \
+    > "$legacy_fixture/.claude/mosk/data/legacy-reference-allowlist.tsv"
+mkdir -p "$legacy_fixture/.claude/mosk/templates"
+# Nome quebrado como a fixture de sigla logo acima: escrito por extenso, este
+# arquivo se tornaria ele próprio uma ocorrência e o auditor se acusaria.
+printf 'reviewer: "%s%s (Test Architect)"\n' 'Qu' 'inn' \
+    > "$legacy_fixture/.claude/mosk/templates/persona-tmpl.yaml"
+expect_fail_contains "persona legada em template é detectada" \
+    "referência legada operacional" run_legacy_audit
+printf 'reviewer: "Joaquim (MOSK QA)"\n' \
+    > "$legacy_fixture/.claude/mosk/templates/persona-tmpl.yaml"
+expect_ok "persona MOSK atual não é cobrada" run_legacy_audit
+rm -f "$legacy_fixture/.claude/mosk/templates/persona-tmpl.yaml"
+
 # `.claude/rules/` é contexto do projeto consumidor, não superfície do toolkit:
 # um projeto que usa a ferramenta legada pode dizer isso na própria rule sem que
 # a auditoria do MOSK o repreenda. Sem este caso, a exclusão seria comportamento

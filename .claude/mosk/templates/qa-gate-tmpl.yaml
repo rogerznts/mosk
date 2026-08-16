@@ -16,7 +16,7 @@ gate: "{{gate_status}}" # PASS|CONCERNS|FAIL|WAIVED
 quality_score: {{quality_score}} # 0-100. OBSERVAÇÃO, não gatilho: ver abaixo.
 score_history: [{{score_history}}] # série das voltas, do primeiro gate ao atual
 status_reason: "{{status_reason}}" # 1-2 sentence summary of why this gate decision
-reviewer: "Quinn (Test Architect)"
+reviewer: "Joaquim (MOSK QA)"
 updated: "{{iso_timestamp}}"
 evidence_ref: "qa-notes.md" # caminho relativo à spec; obrigatório no schema 2
 

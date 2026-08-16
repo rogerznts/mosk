@@ -433,26 +433,26 @@ if [ -f "$ALLOWLIST" ]; then
             *) problem "pattern amplo ou fora do escopo na allowlist: $pattern" ;;
         esac
         case "$pattern" in /*|*'/../'*|../*|*'//') problem "pattern inseguro na allowlist: $pattern" ;; esac
-        # Abrangência é medida, não comparada com uma lista de literais. No
-        # `case` do shell `*` atravessa `/`, então `.claude/*` allowlista a
-        # árvore inteira e desliga a varredura em silêncio — um check que sempre
-        # passa é pior que um check ausente, porque continua sendo citado como
-        # evidência. Exigimos três segmentos literais antes do primeiro curinga.
-        # Curinga é declarado por inclusão, não por exclusão. No `case` do shell
-        # `*` atravessa `/`, então um pattern raso allowlista a árvore inteira e
-        # desliga a varredura em silêncio, com rc=0 — um check que sempre passa é
-        # pior que um check ausente, porque continua sendo citado como evidência.
+        # No `case` do shell `*` atravessa `/`, então um pattern raso como
+        # `.claude/*` allowlista a árvore inteira e desliga a varredura em
+        # silêncio, com rc=0. Um check que sempre passa é pior que um check
+        # ausente, porque continua sendo citado como evidência.
         #
-        # Enumerar o que é operacional convida à omissão: basta um diretório
-        # esquecido para o buraco voltar. A allowlist existe para licença e
-        # material arquivado — um conjunto pequeno e conhecido —, então
-        # descrevemos esse conjunto e recusamos o resto.
-        # Não perguntamos "isto parece um curinga?" — essa pergunta depende de
+        # Não perguntamos "isto parece um curinga?": essa pergunta obriga a
         # enumerar metacaracteres, e a lista muda com o shell e com opções como
-        # `extglob`, onde `!(…)` casa tudo sem conter `*`, `?` ou `[`. Em vez
-        # disso, exigimos que o pattern seja uma de duas coisas conhecidas:
-        # um caminho exato que existe, ou algo sob os dois roots onde curinga é
-        # legítimo. Qualquer outra forma é recusada sem precisar ser reconhecida.
+        # `extglob`, onde `!(…)` casa tudo sem conter `*`, `?` ou `[`. Enumerar
+        # o que é perigoso convida à omissão pelo lado que se esqueceu.
+        #
+        # Em vez disso, exigimos que o pattern seja uma de duas formas
+        # conhecidas: um caminho exato que existe, ou algo sob os dois roots
+        # onde curinga é legítimo — a allowlist serve licença e material
+        # arquivado, um conjunto pequeno e nomeável. Qualquer outra forma é
+        # recusada sem precisar ser reconhecida.
+        #
+        # Limite aceito (SEC-4): um arquivo commitado com o nome `*` faria o
+        # teste de existência tratar `.claude/*` como literal. Fechar isso exige
+        # distinguir nome de pattern sem poder confiar no disco; a precondição é
+        # commitar esse arquivo no repo, então fica registrado, não corrigido.
         if [ -e "$ROOT/$pattern" ]; then
             :
         else
@@ -467,8 +467,17 @@ if [ -f "$ALLOWLIST" ]; then
 fi
 
 if [ -d "$ROOT/.claude" ]; then
-    legacy_regex='(^|[^[:alnum:]_])[Bb][Mm][Aa][Dd]([^[:alnum:]_]|$)'
+    # O vocabulário herdado não é só a sigla. `Quinn (Test Architect)` assinava
+    # todo gate gerado pelo template e passou batido por três auditorias, porque
+    # a varredura procurava um único token — a persona é herança tão operacional
+    # quanto o nome da ferramenta, e chega ao consumidor dentro do artefato.
+    # Personas MOSK atuais (Joaquim, Sara, Jaime, …) não entram aqui.
+    legacy_regex='(^|[^[:alnum:]_])([Bb][Mm][Aa][Dd]|Quinn \(Test Architect\)|Winston \(Architect\)|Sally \(UX Expert\))([^[:alnum:]_]|$)'
+    # Os três arquivos excluídos são os que *definem* a varredura — o catálogo,
+    # a allowlist e este próprio script, que cita os termos para procurá-los.
+    # Sem a exclusão o auditor se acusa e a saída vira ruído permanente.
     grep -RniE --exclude=task-dispositions.tsv --exclude=legacy-reference-allowlist.tsv \
+        --exclude=audit-legacy-surface.sh \
         "$legacy_regex" "$ROOT/.claude" > "$TMP_DIR/legacy" 2>/dev/null || true
     while IFS=: read -r file line rest; do
         [ -n "$file" ] || continue

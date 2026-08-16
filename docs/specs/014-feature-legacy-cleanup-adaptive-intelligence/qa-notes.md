@@ -227,3 +227,28 @@ a quem já não tenha escrita. A precondição do bypass encareceu a cada volta
 
 13 fixtures novas em `selftest-toolkit.sh` cobrem a regra nos dois sentidos,
 incluindo `.claude/!(zzz)` com e sem `extglob`. Suíte em **113 asserções**.
+
+### Quality gate (T060)
+
+`Gate PASS` · `quality_score: 100` · série `[70, 90, 100]` em três voltas.
+Veredito e achados em `gate.yaml`, escrito exclusivamente pelo QA.
+
+| Id | Achado | Volta | Desfecho |
+|---|---|---|---|
+| QA-1 | `qa-gate-tmpl.yaml` assinava todo gate com persona do roster antigo | 1 | fechado |
+| QA-2 | `story-tmpl.yaml` declarava seção `qa-results` que nenhuma task escreve | 1 | fechado |
+| QA-3 | T054 marcada `[x]` citando dois arquivos que nunca existiram | 1 | fechado |
+| QA-4 | exemplo em `utils/doc-template.md` ainda ensinava a seção removida em QA-2 | 2 | fechado |
+
+QA-1 é o achado que justifica o gate independente: a persona sobreviveu a três
+auditorias de segurança porque a varredura de legado procurava um único token, e
+chegava ao consumidor **dentro do artefato gerado**. A detecção passou a cobrir
+personas do roster antigo, com fixture nos dois sentidos.
+
+QA-4 nasceu da correção de QA-2 — a ocorrência em `doc-template.md` havia sido
+vista e descartada como "só exemplo". Ser exemplo era exatamente o que fazia
+dele o caminho de reintrodução da seção órfã.
+
+Duas decisões de escopo da corrida foram submetidas explicitamente à auditoria
+do gate e aceitas: o redirecionamento de T054 para os alvos que existem, e a
+exclusão de `.claude/rules/` da varredura de legado.
