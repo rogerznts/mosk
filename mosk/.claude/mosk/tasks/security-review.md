@@ -7,6 +7,9 @@ Review the pending changes on the current branch for real, exploitable security 
 ```yaml
 data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+  - adaptive-work-contract.md
+scripts:
+  - classify-change.sh
 ```
 
 ## Goal
@@ -18,6 +21,19 @@ Produce a short, high-signal security report that answers one question clearly: 
 Analyze only the files changed on the current branch (`git diff` against the base branch — `main`/`master`/`develop`, or the branch's merge-base). Use the rest of the repository as **context**, not as review scope. If a spec is active, resolve its id from `spec-meta.yaml`.
 
 ## Workflow
+
+Before Phase 1, select signals from the diff and run
+`.claude/mosk/scripts/classify-change.sh` according to
+`.claude/mosk/data/adaptive-work-contract.md`. Use its `context_budget`,
+`validation_floor` and `specialists` as minimums and record the profile plus a
+short evidence-based reason in the report. Reclassify if data flow tracing
+reveals broader scope or a more sensitive surface. An explicit security-review
+request is always honored, even when the calculated profile would not require
+the security specialist; the profile controls depth, not access to the review.
+
+The review remains independent from implementation. If another specialist is
+required by the profile and their evidence is absent, identify that gap without
+impersonating their verdict or lowering the profile.
 
 ### Phase 1 — Repository Context Research
 

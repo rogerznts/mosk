@@ -41,6 +41,14 @@ Encontrar vulnerabilidades exploráveis reais nas mudanças, com ruído mínimo,
 - veredito de segurança (`SECURITY: PASS | CONCERNS | FAIL`) que o gate de QA pode consumir
 - caminho do relatório gravado sob `{qa.qaLocation}/security/`
 
+## Adaptive work profile
+
+Consume `.claude/mosk/data/adaptive-work-contract.md` through
+`.claude/mosk/scripts/classify-change.sh`; do not duplicate its score or floors.
+Treat context, validation and specialists as minimums, reclassify upward when
+the traced surface grows, and keep the security verdict independent. An
+explicit review request is always valid regardless of the calculated minimum.
+
 ## Escalation signals
 
 If your review surfaces a finding that requires a preamble agent to resolve, **PAUSE and emit the escalation block (format: `.claude/mosk/templates/escalation-block-tmpl.md`); wait for the user's decision.** Never invoke another agent automatically.

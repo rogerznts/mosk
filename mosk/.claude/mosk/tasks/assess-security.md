@@ -7,6 +7,9 @@ Full-codebase security audit. Same methodology and taxonomy as `security-review.
 ```yaml
 data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
+  - adaptive-work-contract.md
+scripts:
+  - classify-change.sh
 ```
 
 ## Goal
@@ -18,6 +21,15 @@ Produce a prioritized security report covering the codebase as it stands today, 
 The entire codebase (respecting any `exclude` hints in `.claude/rules/*.md`, and skipping vendored/generated code and test-only files). This is not tied to a branch diff.
 
 ## Workflow
+
+Classify the audit before loading broad context, using
+`.claude/mosk/scripts/classify-change.sh` and the canonical
+`.claude/mosk/data/adaptive-work-contract.md`. A whole-codebase audit requests
+at least `elevated`; use the returned context, validation and specialist floors
+without copying their rules here. Reclassify upward when a higher-risk entry
+point or wider trust boundary is discovered. The explicit audit request remains
+valid regardless of the calculated minimum, and the security assessment stays
+independent from implementation and QA.
 
 Follow the same phases as `../tasks/security-review.md`:
 

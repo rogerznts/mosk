@@ -109,6 +109,77 @@ if command -v jq >/dev/null 2>&1; then
     jq -e . "$SCHEMA" >/dev/null 2>&1 && ok "schema é JSON válido" || fail "schema JSON inválido"
 fi
 
+# Integration contract: every operational consumer points to the same policy
+# and the same deterministic classifier. The prompts select evidence; none may
+# carry a private copy of score/floor rules.
+cat > "$TMP_ROOT/consumers" <<EOF
+implement	$SCRIPT_DIR/../tasks/implement.md
+security-review	$SCRIPT_DIR/../tasks/security-review.md
+qa-gate	$SCRIPT_DIR/../tasks/qa-gate.md
+orq-run	$SCRIPT_DIR/../tasks/orq-run.md
+EOF
+
+while IFS="$(printf '\t')" read -r consumer consumer_file; do
+    if [ ! -f "$consumer_file" ]; then
+        fail "$consumer sem task consumidora"
+        continue
+    fi
+    grep -F 'adaptive-work-contract.md' "$consumer_file" >/dev/null 2>&1 || \
+        fail "$consumer não referencia o contrato adaptativo"
+    grep -F 'classify-change.sh' "$consumer_file" >/dev/null 2>&1 || \
+        fail "$consumer não referencia o classificador"
+    grep -F 'context_budget' "$consumer_file" >/dev/null 2>&1 || \
+        fail "$consumer não consome context_budget"
+    grep -F 'validation_floor' "$consumer_file" >/dev/null 2>&1 || \
+        fail "$consumer não consome validation_floor"
+    grep -i 'reclassif' "$consumer_file" >/dev/null 2>&1 || \
+        fail "$consumer não prevê reclassificação"
+    ok "$consumer consome a fonte canônica"
+
+    # Run every fixture through the exact classifier referenced by this
+    # consumer. This matrix makes divergence visible if a consumer later forks
+    # the executable contract.
+    while IFS="$(printf '\t')" read -r name expect_status scope reversibility surface evidence ambiguity requested expect_profile expect_score expect_floor expect_validation expect_specialists expect_pause; do
+        set -- --scope "$scope" --reversibility "$reversibility" --sensitive-surface "$surface" --evidence "$evidence" --ambiguity "$ambiguity"
+        [ "$requested" = - ] || set -- "$@" --requested-floor "$requested"
+        [ "$name" != contradictory-duplicate ] || set -- "$@" --scope multi_file
+        consumer_bash_out="$(bash "$CLASSIFIER" "$@" 2>/dev/null)"
+        consumer_bash_status=$?
+        consumer_zsh_out="$(/bin/zsh "$CLASSIFIER" "$@" 2>/dev/null)"
+        consumer_zsh_status=$?
+        if [ "$expect_status" -ne 0 ]; then
+            if [ "$consumer_bash_status" -ne 0 ] && [ "$consumer_zsh_status" -ne 0 ] && \
+               [ -z "$consumer_bash_out" ] && [ -z "$consumer_zsh_out" ]; then
+                ok "$consumer/$name falha fechado"
+            else
+                fail "$consumer/$name deveria falhar fechado"
+            fi
+            continue
+        fi
+        if [ "$consumer_bash_status" -ne 0 ] || [ "$consumer_zsh_status" -ne 0 ] || \
+           [ "$consumer_bash_out" != "$consumer_zsh_out" ] || \
+           [ "$(extract_string "$consumer_bash_out" profile)" != "$expect_profile" ] || \
+           [ "$(extract_string "$consumer_bash_out" context_budget)" != "$expect_profile" ] || \
+           [ "$(extract_string "$consumer_bash_out" validation_floor)" != "$expect_validation" ]; then
+            fail "$consumer/$name divergiu da fixture canônica"
+        else
+            ok "$consumer/$name concorda"
+        fi
+    done < "$TMP_ROOT/fixture-data"
+done < "$TMP_ROOT/consumers"
+
+initial_profile="$(bash "$CLASSIFIER" --scope localized --reversibility easy --sensitive-surface none --evidence strong --ambiguity clear)"
+grown_profile="$(bash "$CLASSIFIER" --scope public_contract --reversibility coordinated --sensitive-surface data_security --evidence partial --ambiguity bounded)"
+critical_profile="$(bash "$CLASSIFIER" --scope public_contract --reversibility irreversible --sensitive-surface data_security --evidence partial --ambiguity bounded)"
+[ "$(extract_string "$initial_profile" profile)" = compact ] || fail "perfil inicial deveria ser compact"
+[ "$(extract_string "$grown_profile" profile)" = elevated ] || fail "crescimento de escopo deveria reclassificar para elevated"
+[ "$(extract_string "$critical_profile" profile)" = critical ] || fail "irreversibilidade deveria reclassificar para critical"
+case "$initial_profile|$grown_profile|$critical_profile" in
+    *'"profile":"compact"'*'"profile":"elevated"'*'"profile":"critical"'*)
+        ok "reclassificação por crescimento nunca reduz rigor" ;;
+    *) fail "sequência de reclassificação inválida" ;;
+esac
+
 if [ -n "$FAILURES" ]; then
     echo "FALHOU" >&2
     printf '%b' "$FAILURES" >&2

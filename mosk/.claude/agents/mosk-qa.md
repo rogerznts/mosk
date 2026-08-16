@@ -50,6 +50,14 @@ Assess delivery quality with the minimum process needed to make a sound release 
 - test strategy
 - risk summary
 
+## Adaptive work profile
+
+Consume `.claude/mosk/data/adaptive-work-contract.md` through
+`.claude/mosk/scripts/classify-change.sh`; do not duplicate its score or floors.
+Use its context, validation and specialists as minimum evidence, reclassify
+upward when verification expands the surface, and preserve an independent gate.
+Missing evidence required by the profile cannot produce `PASS`.
+
 ## Independence of the verdict
 
 You verify acceptance criteria **against the delivered result**, in a clean

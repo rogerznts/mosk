@@ -28,3 +28,38 @@ Fonte dos cenários:
 As verificações cobrem contagem 0/1 de rodadas, ausência de menus obrigatórios,
 consumo do contrato adaptativo, ativação avançada explícita, pausa humana e
 templates alvo em modo `direct`/`grouped-once`/`opt-in`.
+
+## US3 — Perfil adaptativo compartilhado (T038–T045)
+
+Data: 2026-08-15
+
+### Matriz de concordância
+
+Todos os consumidores apontam para
+`mosk/.claude/mosk/data/adaptive-work-contract.md` e para o mesmo
+`classify-change.sh`; nenhum mantém score ou pisos próprios.
+
+- `implement`: 16/16 fixtures concordantes em Bash e zsh.
+- `security-review`: 16/16 fixtures concordantes em Bash e zsh; chamada
+  explícita continua válida e o veredito permanece independente.
+- `qa-gate`: 16/16 fixtures concordantes em Bash e zsh; evidência abaixo do
+  piso não permite `PASS`.
+- `orq-run`: 16/16 fixtures concordantes em Bash e zsh; especialistas são piso
+  de agendamento e `human_pause` preserva a parada humana.
+- Crescimento simulado de escopo e risco: `compact → elevated → critical`, sem
+  rebaixamento entre reclassificações.
+
+### Evidência automatizada
+
+- `bash mosk/.claude/mosk/scripts/selftest-adaptive-work.sh --verbose`: exit 0,
+  92 asserções.
+- `/bin/zsh mosk/.claude/mosk/scripts/selftest-adaptive-work.sh --verbose`:
+  exit 0, 92 asserções.
+- `bash mosk/.claude/mosk/scripts/selftest-pipeline-state.sh --verbose`: exit 0,
+  201 asserções.
+- `/bin/zsh mosk/.claude/mosk/scripts/selftest-pipeline-state.sh --verbose`:
+  exit 0, 201 asserções.
+
+As nove novas regressões de estado provam que o perfil não autoriza salto de
+fase, não bloqueia uma aresta válida, não trunca histórico, não altera a
+evidência adaptativa e não permite archive com gate sem evidência.

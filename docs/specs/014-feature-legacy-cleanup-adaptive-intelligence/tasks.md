@@ -114,17 +114,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T038 [US3] Adicionar testes de integração em `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para `implement`, `security-review`, `qa-gate` e `orq-run`, incluindo reclassificação quando o escopo cresce.
-- [ ] T039 [US3] Adicionar regressões em `mosk/.claude/mosk/scripts/selftest-pipeline-state.sh` provando que perfis não alteram transições, não truncam histórico e não enfraquecem gate fail-closed.
+- [x] T038 [US3] Adicionar testes de integração em `mosk/.claude/mosk/scripts/selftest-adaptive-work.sh` para `implement`, `security-review`, `qa-gate` e `orq-run`, incluindo reclassificação quando o escopo cresce.
+- [x] T039 [US3] Adicionar regressões em `mosk/.claude/mosk/scripts/selftest-pipeline-state.sh` provando que perfis não alteram transições, não truncam histórico e não enfraquecem gate fail-closed.
 
 ### Implementation for User Story 3
 
-- [ ] T040 [P] [US3] Integrar seleção de sinais, budget e validation floor em `mosk/.claude/mosk/tasks/implement.md`, com justificativa curta e elevação quando nova evidência ampliar o escopo.
-- [ ] T041 [P] [US3] Integrar pisos e especialistas em `mosk/.claude/mosk/tasks/security-review.md` e `assess-security.md`, mantendo independência e chamada explícita sempre válida.
-- [ ] T042 [US3] Integrar o perfil como piso mínimo em `mosk/.claude/mosk/tasks/qa-gate.md`, sem permitir PASS quando a evidência exigida estiver ausente.
-- [ ] T043 [US3] Integrar agendamento adaptativo e parada humana em `mosk/.claude/mosk/tasks/orq-run.md` e `mosk/.claude/agents/mosk-orq.md`, sem implementar worktrees/checkpoints da Etapa 4.
-- [ ] T044 [P] [US3] Atualizar `mosk/.claude/agents/mosk-dev.md`, `mosk-security.md` e `mosk-qa.md` para consumir a fonte canônica e não duplicar score/pisos.
-- [ ] T045 [US3] Rodar todas as fixtures por cada consumidor e registrar a matriz de concordância em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/qa-notes.md`.
+- [x] T040 [P] [US3] Integrar seleção de sinais, budget e validation floor em `mosk/.claude/mosk/tasks/implement.md`, com justificativa curta e elevação quando nova evidência ampliar o escopo.
+- [x] T041 [P] [US3] Integrar pisos e especialistas em `mosk/.claude/mosk/tasks/security-review.md` e `assess-security.md`, mantendo independência e chamada explícita sempre válida.
+- [x] T042 [US3] Integrar o perfil como piso mínimo em `mosk/.claude/mosk/tasks/qa-gate.md`, sem permitir PASS quando a evidência exigida estiver ausente.
+- [x] T043 [US3] Integrar agendamento adaptativo e parada humana em `mosk/.claude/mosk/tasks/orq-run.md` e `mosk/.claude/agents/mosk-orq.md`, sem implementar worktrees/checkpoints da Etapa 4.
+- [x] T044 [P] [US3] Atualizar `mosk/.claude/agents/mosk-dev.md`, `mosk-security.md` e `mosk-qa.md` para consumir a fonte canônica e não duplicar score/pisos.
+- [x] T045 [US3] Rodar todas as fixtures por cada consumidor e registrar a matriz de concordância em `docs/specs/014-feature-legacy-cleanup-adaptive-intelligence/qa-notes.md`.
 
 **Checkpoint**: Mudanças simples ficam compactas; sensíveis/críticas recebem rigor mínimo idêntico em todos os agentes.
 
