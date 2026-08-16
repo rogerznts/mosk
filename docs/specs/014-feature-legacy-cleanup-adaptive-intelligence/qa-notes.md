@@ -252,3 +252,18 @@ dele o caminho de reintrodução da seção órfã.
 Duas decisões de escopo da corrida foram submetidas explicitamente à auditoria
 do gate e aceitas: o redirecionamento de T054 para os alvos que existem, e a
 exclusão de `.claude/rules/` da varredura de legado.
+
+### Fechamento (T061)
+
+`docs/index.md` atualizado: a spec 014 aparece com a fase real (`implement`), o
+gate `PASS`/100 e a métrica do corpus; o security review 014 entrou na listagem
+de `qa/`. `audit-docs-paths.sh` continua `clean ✓ (R1..R5)`.
+
+`spec-meta.yaml` permanece em `current_phase: implement` e `phase-history.yaml`
+íntegro, com o último evento `tasks → implement`. A transição para `qa-gate` foi
+tentada e **recusada pelo guard**, que exige `tasks.md` sem tarefas abertas — a
+única aberta é T062 (publicar branch e abrir PR), que é ação humana.
+
+A metadata não foi editada à mão. `transition-spec-phase.sh` é a interface única
+de mudança de fase; contorná-la para fazer o número bater derrubaria a garantia
+que a spec 013 construiu. A fase avança sozinha quando T062 fechar.

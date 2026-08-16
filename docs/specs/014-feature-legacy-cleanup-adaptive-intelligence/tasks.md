@@ -168,7 +168,7 @@
 - [x] T058 Validar [quickstart.md](./quickstart.md) integralmente em produto, espelho local e instalação isolada, incluindo inputs adversariais e preservação byte a byte quando a operação falhar.
 - [x] T059 Executar `/mosk-security` diff-aware com foco em parsing de argumentos, command injection, path containment, manipulação de perfil, bypass de pisos e integridade dos gates; corrigir/revalidar até `SECURITY: PASS`.
 - [x] T060 Executar `/mosk-qa qa-gate 014`, aplicar correções e repetir security/QA automaticamente até `Gate PASS`, pausando somente por dúvida real ou ação irreversível.
-- [ ] T061 Atualizar `docs/index.md`, confirmar `spec-meta.yaml`/`phase-history.yaml`, staging seletivo da spec 014 e ausência das mudanças locais do archive 013 no diff preparado.
+- [x] T061 Atualizar `docs/index.md`, confirmar `spec-meta.yaml`/`phase-history.yaml`, staging seletivo da spec 014 e ausência das mudanças locais do archive 013 no diff preparado.
 - [ ] T062 Criar commit(s) convencionais, publicar a branch e abrir o PR da Etapa 3; parar no PR sem executar archive nem o E2E final do programa.
 
 ---
