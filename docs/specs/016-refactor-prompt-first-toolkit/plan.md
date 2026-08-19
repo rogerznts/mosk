@@ -33,11 +33,13 @@ Linha de base: **7.912 linhas** em 25 scripts (excluído `payload-*`).
 | `validate.sh` *(funde `doctor` + `check-prerequisites` + `check-ship-ready` + `audit-docs-paths`)* | 717 | ~300 | execução fora da sessão (hook/CI) | hook de `gh pr merge`, tasks de fase |
 | `reset-install.sh` | 213 | 213 | geração de derivados em massa | `/mosk-update` |
 | `sync-hallmark.sh` | 185 | 185 | geração de derivados (diff/replay do vendor) | `hallmark.md` |
-| `common.sh` | 1.323 | ~200 | suporte aos 5 acima | os 5 acima |
+| `common.sh` | 1.323 | ~250 | suporte aos 5 acima | os 5 acima |
 
 **A redução de `create-new-feature.sh` vem de uma única mudança**: só a reserva de número justifica shell. A emissão e a leitura do `spec-meta.yaml` passam ao agente (ADR-0021 §3), e com elas saem o heredoc emissor, os leitores e a validação de gramática.
 
-**`common.sh` cai de 39 funções para ~6**: resolução de raiz, branch atual, diretório da spec, contenção de caminho, e as duas primitivas de git que a reserva usa. As 33 restantes são leitores de YAML, validadores de gramática e a máquina de estados — todas eliminadas pelas decisões 2 e 3 do ADR-0021.
+**`common.sh` cai de 39 funções para ~14**: resolução de raiz, branch atual, diretório da spec, contenção física de caminho e as primitivas de git da reserva. As ~25 restantes são leitores de YAML, validadores de gramática e a máquina de estados — todas eliminadas pelas decisões 2 e 3 do ADR-0021.
+
+> A estimativa original era ~6. A conferência da T008 mostrou que estava otimista: as funções de contenção precisam resolver symlink contra o disco, o que um agente não pode afirmar sem consultá-lo. O alvo de **linhas** (SC-001) não muda.
 
 ### Sai — 19 scripts, ~6.460 linhas
 
@@ -62,7 +64,7 @@ Linha de base: **7.912 linhas** em 25 scripts (excluído `payload-*`).
 
 ### Regras hoje presas em shell que precisam migrar antes da remoção
 
-Isto é FR-009 e é a parte que não pode ser pulada. Cada linha aqui é regra real, não código:
+Isto é FR-009 e é a parte que não pode ser pulada. Cada linha aqui é regra real, não código. **A tabela nasceu com 7 linhas e fechou com 9** — a conferência da T008 ([rule-migration-audit.md](./rule-migration-audit.md)) encontrou duas regras que este plano não previa:
 
 | regra | origem | destino |
 |---|---|---|
@@ -71,14 +73,16 @@ Isto é FR-009 e é a parte que não pode ser pulada. Cada linha aqui é regra r
 | artefatos exigidos por fase | `validate_phase_preconditions` | `pipeline.yaml: phases[].requires` |
 | vereditos de gate e forma do waiver | `validate_gate_contract`, `validate_gate_for_completion` | `pipeline.yaml: gate` |
 | promoções pendentes impedem archive | `validate_spec_promotions_satisfied` | `pipeline.yaml: phases.archived.requires` |
+| schema do `spec-meta.yaml` + identidade cruzada número/id/tipo/branch (ADR-0017) | `validate_spec_metadata` | `pipeline.yaml: spec_meta` |
+| continuidade da cadeia, timestamps monotônicos e consistência de `origin` | `validate_phase_history` | `pipeline.yaml: phase_history` |
 | contenção de destino de `promote:` | `validate_promotion_target` | permanece em `common.sh` — é caminho de sistema de arquivos, não dado de domínio |
-| classificação de risco/escopo | `classify-change.sh` | `data/adaptive-work-contract.md` |
+| classificação de risco/escopo e `human_pause` | `classify-change.sh` | `data/adaptive-work-contract.md` |
 
 ## Sequenciamento
 
 A ordem não é arbitrária; cada fase remove o que torna a seguinte cara.
 
-**Fase A — declarar a regra.** Escrever `pipeline.yaml` com as sete regras acima. Nada é removido ainda; o YAML e o shell coexistem e devem concordar. É a única fase em que a duplicação é aceitável, e é temporária por construção.
+**Fase A — declarar a regra.** Escrever `pipeline.yaml` com as nove regras acima. Nada é removido ainda; o YAML e o shell coexistem e devem concordar. É a única fase em que a duplicação é aceitável, e é temporária por construção.
 
 **Fase B — inverter o leitor (ADR-0021 §3).** Tasks passam a ler o `pipeline.yaml` e a passar valores resolvidos por argumento. É aqui que 33 funções de `common.sh` perdem chamador — e é por isso que esta fase vem antes do corte, não depois: cortar antes de inverter o leitor obriga a reescrever o leitor.
 
@@ -98,6 +102,9 @@ docs/specs/016-refactor-prompt-first-toolkit/
 ├── plan.md                 # este arquivo
 ├── tasks.md
 ├── spec-meta.yaml
+├── baseline.md             # T001 — linha de base do corte
+├── rule-migration-audit.md # T008 — conferência regra a regra (FR-009)
+├── harvest/                # T029 — material colhido da 015
 └── architecture/
     └── adr-0021-declarative-rule-minimal-shell.md   # promote: copy
 ```

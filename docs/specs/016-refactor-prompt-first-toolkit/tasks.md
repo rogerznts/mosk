@@ -20,7 +20,7 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 ## Phase 1: Setup
 
-- [ ] T001 Medir e registrar a linha de base em `docs/specs/016-refactor-prompt-first-toolkit/baseline.md`: linhas por script, chamador de cada um, contagem de funções de `common.sh`. É contra este arquivo que SC-001 e SC-003 são verificados no fim.
+- [x] T001 Medir e registrar a linha de base em `docs/specs/016-refactor-prompt-first-toolkit/baseline.md`: linhas por script, chamador de cada um, contagem de funções de `common.sh`. É contra este arquivo que SC-001 e SC-003 são verificados no fim.
 
 ---
 
@@ -28,13 +28,13 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 **⚠️ Bloqueante**: nada é removido antes desta fase terminar. `pipeline.yaml` e shell coexistem aqui, e devem concordar — é a única duplicação aceitável da spec, e ela é temporária por construção (FR-009).
 
-- [ ] T002 [US1] Criar `mosk/.claude/mosk/pipeline.yaml` com as 6 fases (`specify`, `plan`, `tasks`, `implement`, `qa-gate`, `archived`) e, por fase, as arestas válidas em `transitions_to` — traduzido de `phase_transition_allowed` em `common.sh`, sem inventar aresta nova
-- [ ] T003 [US1] Declarar em `pipeline.yaml` a exceção `qa-gate -> implement` como atributo `allowed_commands: [apply-qa-fixes]` da aresta — traduzido de `phase_command_matches_destination`
-- [ ] T004 [US1] Declarar `phases[].requires` — artefatos obrigatórios por fase, traduzido de `validate_phase_preconditions`
-- [ ] T005 [US1] Declarar o bloco `gate`: vereditos válidos (`PASS`, `CONCERNS`, `FAIL`, `WAIVED`), forma do waiver (justificativa, aprovador, timestamp UTC) e quais vereditos permitem avançar — traduzido de `validate_gate_contract` e `validate_gate_for_completion`
-- [ ] T006 [US1] Declarar em `phases.archived.requires` a exigência de promoções satisfeitas — traduzido de `validate_spec_promotions_satisfied`
-- [ ] T007 [P] [US1] Mover a classificação de risco/escopo de `classify-change.sh` para `mosk/.claude/mosk/data/adaptive-work-contract.md` como tabela declarativa
-- [ ] T008 [US1] Conferir cada uma das 7 regras da tabela do plano contra sua origem em shell, uma a uma, e registrar a conferência. Regra que não tiver equivalente declarativo viável é **nomeada explicitamente** no plano, não removida em silêncio (FR-009)
+- [x] T002 [US1] Criar `mosk/.claude/mosk/pipeline.yaml` com as 6 fases (`specify`, `plan`, `tasks`, `implement`, `qa-gate`, `archived`) e, por fase, as arestas válidas em `transitions_to` — traduzido de `phase_transition_allowed` em `common.sh`, sem inventar aresta nova
+- [x] T003 [US1] Declarar em `pipeline.yaml` a exceção `qa-gate -> implement` como atributo `allowed_commands: [apply-qa-fixes]` da aresta — traduzido de `phase_command_matches_destination`
+- [x] T004 [US1] Declarar `phases[].requires` — artefatos obrigatórios por fase, traduzido de `validate_phase_preconditions`
+- [x] T005 [US1] Declarar o bloco `gate`: vereditos válidos (`PASS`, `CONCERNS`, `FAIL`, `WAIVED`), forma do waiver (justificativa, aprovador, timestamp UTC) e quais vereditos permitem avançar — traduzido de `validate_gate_contract` e `validate_gate_for_completion`
+- [x] T006 [US1] Declarar em `phases.archived.requires` a exigência de promoções satisfeitas — traduzido de `validate_spec_promotions_satisfied`
+- [x] T007 [P] [US1] Mover a classificação de risco/escopo de `classify-change.sh` para `mosk/.claude/mosk/data/adaptive-work-contract.md` como tabela declarativa
+- [x] T008 [US1] Conferir cada uma das regras da tabela do plano contra sua origem em shell, uma a uma, e registrar a conferência — feito em [rule-migration-audit.md](./rule-migration-audit.md); a tabela fechou com **9** regras, não 7 (FR-009)
 
 ---
 

@@ -9,3 +9,7 @@ transitions:
     from: plan
     to: tasks
     command: tasks
+  - at: "2026-08-19T22:34:37Z"
+    from: tasks
+    to: implement
+    command: implement
