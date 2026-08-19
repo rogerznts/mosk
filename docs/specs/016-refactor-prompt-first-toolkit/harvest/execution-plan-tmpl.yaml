@@ -1,0 +1,99 @@
+# MOSK execution plan — um por spec, gerado no preflight da corrida autônoma.
+#
+# Escrito por `build-execution-plan.sh`; lido por `run-state.sh` e por
+# `run-worktree.sh`. Versionado de propósito: é a evidência revisável do que a
+# corrida se propôs a fazer.
+#
+# A redação que obriga está em `.claude/mosk/data/runner-contract.md`. Este
+# arquivo é forma, não fonte: quando os dois divergirem, o contrato vence.
+#
+# FORMA CANÔNICA (ADR-0020) — uma forma por tipo de valor:
+#   - enum, inteiro e booleano: SEM aspas
+#   - identificador, caminho, branch, timestamp, digest, comando e texto:
+#     ENTRE ASPAS DUPLAS
+#   - lista com itens: em bloco; a lista vazia é `[]`
+#   - o comentário nunca fica na linha da chave, e nenhum valor atravessa linha
+#
+# Placeholders `{{...}}` são preenchidos pelo gerador. Comentários podem cair
+# na geração; o que precisa sobreviver mora no contrato.
+
+schema: 1
+
+# pasta da spec (ex.: 015-feature-runner)
+spec_id: "{{SPEC_ID}}"
+
+# tres digitos, zero a esquerda
+spec_number: "{{SPEC_NUMBER}}"
+
+# lida do spec-meta.yaml, nunca deduzida
+branch: "{{SPEC_BRANCH}}"
+
+# ISO 8601 UTC — unico campo volatil
+generated_at: "{{GENERATED_AT}}"
+
+generated_by: "build-execution-plan.sh"
+
+sources:
+  tasks_file: "tasks.md"
+  # ex.: cksum:2145829371:18422
+  tasks_digest: "{{TASKS_DIGEST}}"
+  spec_file: "spec.md"
+  spec_digest: "{{SPEC_DIGEST}}"
+  # cksum | sha256
+  digest_algorithm: "{{DIGEST_ALGORITHM}}"
+
+execution:
+  # auto | isolated | shared | sequential
+  mode_requested: "{{MODE_REQUESTED}}"
+  max_parallel: "{{MAX_PARALLEL}}"
+  max_attempts: "{{MAX_ATTEMPTS}}"
+  # vazio = so o gate julga
+  test_command: "{{TEST_COMMAND}}"
+
+units:
+  # `id` e estavel; e o que vai no trailer do commit
+  - id: "{{UNIT_ID}}"
+    # foundational | story
+    kind: "{{UNIT_KIND}}"
+    title: "{{UNIT_TITLE}}"
+    # de onde a unidade foi lida
+    source: "{{UNIT_SOURCE}}"
+    # 0 e reservada a unidade fundacional
+    wave: "{{UNIT_WAVE}}"
+    # true so com marcador explicito na origem
+    parallel: "{{UNIT_PARALLEL}}"
+    # Lista com itens vai em bloco, um `- "..."` por linha: `["x"]` e coleção
+    # inline e e recusada pelos leitores. A lista VAZIA e `[]`, e so ela —
+    # e a unica coleção inline sem conteudo, e e o que distingue "lista vazia"
+    # de "campo ausente" (ADR-0020, decisao 5).
+    depends_on: []
+    # ids de task desta unidade
+    tasks: []
+    # caminhos declarados; vazio e sinal, nao erro
+    files: []
+    # cenarios de aceite, quando houver
+    acceptance:
+      - id: "{{ACCEPTANCE_ID}}"
+        text: "{{ACCEPTANCE_TEXT}}"
+    # comandos que provam esta unidade
+    validation: []
+    # saida de classify-change.sh para a unidade
+    profile:
+      # <- `profile` do classificador
+      name: "{{PROFILE_NAME}}"
+      score: "{{PROFILE_SCORE}}"
+      # piso aplicado; nada da saida se perde
+      floor: "{{PROFILE_FLOOR}}"
+      context_budget: "{{PROFILE_CONTEXT_BUDGET}}"
+      validation_floor: "{{PROFILE_VALIDATION_FLOOR}}"
+      specialists: []
+      human_pause: "{{PROFILE_HUMAN_PAUSE}}"
+      # <- `reasons` unidos por ", ", na ordem
+      reason: "{{PROFILE_REASON}}"
+
+waves:
+  - index: "{{WAVE_INDEX}}"
+    units:
+      - "{{UNIT_ID}}"
+    # sequential | parallel
+    mode: "{{WAVE_MODE}}"

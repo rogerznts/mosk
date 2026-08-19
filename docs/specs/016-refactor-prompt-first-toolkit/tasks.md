@@ -81,7 +81,7 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 ## Phase 6: US4 — o runner sobre a primitiva do runtime
 
-- [ ] T029 [US4] Colher da branch da 015: copiar `templates/execution-plan-tmpl.yaml` inteiro e a parte do `data/runner-contract.md` que descreve o schema do `execution-plan`; descartar schema de `run-state`, trailers e máquina de estados da unidade
+- [x] T029 [US4] Colher da branch da 015 — feito em `harvest/`, com procedência e o descarte justificado item a item em [harvest/README.md](./harvest/README.md). Resta promover para `mosk/.claude/mosk/` na implementação
 - [ ] T030 [US4] Reescrever `orq-run.md` para o agente escrever o `execution-plan.yaml` a partir do `tasks.md`, sem script gerador (FR-010)
 - [ ] T031 [US4] Usar a primitiva de isolamento do runtime quando existir e declarar o modo no preflight — real, degradado ou sequencial (FR-011, preserva a exigência do ADR-0019)
 - [ ] T032 [US4] Mover o estado da corrida para `run-log.md` + frontmatter, sem `run-state.yaml` (FR-012)
