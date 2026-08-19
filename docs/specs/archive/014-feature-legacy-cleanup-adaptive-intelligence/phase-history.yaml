@@ -17,3 +17,7 @@ transitions:
     from: implement
     to: qa-gate
     command: qa-gate
+  - at: "2026-08-19T22:27:05Z"
+    from: qa-gate
+    to: archived
+    command: archive

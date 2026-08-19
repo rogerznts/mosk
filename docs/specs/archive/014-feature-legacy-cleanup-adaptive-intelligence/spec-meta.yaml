@@ -5,6 +5,7 @@ type: "feature"
 branch: "feature/014-legacy-cleanup-adaptive-intelligence"
 created_at: "2026-08-15T23:15:48Z"
 created_by: "Roger <phpsaux@gmail.com>"
-status: active
-current_phase: qa-gate
-last_phase_change: "2026-08-16T04:32:42Z"
+status: archived
+current_phase: archived
+last_phase_change: "2026-08-19T22:27:05Z"
+archived_at: "2026-08-19T22:27:05Z"

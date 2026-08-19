@@ -79,12 +79,14 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas; PR #20) | qa-gate | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-15 |
+| 016 | [refactor-prompt-first-toolkit](./specs/016-refactor-prompt-first-toolkit/) (regra do pipeline em `pipeline.yaml`, agente como único leitor de dado estruturado, Bash de 7.912 → ~1.500 linhas — ADR-0021) | tasks | refactor/016-prompt-first-toolkit | 2026-08-19 |
+| 015 | [feature-structured-autonomous-runner](https://github.com/rogerznts/mosk/tree/feature/015-structured-autonomous-runner) (runner autônomo com estado no disco — **interrompida** em `implement` 32/44; requisitos migrados para a US4 da 016, material colhido em `specs/016-refactor-prompt-first-toolkit/harvest/`) | implement (parada) | feature/015-structured-autonomous-runner | 2026-08-16 |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/archive/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas; PR #20; archive retroativo em 19/ago) | archived | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-19 |
 | 013 | [feature-deterministic-pipeline-state](./specs/archive/013-feature-deterministic-pipeline-state/) (máquina de estados determinística, schemas versionados, histórico atômico e validação fail-closed — gate `PASS`, score 100) | archived | feature/013-deterministic-pipeline-state | 2026-08-15 |
 | 012 | [feature-stabilize-toolkit-contracts](./specs/archive/012-feature-stabilize-toolkit-contracts/) (doctor autocontido, conclusão fail-closed e inventário para remover legado BMAD — gate `PASS`, score 100) | archived | feature/012-stabilize-toolkit-contracts | 2026-08-15 |
 | 004 | [feature-orchestration-graph](./specs/archive/004-feature-orchestration-graph/) (grafo de orquestração consultivo — **revertida** pelo ADR-0018) | archived | 004-feature-orchestration-graph | 2026-08-14 |

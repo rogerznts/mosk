@@ -154,3 +154,9 @@ Como mantenedor, quero instruções curtas, compostas e testáveis, para reduzir
 - **SC-008**: Nenhuma nova dependência obrigatória ou acesso de rede é necessário para executar a classificação adaptativa.
 - **SC-009**: Os contratos de estado, gates e segurança das specs 012 e 013 permanecem cobertos por regressão, sem redução do comportamento fail-closed.
 - **SC-010**: Toda regra compartilhada alterada possui uma única fonte canônica e zero cópia divergente detectada nos consumidores ativos.
+
+---
+**Arquivado em:** 2026-08-19
+**Status final:** Concluído
+**Promoções aplicadas:** nenhuma — a spec não declarou nenhum `promote:`. O `contracts/adaptive-work-contract.md` já havia sido materializado em `mosk/.claude/mosk/data/adaptive-work-contract.md` durante a implementação; a cópia aqui congela como registro de origem.
+**Nota:** archive retroativo. A spec foi mesclada no `master` em 2026-08-16 ainda na fase `qa-gate`, sem passar por esta etapa — nada invocou o `check-ship-ready.sh`, que existia exatamente para impedi-lo. O gate (`PASS`, score 100, 0 FAIL, 0 CONCERNS) e as 62 tasks já estavam completos na data do merge; o que faltava era o registro. O caso virou fixture de regressão na spec 016 (T018), e a lacuna que o permitiu está tratada no [ADR-0021](../../016-refactor-prompt-first-toolkit/architecture/adr-0021-declarative-rule-minimal-shell.md), decisão 5: garantia sem chamador nomeado não conta como garantia.
