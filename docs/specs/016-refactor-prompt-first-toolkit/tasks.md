@@ -1,0 +1,108 @@
+---
+description: "Tasks — toolkit prompt-first (ADR-0021)"
+---
+
+# Tasks: Toolkit prompt-first
+
+**Input**: `docs/specs/016-refactor-prompt-first-toolkit/`
+**Prerequisites**: [spec.md](./spec.md), [plan.md](./plan.md), [ADR-0021](./architecture/adr-0021-declarative-rule-minimal-shell.md)
+
+**Tests**: sem suíte de self-test de shell (ADR-0021 §6). O que se prova aqui é que o dado declarado e o prompt que o lê concordam — fixtures de contrato dentro do `validate.sh`, e um caso de regressão real (a spec 014).
+
+**Organization**: agrupadas por user story, na ordem das fases A→E do plano. A ordem importa: cada fase remove o que tornaria a seguinte cara.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: pode rodar em paralelo — arquivos distintos, sem dependência
+- **[Story]**: `US1`–`US5`; tasks sem marcador são compartilhadas
+
+---
+
+## Phase 1: Setup
+
+- [ ] T001 Medir e registrar a linha de base em `docs/specs/016-refactor-prompt-first-toolkit/baseline.md`: linhas por script, chamador de cada um, contagem de funções de `common.sh`. É contra este arquivo que SC-001 e SC-003 são verificados no fim.
+
+---
+
+## Phase 2: Foundational — declarar a regra (Fase A)
+
+**⚠️ Bloqueante**: nada é removido antes desta fase terminar. `pipeline.yaml` e shell coexistem aqui, e devem concordar — é a única duplicação aceitável da spec, e ela é temporária por construção (FR-009).
+
+- [ ] T002 [US1] Criar `mosk/.claude/mosk/pipeline.yaml` com as 6 fases (`specify`, `plan`, `tasks`, `implement`, `qa-gate`, `archived`) e, por fase, as arestas válidas em `transitions_to` — traduzido de `phase_transition_allowed` em `common.sh`, sem inventar aresta nova
+- [ ] T003 [US1] Declarar em `pipeline.yaml` a exceção `qa-gate -> implement` como atributo `allowed_commands: [apply-qa-fixes]` da aresta — traduzido de `phase_command_matches_destination`
+- [ ] T004 [US1] Declarar `phases[].requires` — artefatos obrigatórios por fase, traduzido de `validate_phase_preconditions`
+- [ ] T005 [US1] Declarar o bloco `gate`: vereditos válidos (`PASS`, `CONCERNS`, `FAIL`, `WAIVED`), forma do waiver (justificativa, aprovador, timestamp UTC) e quais vereditos permitem avançar — traduzido de `validate_gate_contract` e `validate_gate_for_completion`
+- [ ] T006 [US1] Declarar em `phases.archived.requires` a exigência de promoções satisfeitas — traduzido de `validate_spec_promotions_satisfied`
+- [ ] T007 [P] [US1] Mover a classificação de risco/escopo de `classify-change.sh` para `mosk/.claude/mosk/data/adaptive-work-contract.md` como tabela declarativa
+- [ ] T008 [US1] Conferir cada uma das 7 regras da tabela do plano contra sua origem em shell, uma a uma, e registrar a conferência. Regra que não tiver equivalente declarativo viável é **nomeada explicitamente** no plano, não removida em silêncio (FR-009)
+
+---
+
+## Phase 3: US1 — inverter o leitor (Fase B)
+
+**Objetivo**: o agente vira o único leitor de dado estruturado; script recebe valor por argumento (ADR-0021 §3). É esta fase que faz 33 funções de `common.sh` perderem chamador.
+
+- [ ] T009 [US1] Reescrever `mosk/.claude/mosk/tasks/plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`, `archive.md` e `apply-qa-fixes.md` para ler o `pipeline.yaml` e aplicar a transição diretamente, sem `transition-spec-phase.sh`
+- [ ] T010 [US1] Remover das mesmas tasks toda regra repetida em prosa que agora vive no `pipeline.yaml`; deixar referência ao arquivo (FR-002)
+- [ ] T011 [US1] Reduzir `create-new-feature.sh`: manter só a reserva de número em `refs/spec-numbers/` e a criação de branch/pasta; a emissão do `spec-meta.yaml` passa a `specify.md`
+- [ ] T012 [US1] Reescrever `specify.md` para emitir o `spec-meta.yaml` a partir do template, recebendo do script apenas número e branch já resolvidos
+- [ ] T013 [US1] Substituir `update-agent-context.sh` por instrução dentro de `plan.md` — interpretar o `plan.md` é julgamento sobre conteúdo (regra de decisão, pergunta 2)
+- [ ] T014 [US1] Verificar AS-4 da US1: alterar uma aresta no `pipeline.yaml`, sem tocar em script, e confirmar que o comportamento muda para todas as tasks
+
+---
+
+## Phase 4: US3 — uma validação, com chamador (Fase C)
+
+**Objetivo**: fundir os quatro auditores e resolver a falha que deixou a 014 passar. O chamador é task **desta** fase, não posterior — é a mitigação explícita do risco de repetir o erro.
+
+- [ ] T015 [US3] Criar `mosk/.claude/mosk/scripts/validate.sh` cobrindo os quatro casos de uso (`doctor`, `check-prerequisites`, `check-ship-ready`, `audit-docs-paths`), lendo o `pipeline.yaml`, com `--help`, `--json` e exit codes 0/1/2
+- [ ] T016 [US3] Garantir que `validate.sh` não dependa de PyYAML, npm ou pip, e que rode em bash e zsh (FR-007)
+- [ ] T017 [US3] Escrever as fixtures de contrato dentro do `validate.sh`: spec válida, spec em `qa-gate` sem gate formalizado, transição inválida, referência interna quebrada, promoção pendente
+- [ ] T018 [US3] Adicionar fixture de regressão do caso real da 014 — spec mesclada em `qa-gate` deve reprovar (SC-004)
+- [ ] T019 [US3] Ligar o chamador automático: hook de `gh pr merge` invocando `validate.sh`, documentado em `.claude/rules/scripts.md` e no `boot.md` para projetos consumidores (FR-008, ADR-0021 §5)
+- [ ] T020 [US3] Declarar no `validate.sh` e na doc quem o invoca — nenhuma verificação do toolkit fica sem chamador nomeado
+
+---
+
+## Phase 5: US2 — o corte (Fase D)
+
+**Pré-condição**: nenhum dos scripts abaixo pode ter chamador restante. Se algum tiver, a Fase 3 ou 4 não terminou.
+
+- [ ] T021 [P] [US2] Remover os quatro `selftest-*.sh` (`toolkit`, `pipeline-state`, `adaptive-work`, `common`) — 1.726 linhas
+- [ ] T022 [P] [US2] Remover `transition-spec-phase.sh`, `setup-plan.sh`, `classify-change.sh`, `update-agent-context.sh`, `audit-legacy-surface.sh`
+- [ ] T023 [P] [US2] Remover `doctor.sh`, `check-prerequisites.sh`, `check-ship-ready.sh`, `audit-docs-paths.sh` (absorvidos pelo `validate.sh`)
+- [ ] T024 [US2] Converter `migrate-docs-structure.sh` e `migrate-ctx-skills-to-rules.sh` em tasks, e remover os scripts
+- [ ] T025 [US2] Fundir `sync-agents-skills.sh` + `link-codex-skills.sh` em `sync.sh`, preservando o contrato de `skill-description` como fonte única e o `--clean`
+- [ ] T026 [US2] Reduzir `common.sh` de 39 para ~6 funções: resolução de raiz, branch atual, diretório da spec, contenção de caminho (`validate_promotion_target` permanece — é caminho de sistema de arquivos, não dado de domínio) e as primitivas de git da reserva
+- [ ] T027 [US2] Verificar SC-001 e SC-003 contra `baseline.md`: soma ≤ 1.500 linhas excluído `payload-*`, e todo script remanescente com chamador nominal
+- [ ] T028 [US2] Sinalizar `payload-infra.sh` (366 linhas, sem chamador) como pendência do modo bench — **não cortar**, está fora do escopo
+
+---
+
+## Phase 6: US4 — o runner sobre a primitiva do runtime
+
+- [ ] T029 [US4] Colher da branch da 015: copiar `templates/execution-plan-tmpl.yaml` inteiro e a parte do `data/runner-contract.md` que descreve o schema do `execution-plan`; descartar schema de `run-state`, trailers e máquina de estados da unidade
+- [ ] T030 [US4] Reescrever `orq-run.md` para o agente escrever o `execution-plan.yaml` a partir do `tasks.md`, sem script gerador (FR-010)
+- [ ] T031 [US4] Usar a primitiva de isolamento do runtime quando existir e declarar o modo no preflight — real, degradado ou sequencial (FR-011, preserva a exigência do ADR-0019)
+- [ ] T032 [US4] Mover o estado da corrida para `run-log.md` + frontmatter, sem `run-state.yaml` (FR-012)
+- [ ] T033 [US4] Conferir que as cinco user stories da spec 015 seguem atendidas pelo mecanismo novo, item a item (FR-016)
+
+---
+
+## Phase 7: US5 — alinhar os documentos (Fase E)
+
+**Sem esta fase o roadmap vigente continua instruindo o contrário e a próxima spec repete o padrão.**
+
+- [ ] T034 [US5] Reescrever as Etapas 2 a 5 do `docs/discovery/toolkit-autonomy-assessment-roadmap.md` sob a premissa do ADR-0021, ou marcá-las como substituídas (FR-014)
+- [ ] T035 [P] [US5] Atualizar `.claude/rules/scripts.md` para o inventário de 6 scripts, com chamador de cada um
+- [ ] T036 [P] [US5] Atualizar `CLAUDE.md` e `mosk/.claude/mosk/templates/project-rule-tmpl.md` — sem tocar nas seções MOSK-invariantes
+- [ ] T037 [US5] Publicar a regra de decisão prompt/YAML/script em local consultável por quem abre a próxima spec (FR-015)
+- [ ] T038 [US5] Rodar `sync.sh` e regenerar `AGENTS.md`; conferir que nenhum documento vigente instrui a mover regra para Bash (SC-007)
+
+---
+
+## Fora do escopo desta spec
+
+- **Fechamento da 014** (mesclada em `qa-gate`): pendência real, decisão do usuário, não bloqueia esta spec.
+- **Apagar a branch da 015**: a colheita é T029; a branch fica.
+- `payload-*.sh`, modo bench e deploy.

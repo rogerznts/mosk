@@ -9,20 +9,22 @@
 
 O MOSK é um produto de prompts distribuído por `npx degit`. A composição atual não reflete isso:
 
-| camada | linhas | |
+| camada | linhas no `master` | |
 |---|---:|---|
-| Bash | 14.633 | 59% |
-| Templates | 5.947 | 24% |
-| Tasks (prompts) | 3.611 | 15% |
-| Agentes | 1.461 | 6% |
+| Bash (sem `payload-*`) | 7.912 | 42% |
+| Templates | 5.658 | 30% |
+| Tasks (prompts) | 3.584 | 19% |
+| Agentes | 1.461 | 8% |
 
-Dentro do Bash, **5.374 linhas** são `selftest-*.sh` — existem só para testar os outros scripts — e **2.991** são `common.sh`. Somados, 57% do shell é infraestrutura sustentando infraestrutura. Cerca de **7.400 linhas (~50%) não são citadas por nenhum prompt**: são scripts que servem scripts.
+Shell sozinho pesa mais que prompts e agentes somados. Dentro dele, **1.726 linhas** são `selftest-*.sh` — existem só para testar os outros scripts — e **1.323** são `common.sh`, com 39 funções. Somados, 38% do shell é infraestrutura sustentando infraestrutura, e **2.607 linhas (33%) não são citadas por nenhum prompt, skill, hook ou CI**.
+
+A tendência é o dado mais forte que o estoque: **a branch da spec 015, sozinha, leva o Bash de 7.912 para 14.633 linhas**. Uma única spec quase dobrou o shell do toolkit.
 
 A causa não foi descuido. A Etapa 2 do [roadmap de autonomia](../../discovery/toolkit-autonomy-assessment-roadmap.md) partiu de uma premissa correta — *regra escrita em prompt não é garantia* — e generalizou a conclusão: *então toda regra vira Bash verificável*. A partir daí cada regra do MOSK virou candidata a script, e cada script virou candidato a self-test em dois shells, dois sistemas operacionais, com e sem git.
 
-O ponto extremo está na spec 015. Ela produziu um ADR que define uma **gramática YAML canônica própria** e uma task que valida o parser YAML escrito em Bash contra o PyYAML — 273 comparações sobre corpus gerado por produto cartesiano. Aquele ADR registra, literalmente, **nove rodadas de correção na mesma família de defeitos** (`QA-3 → QA-7 → QA-10 → QA-14 → QA-17 → SEC-11 → SEC-18 → SEC-19`), todas nascidas de ler YAML em shell. Um toolkit cuja tese é que o agente sabe executar gastou quatro specs seguidas provando que não se pode confiar no agente para ler um arquivo YAML.
+O ponto extremo está na spec 015. Ela produziu um ADR que define uma **gramática YAML canônica própria** e uma task que valida o parser YAML escrito em Bash contra o PyYAML — 273 comparações sobre corpus gerado por produto cartesiano. Aquele ADR registra **treze voltas de correção na mesma família de defeitos** e três emendas ao próprio texto (`QA-3 → QA-7 → QA-10 → QA-14 → QA-17 → SEC-11 → SEC-18 → SEC-19 → SEC-21`), todas nascidas de ler YAML em shell. E o ponto de chegada dele recusa qualquer linha que contenha `"`, `'`, `{`, `[`, `|` ou `>` — ou seja, o formato deixou de ser YAML para caber no leitor. O [ADR-0021](./architecture/adr-0021-declarative-rule-minimal-shell.md) trata essa inversão: foi a escolha do leitor que determinou o que o formato pôde ser.
 
-Há uma segunda evidência, mais direta. A spec 014 foi **mesclada no `master` ainda em `qa-gate`**, sem archive — exatamente o que `check-ship-ready.sh`, construído nas specs 012 e 013 para ser a fonte única de "spec fechada", existia para impedir. A garantia escrita em Bash não se aplicou sozinha, porque nada a chamou. Isso é o custo real do mecanismo escolhido: ele acrescentou 14 mil linhas de superfície de manutenção sem entregar a garantia que justificava a superfície.
+Há uma segunda evidência, mais direta. A spec 014 foi **mesclada no `master` ainda em `qa-gate`**, sem archive — exatamente o que `check-ship-ready.sh`, construído nas specs 012 e 013 para ser a fonte única de "spec fechada", existia para impedir. A garantia escrita em Bash não se aplicou sozinha, porque nada a chamou. Isso é o custo real do mecanismo escolhido: ele acrescentou milhares de linhas de superfície de manutenção sem entregar a garantia que justificava a superfície.
 
 Esta spec não abandona as garantias. Ela troca a camada onde elas moram: **regra em YAML declarativo, aplicação em prompt, Bash só onde o agente genuinamente não alcança** — corrida de numeração no remoto, geração de arquivos derivados e uma verificação única.
 
@@ -49,7 +51,7 @@ Como pessoa mantendo o MOSK, quero que fases, transições válidas, pré/pós-c
 
 Como pessoa instalando o MOSK em um projeto, quero que o toolkit traga o mínimo de shell, para que a instalação não dependa de o meu ambiente reproduzir o comportamento de bash e zsh em macOS e Linux, com e sem git, com e sem PyYAML.
 
-**Why this priority**: É onde estão as ~11.700 linhas a remover, e é o custo que o consumidor paga hoje em toda instalação.
+**Why this priority**: É onde estão as ~6.400 linhas a remover, e é o custo que o consumidor paga hoje em toda instalação.
 
 **Independent Test**: Contar as linhas de `scripts/*.sh` após o corte e verificar que cada script remanescente é citado por ao menos um prompt ou por um guardrail declarado.
 
@@ -154,7 +156,7 @@ Como pessoa que vai planejar a próxima spec do MOSK, quero que o roadmap e os A
 
 ### Measurable Outcomes
 
-- **SC-001**: `scripts/*.sh` soma no máximo 1.500 linhas, excluído `payload-*` — redução de ao menos 85% sobre as 14.633 atuais.
+- **SC-001**: `scripts/*.sh` soma no máximo 1.500 linhas, excluído `payload-*` — redução de ao menos 80% sobre as 7.912 do `master`.
 - **SC-002**: Zero arquivos `selftest-*.sh` no template.
 - **SC-003**: 100% dos scripts remanescentes têm chamador nominal identificado.
 - **SC-004**: Uma spec não pode ser mesclada em fase diferente de `archived` sem que a validação reprove — verificado pelo caso real da 014.
