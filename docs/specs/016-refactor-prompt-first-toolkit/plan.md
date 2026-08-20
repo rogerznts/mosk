@@ -30,7 +30,7 @@ Linha de base: **7.912 linhas** em 25 scripts (excluído `payload-*`).
 |---|---:|---:|---|---|
 | `create-new-feature.sh` | 646 | ~600 | corrida no remoto (reserva em `refs/spec-numbers/`) | `specify.md`, `artefact.md` |
 | `sync.sh` *(funde `sync-agents-skills` + `link-codex-skills`)* | 807 | ~450 | geração de derivados em massa | `/mosk-write-skill`, `/mosk-update` |
-| `validate.sh` *(funde `doctor` + `check-prerequisites` + `check-ship-ready` + `audit-docs-paths`)* | 717 | ~300 | execução fora da sessão (hook/CI) | hook de `gh pr merge`, tasks de fase |
+| `validate.sh` *(funde `doctor` + `check-prerequisites` + `check-ship-ready` + `audit-docs-paths`)* | 717 | **437** | execução fora da sessão (hook/CI) | `hooks/guard-spec-merge.sh`, tasks de fase |
 | `reset-install.sh` | 213 | 213 | geração de derivados em massa | `/mosk-update` |
 | `sync-hallmark.sh` | 185 | 185 | geração de derivados (diff/replay do vendor) | `hallmark.md` |
 | `common.sh` | 1.323 | ~250 | suporte aos 5 acima | os 5 acima |

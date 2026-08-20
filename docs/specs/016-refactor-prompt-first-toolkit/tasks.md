@@ -55,12 +55,12 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 **Objetivo**: fundir os quatro auditores e resolver a falha que deixou a 014 passar. O chamador é task **desta** fase, não posterior — é a mitigação explícita do risco de repetir o erro.
 
-- [ ] T015 [US3] Criar `mosk/.claude/mosk/scripts/validate.sh` cobrindo os quatro casos de uso (`doctor`, `check-prerequisites`, `check-ship-ready`, `audit-docs-paths`), lendo o `pipeline.yaml`, com `--help`, `--json` e exit codes 0/1/2
-- [ ] T016 [US3] Garantir que `validate.sh` não dependa de PyYAML, npm ou pip, e que rode em bash e zsh (FR-007)
-- [ ] T017 [US3] Escrever as fixtures de contrato dentro do `validate.sh`: spec válida, spec em `qa-gate` sem gate formalizado, transição inválida, referência interna quebrada, promoção pendente
-- [ ] T018 [US3] Adicionar fixture de regressão do caso real da 014 — spec mesclada em `qa-gate` deve reprovar (SC-004)
-- [ ] T019 [US3] Ligar o chamador automático: hook de `gh pr merge` invocando `validate.sh`, documentado em `.claude/rules/scripts.md` e no `boot.md` para projetos consumidores (FR-008, ADR-0021 §5)
-- [ ] T020 [US3] Declarar no `validate.sh` e na doc quem o invoca — nenhuma verificação do toolkit fica sem chamador nomeado
+- [x] T015 [US3] Criar `validate.sh` com os quatro casos como subcomandos (`install`, `prerequisites`, `ship-ready`, `docs-paths`), mais `self-check` e `fixtures`. 437 linhas contra 717 dos quatro somados
+- [x] T016 [US3] Sem dependência externa: o `self-check` usa PyYAML quando existe e **pula com aviso** quando não (FR-007)
+- [x] T017 [US3] 12 fixtures de contrato embutidas. Escritas **antes** do leitor estar correto, e reprovaram: `gate: |` devolvia `|`. A causa era o padrão ser blocklist — trocado por allowlist
+- [x] T018 [US3] Fixture de regressão da 014 (spec em `qa-gate` reprova). Equivalência com `check-ship-ready.sh` conferida no repo real: mesmas 4 falhas, mesma ordem
+- [x] T019 [US3] `hooks/guard-spec-merge.sh` criado, **ativo neste repo** e shipado no template; `boot.md` ganhou a Phase 2.55 que o registra em projetos consumidores (FR-008)
+- [x] T020 [US3] Chamadores nomeados no `--help` do `validate.sh` e no `boot.md`
 
 ---
 

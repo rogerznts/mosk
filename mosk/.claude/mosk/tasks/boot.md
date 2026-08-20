@@ -117,6 +117,40 @@ Each README.md briefly explains:
 - the distinction between base and per-spec content (base = project-wide; per-spec = `docs/specs/{id}/<domain>/`)
 - what gets promoted from spec to base at archive time (see Promotion Convention in `project.md`)
 
+### Phase 2.55 - Register the merge guardrail
+
+`.claude/mosk/scripts/validate.sh` is the toolkit's single verifier, and
+`.claude/hooks/guard-spec-merge.sh` is what invokes it. Register the hook so it
+actually runs — a verification nobody calls has the force of a rule written in
+prose, with the maintenance cost of a program (ADR-0021 §5). This is not
+hypothetical: spec 014 of this toolkit reached the default branch in `qa-gate`,
+with the verifier installed, correct, and never invoked.
+
+1. Ensure `.claude/hooks/guard-spec-merge.sh` is executable (`chmod +x`).
+2. Merge this entry into `.claude/settings.json` — **merge, never overwrite**;
+   the project may already have hooks of its own:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/guard-spec-merge.sh" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+3. Verify it fires by piping a fake tool-call JSON into the hook: on a base
+   branch it exits 0; on a spec branch that is not archived it exits 2 and
+   lists what is missing.
+
+Tell the user the guardrail is active and what it blocks.
+
 ### Phase 2.6 - Docs conformance scan (greenfield **and** brownfield)
 
 A MOSK project must never have documents lying loose in `docs/`. Run this
