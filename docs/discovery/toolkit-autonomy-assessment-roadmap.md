@@ -259,7 +259,7 @@ O resultado funcional pode ser equivalente; o mecanismo precisa ser declarado.
 
 ## Roadmap
 
-### Etapa 1 — Estabilização
+### Etapa 1 — Estabilização ⟶ **entregue** (spec 012)
 
 **Estimativa:** 2–3 dias.
 
@@ -273,71 +273,62 @@ O resultado funcional pode ser equivalente; o mecanismo precisa ser declarado.
 **Critério de saída:** uma instalação limpa executa todos os validadores sem
 dependência externa ou referência quebrada.
 
-### Etapa 2 — Núcleo determinístico
+### Etapa 2 — Núcleo determinístico ⟶ **SUBSTITUÍDA** (2026-08-20)
 
-**Estimativa:** 4–6 dias.
+> **A premissa desta etapa foi revertida pelo [ADR-0021](../architecture/adr/adr-0021-declarative-rule-minimal-shell.md).**
+>
+> O texto original dizia: *implementar máquina de estados, criar schema para
+> gate e waiver, centralizar resolução de spec, validar pré e pós-condições por
+> fase, gerar histórico estruturado, fazer `check-ship-ready` verificar gate.*
+>
+> As **garantias** estavam certas e foram todas entregues. O **mecanismo** —
+> codificar cada uma em Bash — estava errado, e o custo apareceu medido: entre
+> as specs 012 e 015 o toolkit foi de ~2.800 para 14.633 linhas de shell, das
+> quais 57% existia para sustentar o próprio shell. A spec 015 sozinha quase
+> dobrou o total.
+>
+> O ponto de chegada é o argumento: para que o shell lesse aqueles arquivos com
+> segurança, o ADR-0020 precisou recusar qualquer linha contendo `"`, `'`, `{`,
+> `[`, `|` ou `>`. Nesse ponto o formato deixou de ser YAML. **A escolha do
+> leitor determinou o que o formato pôde ser.**
+>
+> E a garantia que justificava tudo isso não se aplicou: a spec 014 chegou ao
+> `master` em `qa-gate`, com o `check-ship-ready.sh` instalado, correto e nunca
+> invocado.
 
-- implementar máquina de estados;
-- criar schema para gate e waiver;
-- centralizar resolução de spec por número, nome ou branch;
-- validar pré e pós-condições por fase;
-- gerar histórico estruturado de transições;
-- fazer `check-ship-ready` verificar gate, evidências e promoções.
-
-**Critério de saída:** nenhuma spec consegue pular fase obrigatória ou ser
-arquivada sem decisão de QA comprovável.
+**Substituída por:** regra em `pipeline.yaml`, lida pelo agente; script apenas
+onde o agente não alcança. Entregue na spec 016.
 
 ### Etapa 3 — Remoção do legado e inteligência adaptativa
 
-**Estimativa:** 5–8 dias.
+*Entregue na spec 014.* O inventário das 50 tasks, a remoção de menus e
+elicitação obrigatória, e a classificação adaptativa comum estão feitos. O que
+permanece válido desta etapa é a **regra de modernização** declarada acima, que
+não depende da premissa revertida.
 
-- inventariar as 50 tasks como `manter`, `reescrever`, `fundir` ou `remover`;
-- remover menus e elicitação obrigatória do happy path;
-- reescrever `create-doc` em modo direto;
-- tornar `advanced-elicitation` explicitamente opt-in;
-- consolidar instruções e schemas duplicados;
-- remover exemplos extensos dos prompts principais;
-- eliminar vocabulário e referências antigas de BMAD;
-- integrar ou remover tasks sem rota;
-- criar classificação comum de risco e complexidade;
-- adotar orçamento de contexto e carregamento por relevância.
+### Etapa 4 — Runner autônomo confiável ⟶ **REFEITA** (spec 016)
 
-**Critério de saída:** o happy path produz spec, plan e tasks com no máximo uma
-rodada agrupada de perguntas e sem menus herdados.
-
-### Etapa 4 — Runner autônomo confiável
-
-**Estimativa:** 1–2 semanas.
-
-- gerar `execution-plan.yaml`;
-- definir paralelismo por unidade;
-- criar helpers para worktree, join, cleanup e recuperação;
-- resolver corretamente o alvo explícito da spec;
-- implementar detecção de capacidades por runtime;
-- oferecer fallback sequencial seguro;
-- persistir checkpoints e tentativas por unidade;
-- associar findings e testes às unidades responsáveis;
-- garantir retomada idempotente após interrupção.
-
-**Critério de saída:** uma corrida pode ser interrompida e retomada sem duplicar
-commits, perder estado ou misturar unidades.
+> A spec 015 atacou esta etapa com o mecanismo da Etapa 2 e foi interrompida em
+> `implement` (32/44 tasks), depois de treze voltas na mesma família de defeitos.
+>
+> Os **requisitos** continuam valendo, todos os cinco, e foram reimplementados na
+> spec 016 sobre outra base — plano escrito pelo agente, estado no front-matter
+> do `run-log.md`, isolamento pela primitiva do runtime. A conferência cenário a
+> cenário está em `docs/specs/016-refactor-prompt-first-toolkit/spec-015-requirements-check.md`.
 
 ### Etapa 5 — Avaliação contínua
 
-**Estimativa:** 4–6 dias.
+**Continua válida e é a próxima.** Nada nela dependia da premissa revertida: os
+cenários reprodutíveis (feature pequena, refactor, mudança com autenticação, spec
+ambígua, conflito de arquivos, teste quebrado, ausência de suíte, migration
+proibida, gate estagnado, retomada após falha) valem igualmente para um toolkit
+prompt-first — e valem mais, porque agora há menos shell entre o cenário e o
+comportamento observado.
 
-Criar cenários reproduzíveis para:
-
-- feature pequena;
-- refactor;
-- mudança com autenticação;
-- spec ambígua;
-- conflito de arquivos;
-- teste quebrado;
-- ausência de suíte;
-- migration proibida;
-- gate estagnado;
-- retomada após falha.
+Uma adição, vinda do que a 016 aprendeu: **os cenários devem cobrir também a
+degradação declarada** — runtime sem isolamento, instalação sem parser YAML,
+projeto sem git. São os pontos onde o toolkit escolhe funcionar pior em vez de
+mentir, e nenhum deles tem cobertura hoje.
 
 ## Métricas de sucesso
 
@@ -349,6 +340,8 @@ Criar cenários reproduzíveis para:
 - no máximo uma pergunta agrupada no happy path;
 - mesma decisão de gate para a mesma evidência;
 - redução mínima de 30% no volume das tasks principais;
+- shell restrito aos casos que o agente não alcança, com chamador nomeado para
+  cada script (ADR-0021);
 - zero menu de elicitação no fluxo padrão;
 - todas as tasks com rota, owner e propósito atuais;
 - retomada autônoma sem duplicação ou perda de estado.
@@ -371,12 +364,26 @@ confiabilidade → remoção de legado → objetividade → inteligência → au
 ```
 
 Ampliar a autonomia antes de fechar estado, evidências, contratos e recuperação
-fará o toolkit errar mais rápido. A remoção da gordura herdada não é uma etapa
+fará o toolkit errar mais rápido.
+
+> **Emenda (ADR-0021):** a ordem continua certa; o que mudou é onde a
+> confiabilidade mora. Confiabilidade é fato declarado num lugar único mais uma
+> verificação com chamador nomeado — não código de shell reimplementando a
+> regra. Verificação que ninguém invoca não conta como confiabilidade, com
+> qualquer mecanismo. A remoção da gordura herdada não é uma etapa
 cosmética: ela reduz ambiguidade, contexto, divergência e custo de manutenção,
 criando o espaço necessário para o MOSK tomar decisões melhores.
 
 ## Próximo passo
 
-Transformar a Etapa 1 na próxima spec do MOSK. A primeira entrega deve estabilizar
-os contratos existentes e criar o verificador central antes de qualquer expansão
-do runner autônomo.
+**Etapa 5 — avaliação contínua.** As Etapas 1 a 4 estão entregues ou
+substituídas; a 5 é a única que nunca foi atacada e a única cujo valor cresceu
+com a virada do ADR-0021.
+
+## Histórico deste documento
+
+- **2026-08-15** — redigido. Diagnóstico e roadmap em cinco etapas.
+- **2026-08-20** — Etapas 2 e 4 substituídas pelo ADR-0021 (spec 016). O
+  diagnóstico original permanece: ele identificou corretamente que as garantias
+  não estavam aplicadas. O que a revisão corrigiu foi a conclusão de que
+  aplicá-las exigia codificá-las em shell.

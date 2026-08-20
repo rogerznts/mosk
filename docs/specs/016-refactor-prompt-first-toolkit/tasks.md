@@ -93,11 +93,11 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 **Sem esta fase o roadmap vigente continua instruindo o contrário e a próxima spec repete o padrão.**
 
-- [ ] T034 [US5] Reescrever as Etapas 2 a 5 do `docs/discovery/toolkit-autonomy-assessment-roadmap.md` sob a premissa do ADR-0021, ou marcá-las como substituídas (FR-014)
-- [ ] T035 [P] [US5] Atualizar `.claude/rules/scripts.md` para o inventário de 6 scripts, com chamador de cada um
-- [ ] T036 [P] [US5] Atualizar `CLAUDE.md` e `mosk/.claude/mosk/templates/project-rule-tmpl.md` — sem tocar nas seções MOSK-invariantes
-- [ ] T037 [US5] Publicar a regra de decisão prompt/YAML/script em local consultável por quem abre a próxima spec (FR-015)
-- [ ] T038 [US5] Rodar `sync.sh` e regenerar `AGENTS.md`; conferir que nenhum documento vigente instrui a mover regra para Bash (SC-007)
+- [x] T034 [US5] Roadmap: Etapa 1 marcada como entregue, **Etapa 2 substituída**, Etapa 3 entregue (spec 014), **Etapa 4 refeita** pela 016, Etapa 5 preservada e agora é a próxima. Métricas e ordem de decisão emendadas
+- [x] T035 [P] [US5] `.claude/rules/scripts.md` reescrito: 6 scripts com chamador, a regra de decisão em primeiro lugar, e a tabela do que saiu e para onde
+- [x] T036 [P] [US5] `CLAUDE.md` e `project-rule-tmpl.md` atualizados. As seções MOSK-invariantes foram preservadas; a de Spec Numbering trocou a menção ao script pelo contrato + `pipeline.yaml`
+- [x] T037 [US5] Regra de decisão publicada em três lugares: `CLAUDE.md` (este repo), `.claude/rules/scripts.md` (antes do inventário) e `project-rule-tmpl.md` (**chega aos consumidores** via `/mosk-boot`)
+- [x] T038 [US5] `sync.sh skills` limpo (12 wrappers preservados). **SC-007 atingido**: nenhum documento vigente instrui a mover regra para Bash
 
 ---
 
