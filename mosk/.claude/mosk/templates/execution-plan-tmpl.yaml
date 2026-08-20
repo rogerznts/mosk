@@ -1,0 +1,92 @@
+# MOSK execution plan — um por spec, escrito no preflight da corrida autônoma.
+#
+# **Escrito pelo agente** que conduz a corrida (`/mosk-orq`), lendo `tasks.md` e
+# `spec.md`. Não há gerador em shell: quem lê YAML aqui é quem tem um parser de
+# verdade (ADR-0021 §3).
+#
+# Versionado de propósito: é a evidência revisável do que a corrida se propôs a
+# fazer, e é contra ele que uma corrida interrompida é retomada.
+#
+# Estado corrente da corrida NÃO mora aqui — mora no front-matter do
+# `run-log.md`. Este arquivo é o plano; aquele é o andamento. Separá-los é o que
+# permite reler o plano sem confiar em quem o executou.
+#
+# YAML inteiro, sem gramática restrita: aspas onde ajudam a ler, listas em bloco
+# ou inline conforme couber. A restrição do ADR-0020 existia para caber num
+# leitor de shell que deixou de existir.
+#
+# Placeholders `{{...}}` são preenchidos na escrita.
+
+schema: 2
+
+
+# pasta da spec (ex.: 015-feature-runner)
+spec_id: "{{SPEC_ID}}"
+
+# tres digitos, zero a esquerda
+spec_number: "{{SPEC_NUMBER}}"
+
+# lida do spec-meta.yaml, nunca deduzida
+branch: "{{SPEC_BRANCH}}"
+
+# ISO 8601 UTC — unico campo volatil
+generated_at: "{{GENERATED_AT}}"
+
+generated_by: "mosk-orq"
+
+sources:
+  tasks_file: "tasks.md"
+  spec_file: "spec.md"
+
+execution:
+  # auto | isolated | sequential — o que foi pedido
+  mode_requested: "{{MODE_REQUESTED}}"
+  # isolated | sequential — o que o runtime de fato oferece, declarado no
+  # preflight. O mecanismo é declarado, nunca presumido (US4 da spec 015).
+  mode_effective: "{{MODE_EFFECTIVE}}"
+  max_parallel: "{{MAX_PARALLEL}}"
+  max_attempts: "{{MAX_ATTEMPTS}}"
+  # vazio = so o gate julga
+  test_command: "{{TEST_COMMAND}}"
+
+units:
+  # `id` e estavel; e o que vai no trailer do commit
+  - id: "{{UNIT_ID}}"
+    # foundational | story
+    kind: "{{UNIT_KIND}}"
+    title: "{{UNIT_TITLE}}"
+    # de onde a unidade foi lida
+    source: "{{UNIT_SOURCE}}"
+    # 0 e reservada a unidade fundacional
+    wave: "{{UNIT_WAVE}}"
+    # true so com marcador explicito na origem
+    parallel: "{{UNIT_PARALLEL}}"
+    depends_on: []
+    # ids de task desta unidade
+    tasks: []
+    # caminhos declarados; vazio e sinal, nao erro
+    files: []
+    # cenarios de aceite, quando houver
+    acceptance:
+      - id: "{{ACCEPTANCE_ID}}"
+        text: "{{ACCEPTANCE_TEXT}}"
+    # comandos que provam esta unidade
+    validation: []
+    # perfil de `data/adaptive-work-contract.md`, aplicado pelo agente
+    profile:
+      name: "{{PROFILE_NAME}}"
+      score: "{{PROFILE_SCORE}}"
+      # piso aplicado; nada da saida se perde
+      floor: "{{PROFILE_FLOOR}}"
+      context_budget: "{{PROFILE_CONTEXT_BUDGET}}"
+      validation_floor: "{{PROFILE_VALIDATION_FLOOR}}"
+      specialists: []
+      human_pause: "{{PROFILE_HUMAN_PAUSE}}"
+      reason: "{{PROFILE_REASON}}"
+
+waves:
+  - index: "{{WAVE_INDEX}}"
+    units:
+      - "{{UNIT_ID}}"
+    # sequential | parallel
+    mode: "{{WAVE_MODE}}"

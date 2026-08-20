@@ -10,7 +10,8 @@ data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
   - adaptive-work-contract.md
 templates:
-  - run-log-tmpl.md    # o registro das decisões autônomas
+  - run-log-tmpl.md          # registro das decisões + estado da corrida
+  - execution-plan-tmpl.yaml # o plano materializado no disco
 scripts:
 ```
 
@@ -74,6 +75,22 @@ construindo sobre um alicerce inexistente é a forma mais cara de descobrir isso
 independência lendo o código: o custo é assimétrico — um par erradamente paralelo
 escrevendo o mesmo arquivo corrompe trabalho que teria dado certo sozinho.
 
+### Materialize o plano antes de pedir consentimento
+
+Escreva `{spec_dir}/execution-plan.yaml` a partir de
+`../templates/execution-plan-tmpl.yaml`: unidades, tasks de cada uma, arquivos
+declarados, dependências, ondas, critérios de aceite, comandos de validação e
+perfil adaptativo.
+
+**Você escreve o plano — não existe gerador.** Ler `tasks.md` e `spec.md` e
+decidir o que é unidade é leitura de conteúdo, e você tem parser (ADR-0021 §3).
+
+O plano existe para ser conferido *antes* de a pessoa abrir mão de ser
+consultada, e para que a corrida seja retomável: sem um plano no disco, não há a
+que anexar tentativa, falha ou retomada. Se `tasks.md` não tiver nenhum
+marcador `[US#]`, **falhe com mensagem específica e não escreva plano parcial** —
+um plano pela metade é pior que nenhum, porque parece completo.
+
 ### Perfil adaptativo de cada unidade
 
 Para cada unidade, selecione sinais observáveis e aplique
@@ -114,6 +131,7 @@ Como vou verificar:
 Perfis mínimos:
 - US-1: `<perfil>` · contexto `<budget>` · validação `<piso>` · especialistas `<lista>`
 
+Isolamento: **real** (worktree por worker) · paralelismo efetivo
 Limites: 3 voltas por unidade · 3 worktrees simultâneos
 
 Faço sozinho: implementar, rodar teste, corrigir, commitar por unidade.
@@ -121,6 +139,21 @@ Paro e devolvo: dúvida sobre critério, lacuna de decisão, conflito de merge,
 teto de voltas, e **qualquer coisa irreversível** — migration, deploy, push,
 apagar dado, dispensar gate.
 ```
+
+**Declare o mecanismo de paralelismo, nunca o presuma.** A linha `Isolamento:`
+diz o que este runtime de fato oferece, e é escrita em `execution.mode_effective`
+no plano:
+
+| o que o runtime oferece | linha do preflight | comportamento |
+|---|---|---|
+| isolamento por subagente | `**real** (worktree por worker)` | ondas em paralelo, worktrees isolados |
+| sem isolamento, sem git | `**sequencial** (este runtime não isola)` | uma unidade por vez, sem worktree |
+
+O ADR-0019 exigiu que o preflight fosse honesto sobre a força da *verificação*.
+A mesma honestidade vale para a *execução*: paralelismo declarativo apresentado
+como real é a diferença entre trabalho isolado e dois agentes escrevendo o mesmo
+arquivo. Quando cair para sequencial, diga — a pessoa está consentindo com o que
+vai acontecer, não com o que seria ideal.
 
 **Sem suíte de testes, diga isso em letras claras**, no lugar da linha de testes:
 
@@ -194,6 +227,27 @@ Leia o `gate.yaml`: `gate`, `quality_score`, `score_history`, `top_issues`.
 - **`CONCERNS` / `FAIL`** → nova onda, **só com as unidades que falharam**, via
   `apply-qa-fixes`. Incremente a volta daquelas unidades.
 
+### Falha tem dono
+
+"Só com as unidades que falharam" exige saber quais foram. Atribua por
+**interseção com os arquivos declarados** de cada unidade no
+`execution-plan.yaml`:
+
+| origem da falha | como atribuir |
+|---|---|
+| teste quebrado | arquivo do teste ou do código sob teste → unidade que o declara em `files` |
+| finding de QA/security com caminho | interseção dos caminhos citados com os `files` das unidades |
+| finding sem caminho, ou caminho de nenhuma unidade | **não atribuível** |
+
+**Não atribuível não se distribui por aproximação.** Registre no `run-log.md`
+como não atribuível e **pare**, devolvendo com a pergunta formulada. Repartir uma
+falha por palpite entre unidades produz duas correções erradas em vez de uma
+pergunta certa, e consome volta de quem não falhou.
+
+Uma unidade que atinge o teto sai da onda seguinte e a corrida para. As demais
+**preservam suas contagens** — o teto é por unidade, e cobrar de quem não gastou
+é o mesmo erro de atribuição, na direção oposta.
+
 **Pare quando o score parar.** Se `score_history` mostra dois valores iguais
 seguidos com o gate reprovando, mais uma volta não resolve: o problema está acima
 da execução — design, PRD ou story ambígua. Devolva dizendo isso. Insistir aqui é
@@ -264,7 +318,33 @@ decisão de rota, e rota continua sendo do humano.
 
 ---
 
-## Registro
+## Registro e retomada
+
+O estado da corrida vive em **dois lugares, e nenhum deles é um `run-state.yaml`**:
+
+- **`execution-plan.yaml`** — o plano. Escrito uma vez, não muda durante a corrida.
+- **`run-log.md`** — o andamento. O corpo é append-only (uma linha por decisão);
+  o **front-matter** carrega o estado corrente:
+
+```yaml
+---
+run_status: running        # running | paused | done
+current_wave: 2
+units_merged: ["US-1", "US-3"]
+units_pending: ["US-2", "US-4"]
+attempts: { US-2: 2 }
+last_updated: "2026-08-20T19:41:07Z"
+---
+```
+
+**Atualize o front-matter depois de cada merge**, antes de começar a unidade
+seguinte. É o que torna a corrida retomável em vez de recomeçável: ao reabrir,
+leia `units_merged` e não reimplemente nada que já está lá. Um commit duplicado
+é o custo de confiar na memória do condutor em vez do disco.
+
+Ao retomar: se uma unidade estiver em `units_pending` mas o worktree dela existir
+com trabalho não mesclado, o merge é **pendente** — aplique uma vez e registre.
+A contagem de `attempts` continua de onde parou; ela não reinicia.
 
 Toda decisão autônoma vira linha:
 

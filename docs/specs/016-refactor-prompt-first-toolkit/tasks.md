@@ -82,10 +82,10 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 ## Phase 6: US4 — o runner sobre a primitiva do runtime
 
 - [x] T029 [US4] Colher da branch da 015 — feito em `harvest/`, com procedência e o descarte justificado item a item em [harvest/README.md](./harvest/README.md). Resta promover para `mosk/.claude/mosk/` na implementação
-- [ ] T030 [US4] Reescrever `orq-run.md` para o agente escrever o `execution-plan.yaml` a partir do `tasks.md`, sem script gerador (FR-010)
-- [ ] T031 [US4] Usar a primitiva de isolamento do runtime quando existir e declarar o modo no preflight — real, degradado ou sequencial (FR-011, preserva a exigência do ADR-0019)
-- [ ] T032 [US4] Mover o estado da corrida para `run-log.md` + frontmatter, sem `run-state.yaml` (FR-012)
-- [ ] T033 [US4] Conferir que as cinco user stories da spec 015 seguem atendidas pelo mecanismo novo, item a item (FR-016)
+- [x] T030 [US4] `orq-run.md` Step 1 materializa o `execution-plan.yaml`; template promovido do `harvest/` e adaptado (schema 2, sem digest, sem gramática restrita)
+- [x] T031 [US4] Preflight ganhou a linha `Isolamento:` e o plano ganhou `execution.mode_effective`. A primitiva do runtime já era usada; o que faltava era **declarar** o modo
+- [x] T032 [US4] Estado no front-matter do `run-log.md` (`units_merged`, `attempts`, `current_wave`). Um arquivo a menos, e o estado ao lado do histórico que o explica
+- [x] T033 [US4] Conferência em [spec-015-requirements-check.md](./spec-015-requirements-check.md). **A US5 (falha tem dono) estava descoberta** e só apareceu ao ler os cenários um a um — Step 5 ganhou a atribuição por interseção de `files`
 
 ---
 
