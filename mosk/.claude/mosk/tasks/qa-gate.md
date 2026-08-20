@@ -61,12 +61,9 @@ readiness remains `review-story-draft`.
    and concise reason. Preserve prior issue ids across rounds.
 8. Report verdict first, then one block per finding following
    `output-contract.md`. Every cited criterion carries its meaning.
-9. In spec mode only, record the phase and refresh the index:
-
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to qa-gate --command qa-gate
-   ```
+9. In spec mode only, confirm the transition to `qa-gate` with command
+   `qa-gate`, following `../data/phase-transition-contract.md`, and refresh the
+   index.
 
 10. Stop after the decision. On PASS/WAIVED suggest archive. On
    CONCERNS/FAIL show score history and the human choices: correct, review the

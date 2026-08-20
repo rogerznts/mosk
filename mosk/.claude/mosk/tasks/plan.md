@@ -14,11 +14,10 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
 
 ## Workflow
 
-1. Run `.claude/mosk/scripts/setup-plan.sh --json` once and parse:
-   - `FEATURE_SPEC`
-   - `IMPL_PLAN`
-   - `SPECS_DIR`
-   - `BRANCH`
+1. Resolve the target spec yourself: current branch -> matching `branch:` field
+   in a `spec-meta.yaml` under `docs/specs/`. Confirm the spec directory exists
+   and read `spec.md`. Copy `../templates/plan-template.md` into
+   `<spec_dir>/plan.md` if it is not there yet.
 
 2. Load:
    - `FEATURE_SPEC`
@@ -45,7 +44,11 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
      clarification round.
    - Otherwise, record the chosen assumption in `plan.md`.
 
-6. If the plan introduces new technologies or conventions, run `.claude/mosk/scripts/update-agent-context.sh update_agent_file`.
+6. If the plan introduces new technologies or conventions, update
+   `.claude/rules/project.md` yourself: read the stack, framework, datastore
+   and project-type decisions you just recorded in `plan.md` and reflect them
+   in the rules. Interpreting a plan is judgement about content, not a
+   transformation a script can do (ADR-0021 §4, question 2).
 
 7. Report:
    - plan path
@@ -54,14 +57,9 @@ Turn `spec.md` into an implementation plan that is clear enough for task generat
    - readiness for `tasks`
 
 8. **Confirm the phase and refresh the index.** After `plan.md` and its required
-   artifacts exist, run:
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$SPECS_DIR")" --to plan --command plan
-   ```
-   Then execute `../tasks/index-docs.md`. The transition validates the
-   post-condition and records `phase-history.yaml`; never edit
-   `current_phase` directly.
+   artifacts exist, confirm the transition to `plan` with command `plan`,
+   following `../data/phase-transition-contract.md`. Then execute
+   `../tasks/index-docs.md`.
 
 ## Rules
 

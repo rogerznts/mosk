@@ -23,7 +23,9 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
 
 ## Workflow
 
-1. Run `.claude/mosk/scripts/check-prerequisites.sh --json --require-tasks --include-tasks` once.
+1. Resolve the target spec yourself (current branch -> `branch:` in a
+   `spec-meta.yaml`) and confirm `tasks.md` exists and is not empty. Stop if it
+   does not — implementation without an ordered task list is improvisation.
 
 2. Load only the artifacts needed for the active work:
    - required: `tasks.md`, `plan.md`
@@ -102,13 +104,9 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - validations run
    - blockers or follow-up work
 
-9. **Update spec metadata and refresh index.**
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to implement --command implement
-   ```
-   The command validates the completed task list and records the transition.
-   Then execute `../tasks/index-docs.md`. Never edit `current_phase` directly.
+9. **Update spec metadata and refresh index.** Confirm the transition to
+   `implement` with command `implement`, following
+   `../data/phase-transition-contract.md`. Then execute `../tasks/index-docs.md`.
 
 10. **Security-review suggestion (conditional).**
     Inspect the diff you just implemented. If it touched security-sensitive

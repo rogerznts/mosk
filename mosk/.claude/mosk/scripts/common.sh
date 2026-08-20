@@ -1219,14 +1219,20 @@ list_active_specs() {
 
 # Write a new spec-meta.yaml from the template. Usage:
 # write_spec_meta <spec_dir> <spec_number> <spec_id> <type> <branch>
+# Emissor canônico do spec-meta.yaml. FONTE ÚNICA — `create-new-feature.sh`
+# mantinha uma segunda cópia deste heredoc, e duas cópias de um emissor
+# divergem: uma escrevia `type:` com default e a outra não, sendo o mesmo campo.
+# Escrita atômica (tmp + mv) para que uma falha no meio não deixe metadata
+# parcial no disco.
 write_spec_meta() {
     local spec_dir="$1"
     local spec_number="$2"
     local spec_id="$3"
     local spec_type="$4"
     local spec_branch="$5"
+    local spec_extends="${6:-}"
     local meta_file="$spec_dir/spec-meta.yaml"
-    local now
+    local now tmp
     now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     local created_by=""
     if has_git; then
@@ -1239,11 +1245,13 @@ write_spec_meta() {
             created_by="$gu"
         fi
     fi
-cat > "$meta_file" <<EOF
+    tmp="$(mktemp "$spec_dir/.spec-meta.XXXXXX")" || return 1
+    {
+        cat <<EOF
 schema: 2
 spec_number: "$spec_number"
 spec_id: "$spec_id"
-type: "$spec_type"
+type: "${spec_type:-feature}"
 branch: "$spec_branch"
 created_at: "$now"
 created_by: "${created_by:-unknown}"
@@ -1251,6 +1259,9 @@ status: active
 current_phase: specify
 last_phase_change: "$now"
 EOF
+        [[ -z "$spec_extends" ]] || echo "extends: \"$spec_extends\""
+    } > "$tmp" || { rm -f "$tmp"; return 1; }
+    mv "$tmp" "$meta_file" || { rm -f "$tmp"; return 1; }
 }
 
 # Resolve core-config.yaml relative to this script (template & consumer),

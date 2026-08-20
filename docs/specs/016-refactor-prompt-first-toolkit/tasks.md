@@ -42,12 +42,12 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 **Objetivo**: o agente vira o único leitor de dado estruturado; script recebe valor por argumento (ADR-0021 §3). É esta fase que faz 33 funções de `common.sh` perderem chamador.
 
-- [ ] T009 [US1] Reescrever `mosk/.claude/mosk/tasks/plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`, `archive.md` e `apply-qa-fixes.md` para ler o `pipeline.yaml` e aplicar a transição diretamente, sem `transition-spec-phase.sh`
-- [ ] T010 [US1] Remover das mesmas tasks toda regra repetida em prosa que agora vive no `pipeline.yaml`; deixar referência ao arquivo (FR-002)
-- [ ] T011 [US1] Reduzir `create-new-feature.sh`: manter só a reserva de número em `refs/spec-numbers/` e a criação de branch/pasta; a emissão do `spec-meta.yaml` passa a `specify.md`
-- [ ] T012 [US1] Reescrever `specify.md` para emitir o `spec-meta.yaml` a partir do template, recebendo do script apenas número e branch já resolvidos
-- [ ] T013 [US1] Substituir `update-agent-context.sh` por instrução dentro de `plan.md` — interpretar o `plan.md` é julgamento sobre conteúdo (regra de decisão, pergunta 2)
-- [ ] T014 [US1] Verificar AS-4 da US1: alterar uma aresta no `pipeline.yaml`, sem tocar em script, e confirmar que o comportamento muda para todas as tasks
+- [x] T009 [US1] Reescrever `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`, `archive.md` e `apply-qa-fixes.md` para aplicar a transição sem `transition-spec-phase.sh` — as seis referenciam `data/phase-transition-contract.md`, criado para não repetir o procedimento seis vezes
+- [x] T010 [US1] Remover das mesmas tasks a regra repetida em prosa (FR-002). Também invertidos os leitores de estado: `setup-plan.sh` e `check-prerequisites.sh` saíram de `plan.md`, `tasks.md` e `implement.md` — o agente resolve a spec pelo branch e lê os artefatos
+- [x] T011 [US1] ~~Mover a emissão do `spec-meta.yaml` para `specify.md`~~ — **rota corrigida**. O emissor está dentro do laço de retry da corrida de numeração (caso 1 da lista fechada do ADR-0021): tirá-lo quebraria a atomicidade branch+pasta+commit+push. O que foi feito: eliminada a **duplicação real** — o script tinha `write_initial_spec_meta` e o `common.sh` tinha `write_spec_meta`, dois emissores do mesmo arquivo, divergindo em `type:`. Agora há um só, com escrita atômica e suporte a `extends`
+- [x] T012 [US1] **Não se aplica** — consequência da correção de rota da T011. O `specify.md` segue recebendo o meta pronto do script, que é onde a corrida acontece
+- [x] T013 [US1] Substituir `update-agent-context.sh` por instrução dentro de `plan.md` — o agente reflete stack/framework/datastore em `.claude/rules/project.md`
+- [x] T014 [US1] Verificar AS-4 — provado: as 6 arestas do YAML batem uma a uma com o `case` de `phase_transition_allowed`; removendo `archived` de `qa-gate.transitions_to` só no YAML, o archive deixa de ser aceito. Revertido limpo
 
 ---
 

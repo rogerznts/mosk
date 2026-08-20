@@ -17,11 +17,9 @@ data:
    Prefer `{FEATURE_DIR}/gate.yaml`; for a story, use the matching file under
    `{qa.qaLocation}/gates/`. Include referenced assessments when present.
 2. If this is a spec correction, record the return to implementation:
-
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to implement --command apply-qa-fixes
-   ```
+   confirm the transition to `implement` with command `apply-qa-fixes`,
+   following `../data/phase-transition-contract.md`. That edge is restricted to
+   this command — see `restricted_edges` in `../pipeline.yaml`.
 
 3. Build a fix list from stable finding ids. Order: high findings, failed NFRs,
    missing P0/P1 coverage, uncovered criteria, required risk mitigations, then

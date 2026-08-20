@@ -2,6 +2,13 @@
 
 set -e
 
+# `common.sh` traz o emissor canônico do `spec-meta.yaml`. Este script mantinha
+# uma segunda cópia do heredoc, e duas cópias de um emissor divergem — foi
+# assim que `type:` ganhou default em uma e não na outra, sendo o mesmo campo.
+MOSK_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=common.sh
+. "$MOSK_SELF_DIR/common.sh"
+
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
@@ -506,43 +513,6 @@ acquire_spec_number() {
 
 acquire_spec_number
 
-# Write initial spec-meta.yaml for the new spec.
-write_initial_spec_meta() {
-    local spec_dir="$1"
-    local spec_number="$2"
-    local spec_id="$3"
-    local spec_type="$4"
-    local spec_branch="$5"
-    local spec_extends="$6"
-    local now
-    now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local created_by=""
-    if [ "$HAS_GIT" = true ]; then
-        local gu gm
-        gu=$(git config user.name 2>/dev/null || echo "")
-        gm=$(git config user.email 2>/dev/null || echo "")
-        if [ -n "$gu" ] && [ -n "$gm" ]; then
-            created_by="$gu <$gm>"
-        elif [ -n "$gu" ]; then
-            created_by="$gu"
-        fi
-    fi
-    cat > "$spec_dir/spec-meta.yaml" <<EOF
-schema: 2
-spec_number: "$spec_number"
-spec_id: "$spec_id"
-type: "${spec_type:-feature}"
-branch: "$spec_branch"
-created_at: "$now"
-created_by: "${created_by:-unknown}"
-status: active
-current_phase: specify
-last_phase_change: "$now"
-EOF
-    if [ -n "$spec_extends" ]; then
-        echo "extends: \"$spec_extends\"" >> "$spec_dir/spec-meta.yaml"
-    fi
-}
 
 # Set up branch + folder. In git mode, also push atomically with retry
 # on collision. Prints the final BRANCH_NAME that won the race.
@@ -573,7 +543,7 @@ create_branch_and_folder() {
         SPEC_FILE="$FEATURE_DIR/spec.md"
         if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "${SPEC_DIR_NAME:-$BRANCH_NAME}" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
+        write_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "${SPEC_DIR_NAME:-$BRANCH_NAME}" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
 
         # Try atomic push if git is present and user didn't opt out.
         if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then

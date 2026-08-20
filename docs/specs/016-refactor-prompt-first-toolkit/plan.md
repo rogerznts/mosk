@@ -28,14 +28,16 @@ Linha de base: **7.912 linhas** em 25 scripts (excluído `payload-*`).
 
 | script | hoje | alvo | caso da lista fechada | chamador |
 |---|---:|---:|---|---|
-| `create-new-feature.sh` | 646 | ~300 | corrida no remoto (reserva em `refs/spec-numbers/`) | `specify.md`, `artefact.md` |
+| `create-new-feature.sh` | 646 | ~600 | corrida no remoto (reserva em `refs/spec-numbers/`) | `specify.md`, `artefact.md` |
 | `sync.sh` *(funde `sync-agents-skills` + `link-codex-skills`)* | 807 | ~450 | geração de derivados em massa | `/mosk-write-skill`, `/mosk-update` |
 | `validate.sh` *(funde `doctor` + `check-prerequisites` + `check-ship-ready` + `audit-docs-paths`)* | 717 | ~300 | execução fora da sessão (hook/CI) | hook de `gh pr merge`, tasks de fase |
 | `reset-install.sh` | 213 | 213 | geração de derivados em massa | `/mosk-update` |
 | `sync-hallmark.sh` | 185 | 185 | geração de derivados (diff/replay do vendor) | `hallmark.md` |
 | `common.sh` | 1.323 | ~250 | suporte aos 5 acima | os 5 acima |
 
-**A redução de `create-new-feature.sh` vem de uma única mudança**: só a reserva de número justifica shell. A emissão e a leitura do `spec-meta.yaml` passam ao agente (ADR-0021 §3), e com elas saem o heredoc emissor, os leitores e a validação de gramática.
+**A previsão de 646 → ~300 para o `create-new-feature.sh` estava errada, e a Phase 3 corrigiu a rota.** A ideia era mover a emissão do `spec-meta.yaml` para o `specify.md`. Mas o emissor está **dentro do laço de retry da corrida de numeração** — o ciclo branch → pasta → commit → push, que renumera e refaz tudo quando o push é rejeitado. Tirar o emissor dali obrigaria o script a parar no meio para o agente escrever, quebrando a atomicidade que é a razão de o script existir (caso 1 da lista fechada).
+
+O que a Phase 3 fez em vez disso foi eliminar uma duplicação real: **havia dois emissores do mesmo arquivo** — `write_initial_spec_meta` no script e `write_spec_meta` no `common.sh` — e eles já divergiam (um aplicava default em `type:`, o outro não). Sobrou um, com escrita atômica e suporte a `extends`. Ganho: 37 linhas e uma fonte a menos para divergir.
 
 **`common.sh` cai de 39 funções para ~14**: resolução de raiz, branch atual, diretório da spec, contenção física de caminho e as primitivas de git da reserva. As ~25 restantes são leitores de YAML, validadores de gramática e a máquina de estados — todas eliminadas pelas decisões 2 e 3 do ADR-0021.
 
