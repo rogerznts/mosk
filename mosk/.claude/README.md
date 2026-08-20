@@ -154,78 +154,100 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
 
 ## Scripts
 
-All under `.claude/mosk/scripts/`.
+Six scripts, all under `.claude/mosk/scripts/`. The list is short by design:
+since [ADR-0021](../../docs/architecture/adr/), rules live in `pipeline.yaml`
+and are read by the agent, so shell only covers what an agent genuinely cannot
+do — a race against another process on the remote, bulk generation of derived
+files, and execution outside an agent session.
+
+### validate.sh
+
+The single verifier. Replaces `doctor.sh`, `check-prerequisites.sh`,
+`check-ship-ready.sh` and `audit-docs-paths.sh`.
+
+```bash
+bash .claude/mosk/scripts/validate.sh ship-ready      # spec is closed and mergeable
+bash .claude/mosk/scripts/validate.sh prerequisites --for implement
+bash .claude/mosk/scripts/validate.sh install         # toolkit integrity
+bash .claude/mosk/scripts/validate.sh docs-paths      # canonical output paths
+bash .claude/mosk/scripts/validate.sh single-source   # normative text not copied
+bash .claude/mosk/scripts/validate.sh all
+```
+
+Exit 0 valid, 1 violations, 2 usage error. No PyYAML, npm or pip required.
+
+**It has a named caller**, which is the whole point: `.claude/hooks/guard-spec-merge.sh`
+intercepts PR/merge commands and runs `ship-ready`. A verification nobody invokes
+has the force of a rule written in prose — spec 014 of this toolkit reached the
+default branch in `qa-gate` precisely because the verifier existed and was never
+called.
 
 ### create-new-feature.sh
 
-Creates a new spec: branch, folder, `spec-meta.yaml`, initial commit. Pushes atomically with retry on collision (max 3 attempts), so multiple developers can create specs in parallel without duplicate numbers.
+Bootstraps a spec: reserves the number atomically on `origin` under
+`refs/spec-numbers/`, creates branch and folder, writes `spec-meta.yaml`,
+commits and pushes with renumbering on collision.
 
 ```bash
-bash .claude/mosk/scripts/create-new-feature.sh --type feature --short-name 'user-auth' 'Add user authentication'
-bash .claude/mosk/scripts/create-new-feature.sh --no-push 'Offline spec'
-bash .claude/mosk/scripts/create-new-feature.sh --help
+bash .claude/mosk/scripts/create-new-feature.sh \
+  [--json] [--type feature|fix|hotfix|gmud|refactor|experimental|extension] \
+  [--short-name <name>] [--number N] [--extends <spec-id>] [--no-push] <description>
 ```
 
-Flags: `--json`, `--type`, `--short-name`, `--number`, `--no-push`, `--help`.
+Branch is `{type}/{NNN}-{name}`; the folder is `docs/specs/{NNN}-{type}-{name}`.
+They are different strings (ADR-0017) — the bridge is the `branch:` field in
+`spec-meta.yaml`, never string equality.
 
-### sync-agents-skills.sh
+### sync.sh
 
-Keeps agent definitions, skill wrappers, and Claude Code agent files in sync. Run after adding, renaming, or removing an agent.
+Materializes derived artifacts. Replaces `sync-agents-skills.sh` and
+`link-codex-skills.sh`.
 
 ```bash
-bash .claude/mosk/scripts/sync-agents-skills.sh                    # both directions
-bash .claude/mosk/scripts/sync-agents-skills.sh --dry-run          # preview only
-bash .claude/mosk/scripts/sync-agents-skills.sh --clean            # prune orphans too
-bash .claude/mosk/scripts/sync-agents-skills.sh --clean --dry-run  # preview orphan removal
+bash .claude/mosk/scripts/sync.sh skills     # agents -> skill wrappers
+bash .claude/mosk/scripts/sync.sh codex      # .codex/ symlinks + AGENTS.md
+bash .claude/mosk/scripts/sync.sh all [--clean] [--dry-run] [--force]
 ```
 
-Default: only creates or updates — never deletes. `--clean` removes orphans whose source agent no longer exists.
+The agent is the source, the skill is the generated wrapper — one direction
+only (ADR-0015). A skill's `description:` is declared by the agent on its first
+line as `<!-- skill-description: ... -->`; never edit a wrapper's description
+directly.
 
-### link-codex-skills.sh
+### reset-install.sh
 
-Refreshes `.codex/skills/`, `.codex/rules/`, and `AGENTS.md` for Codex CLI users.
+Reinstalls the toolkit from scratch in a consuming project, deleting orphans
+that `degit --force` would leave behind forever. Always run the freshly
+downloaded copy, never the installed one — it deletes the directory it lives in.
 
 ```bash
-bash .claude/mosk/scripts/link-codex-skills.sh
-bash .claude/mosk/scripts/link-codex-skills.sh --force
+bash <tmp>/.claude/mosk/scripts/reset-install.sh --from <tmp> --to <project> [--dry-run]
 ```
 
-### migrate-docs-structure.sh
+Never touches `.claude/rules/`, `settings.json`, `docs/`, `CLAUDE.md` or
+`AGENTS.md`.
 
-Migrates a project that was installed with an older `docs/` layout (monolithic `docs/prd.md`, `docs/architecture.md`, global `docs/stories/`) to the current structure. Idempotent.
+### sync-hallmark.sh
+
+Re-syncs the vendored Hallmark fork by diff/replay against the pinned upstream
+ref. Any conflict aborts without touching the vendor. Never copy upstream over
+the directory by hand — that erases the MOSK integration.
 
 ```bash
-bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run   # preview
-bash .claude/mosk/scripts/migrate-docs-structure.sh              # apply
-bash .claude/mosk/scripts/migrate-docs-structure.sh --keep-old   # copy instead of move
+bash .claude/mosk/scripts/sync-hallmark.sh [--ref <sha|tag|branch>] [--dry-run]
 ```
 
-It scaffolds the canonical `docs/`, moves monoliths to `docs/<domain>/raw.md` (ready for `shard-doc`), maps stories into per-spec folders by epic-number heuristic (unmatched go to `_orphan-stories/`), creates retroactive `spec-meta.yaml` files, rewrites `core-config.yaml` to the current schema (with a `.legacy` backup), and seeds `docs/index.md`.
+### common.sh
 
-### migrate-ctx-skills-to-rules.sh
-
-One-shot migration for older installs that still carry `.claude/skills/ctx-*/SKILL.md`. Converts them to `.claude/rules/<name>.md`.
+Shared library, never executed directly. Resolves repo root, current branch and
+spec directory; emits and reads `spec-meta.yaml`; contains path containment
+(`validate_promotion_target`) that must resolve symlinks against the real
+filesystem — which is why it stays in shell.
 
 ```bash
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh              # convert + delete old
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --keep-old   # convert, keep old
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh --dry-run    # preview only
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 ```
 
-### Helpers
+Self-locates in **bash and zsh** (`${BASH_SOURCE[0]}` and `${(%):-%x}`), because
+tasks tell the agent to source it in its own shell and macOS defaults to zsh.
 
-- `doctor.sh` — read-only integrity check for the installed toolkit. It checks
-  Bash syntax, all `selftest-*.sh` suites, literal internal references,
-  documentation paths, agent/skill sync, the 12-agent roster, and required
-  files. Run `bash .claude/mosk/scripts/doctor.sh` or add `--json` for
-  automation; exit codes are 0 (healthy), 1 (violation), and 2 (invalid use).
-- `check-ship-ready.sh` — validates both active and archived specs. Completion
-  requires `current_phase: archived`, a `PASS` gate or a fully documented
-  `WAIVED`, promotion targets safely contained under `docs/`, applied
-  promotions, and a clean working tree. Numbered branches with a missing or
-  ambiguous spec fail closed.
-- `selftest-common.sh` and `selftest-toolkit.sh` — fixture suites for shell path
-  resolution, spec numbering, gate decisions, archived-spec resolution,
-  absolute/relative references, canonical docs paths, config keys, templates,
-  and promotion-path containment.
-- `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — internal helpers used by tasks; not invoked directly in normal use.

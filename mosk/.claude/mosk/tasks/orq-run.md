@@ -12,7 +12,6 @@ data:
 templates:
   - run-log-tmpl.md    # o registro das decisões autônomas
 scripts:
-  - classify-change.sh
 ```
 
 ## Goal
@@ -77,8 +76,7 @@ escrevendo o mesmo arquivo corrompe trabalho que teria dado certo sozinho.
 
 ### Perfil adaptativo de cada unidade
 
-Para cada unidade, selecione sinais observáveis e rode
-`.claude/mosk/scripts/classify-change.sh` conforme
+Para cada unidade, selecione sinais observáveis e aplique
 `.claude/mosk/data/adaptive-work-contract.md`. Registre no `run-log.md` uma
 justificativa curta, o `context_budget`, o `validation_floor` e os
 `specialists` resultantes. O perfil é piso de contexto e validação; não cria
@@ -239,7 +237,7 @@ refletindo onde a spec está de verdade.
 
 ## Step 7 — Fechar
 
-1. `bash .claude/mosk/scripts/transition-spec-phase.sh --spec "$(basename "$FEATURE_DIR")" --to qa-gate --command qa-gate`
+1. Confirme a transição para `qa-gate` com o comando `qa-gate`, seguindo `../data/phase-transition-contract.md`
 2. Execute `../tasks/index-docs.md`.
 3. **Relatório final** — a única coisa que a pessoa vai ler:
 

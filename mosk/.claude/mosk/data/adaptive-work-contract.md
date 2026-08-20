@@ -121,7 +121,7 @@ Tudo acima, entre os comentários `contract-normative:start` e
 skill que precise dela **referencia este arquivo pelo caminho**; copiar o texto
 cria uma segunda fonte que passa a divergir em silêncio.
 
-`audit-legacy-surface.sh` falha quando três ou mais linhas normativas — as de 30
+`validate.sh single-source` falha quando três ou mais linhas normativas — as de 30
 caracteres ou mais, comparadas com espaçamento normalizado — reaparecem
 literalmente em outro arquivo do produto. Mencionar, linkar ou citar uma linha
 isolada continua correto e não dispara nada.

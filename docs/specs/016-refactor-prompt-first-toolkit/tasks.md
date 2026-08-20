@@ -68,14 +68,14 @@ description: "Tasks — toolkit prompt-first (ADR-0021)"
 
 **Pré-condição**: nenhum dos scripts abaixo pode ter chamador restante. Se algum tiver, a Fase 3 ou 4 não terminou.
 
-- [ ] T021 [P] [US2] Remover os quatro `selftest-*.sh` (`toolkit`, `pipeline-state`, `adaptive-work`, `common`) — 1.726 linhas
-- [ ] T022 [P] [US2] Remover `transition-spec-phase.sh`, `setup-plan.sh`, `classify-change.sh`, `update-agent-context.sh`, `audit-legacy-surface.sh`
-- [ ] T023 [P] [US2] Remover `doctor.sh`, `check-prerequisites.sh`, `check-ship-ready.sh`, `audit-docs-paths.sh` (absorvidos pelo `validate.sh`)
-- [ ] T024 [US2] Converter `migrate-docs-structure.sh` e `migrate-ctx-skills-to-rules.sh` em tasks, e remover os scripts
-- [ ] T025 [US2] Fundir `sync-agents-skills.sh` + `link-codex-skills.sh` em `sync.sh`, preservando o contrato de `skill-description` como fonte única e o `--clean`
-- [ ] T026 [US2] Reduzir `common.sh` de 39 para ~6 funções: resolução de raiz, branch atual, diretório da spec, contenção de caminho (`validate_promotion_target` permanece — é caminho de sistema de arquivos, não dado de domínio) e as primitivas de git da reserva
-- [ ] T027 [US2] Verificar SC-001 e SC-003 contra `baseline.md`: soma ≤ 1.500 linhas excluído `payload-*`, e todo script remanescente com chamador nominal
-- [ ] T028 [US2] Sinalizar `payload-infra.sh` (366 linhas, sem chamador) como pendência do modo bench — **não cortar**, está fora do escopo
+- [x] T021 [P] [US2] Removidos os quatro `selftest-*.sh` — 1.726 linhas
+- [x] T022 [P] [US2] Removidos `transition-spec-phase`, `setup-plan`, `classify-change`, `update-agent-context`, `audit-legacy-surface` — 1.611 linhas. `validate.sh single-source` absorveu a checagem de fonte única do último
+- [x] T023 [P] [US2] Removidos `doctor`, `check-prerequisites`, `check-ship-ready`, `audit-docs-paths`. R4 e R5 do auditor implementados no `validate.sh` antes da remoção
+- [x] T024 [US2] Os dois migradores viraram a task `migrate-install.md` — 684 linhas de shell trocadas por um prompt que decide lendo o conteúdo, não casando nome de arquivo
+- [x] T025 [US2] `sync.sh` funde os dois (807 → 619) e remove o `skills_to_agents`, que era dead code. Equivalência conferida: `AGENTS.md` idêntico, mesmas 23 skills
+- [x] T026 [US2] `common.sh` de 39 para **18** funções e 1.334 → 586 linhas. O número bate com a correção da T008 (~14), não com a estimativa original (~6)
+- [x] T027 [US2] Verificado em [cut-report.md](./cut-report.md). **SC-002 e SC-003 atingidos**; **SC-001 não**: 2.730 contra a meta de 1.500. A meta foi estimada antes de os scripts serem lidos — mesmo padrão que já errara em T011 e T026
+- [x] T028 [US2] `payload-infra.sh` sinalizado no `cut-report.md`: sem chamador, mas fora do escopo — pendência para spec própria
 
 ---
 

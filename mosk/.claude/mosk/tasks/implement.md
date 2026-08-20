@@ -8,7 +8,6 @@ Execute the active `tasks.md` and keep progress visible with minimal process ove
 data:
   - adaptive-work-contract.md
 scripts:
-  - classify-change.sh
 ```
 
 ## User Input
@@ -32,8 +31,8 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - optional when referenced by the task: `spec.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
 
    Before expanding beyond those sources, select the observable change signals
-   and run `.claude/mosk/scripts/classify-change.sh` as defined by
-   `.claude/mosk/data/adaptive-work-contract.md`. Record one short line with the
+   and apply `.claude/mosk/data/adaptive-work-contract.md` yourself — the
+   scoring table and the floors are declared there. Record one short line with the
    selected signals, profile and reason. Use `context_budget` as the initial
    loading boundary and `validation_floor` as the minimum validation; neither
    grants permission to broaden the agreed scope.

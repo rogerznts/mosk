@@ -172,7 +172,7 @@ otherwise-empty `docs/` can contain stray files.
 2. **If non-conformant content exists, do not leave it.** Resolve it in
    this order, **without running anything destructive automatically**:
    - **a) Suggest the migration script** when legacy monoliths/structures
-     are present: `bash .claude/mosk/scripts/migrate-docs-structure.sh`
+     are present: a task `migrate-install`
      (recommend `--dry-run` first). The script handles the bulk,
      mechanical moves. Stop and let the user run it.
    - **b) Hand off residuals to the organizer** for whatever the script
@@ -248,7 +248,7 @@ Report:
 
 - Do not invent project conventions. Only document what is actually found.
 - Never leave non-conformant documents loose in `docs/`. Always run the conformance scan and resolve or get explicit user disposition for every stray file.
-- Never run `migrate-docs-structure.sh` or move/delete docs automatically. Suggest the script, hand residuals to the organizer, and confirm manual moves with the user.
+- Never migrate or move/delete docs automatically. Suggest the `migrate-install` task, hand residuals to the organizer, and confirm manual moves with the user.
 - Keep each generated rule file short and prescriptive.
 - Prefer one strong `project.md` rule file over many narrow rule files.
 - Never create additional rule files without explicit user approval.

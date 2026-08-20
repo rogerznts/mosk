@@ -9,7 +9,6 @@ data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
   - adaptive-work-contract.md
 scripts:
-  - classify-change.sh
 ```
 
 ## Goal
@@ -22,8 +21,7 @@ The entire codebase (respecting any `exclude` hints in `.claude/rules/*.md`, and
 
 ## Workflow
 
-Classify the audit before loading broad context, using
-`.claude/mosk/scripts/classify-change.sh` and the canonical
+Classify the audit before loading broad context, applying the canonical
 `.claude/mosk/data/adaptive-work-contract.md`. A whole-codebase audit requests
 at least `elevated`; use the returned context, validation and specialist floors
 without copying their rules here. Reclassify upward when a higher-risk entry

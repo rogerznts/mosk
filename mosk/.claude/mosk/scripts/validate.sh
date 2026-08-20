@@ -59,6 +59,7 @@ Subcomandos:
   prerequisites    artefatos exigidos por uma fase existem
   install          integridade da instalação do toolkit
   docs-paths       saídas declaradas ficam sob os domínios canônicos de docs/
+  single-source    redação normativa dos contratos não foi copiada
   self-check       constantes deste script batem com pipeline.yaml
   fixtures         fixtures de contrato (autoteste)
   all              todos os acima
@@ -386,6 +387,33 @@ cmd_fixtures() {
     emitir "fixtures"
 }
 
+# --- subcomando: single-source ----------------------------------------------
+# Contratos em data/ declaram uma redação normativa entre marcadores
+# `contract-normative`. Copiá-la para outro arquivo cria uma segunda fonte que
+# diverge em silêncio. Herdado de `audit-legacy-surface.sh`.
+cmd_single_source() {
+    SPEC_ID=""; FASE=""
+    local dir_data="$SCRIPT_DIR/../data" contrato base linha n outro
+    for contrato in "$dir_data"/*-contract.md; do
+        [[ -f "$contrato" ]] || continue
+        base="$(basename "$contrato")"
+        # Linhas normativas: >= 30 caracteres, dentro dos marcadores.
+        while IFS= read -r linha; do
+            [[ ${#linha} -ge 30 ]] || continue
+            n=0
+            while IFS= read -r outro; do
+                [[ "$(basename "$outro")" == "$base" ]] && continue
+                n=$((n + 1))
+            done < <(grep -rlF "$linha" "$SCRIPT_DIR/.." --include='*.md' 2>/dev/null || true)
+            [[ $n -eq 0 ]] || echo "$base|$linha"
+        done < <(sed -n '/contract-normative:start/,/contract-normative:end/p' "$contrato" \
+                 | grep -vE '^[[:space:]]*[|#>`-]' | grep -vE '^[[:space:]]*$') \
+        | sort | uniq -c | awk -F'|' -v b="$base" '{ n++ } END { if (n >= 3) print b " :: " n " linhas normativas reaparecem literalmente em outro arquivo" }' \
+        | while IFS= read -r v; do [[ -n "$v" ]] && falha "$v"; done
+    done
+    emitir "single-source"
+}
+
 # --- subcomando: docs-paths -------------------------------------------------
 # Só caminhos DECLARADOS como saída contam. Uma task pode citar `docs/prd.md`
 # ao descrever a estrutura legada que ela migra — isso não é uma saída, e
@@ -419,6 +447,32 @@ cmd_docs_paths() {
         checar_alvo "$origem" "$alvo"
     done < <(grep -rnE '^[[:space:]]*(filename|docOutputLocation):[[:space:]]*docs/' \
                   "$SCRIPT_DIR/../tasks" "$SCRIPT_DIR/../templates" 2>/dev/null || true)
+    # R4: referência `<domínio>.<chave>` de config existe no core-config.yaml
+    local cfg="$SCRIPT_DIR/../core-config.yaml" ref dominio chave
+    if [[ -f "$cfg" ]]; then
+        while IFS= read -r ref; do
+            [[ -n "$ref" ]] || continue
+            dominio="${ref%%.*}"; chave="${ref#*.}"
+            awk -v d="$dominio" -v k="$chave" '
+                $0 ~ "^" d ":" { dentro=1; next }
+                /^[a-zA-Z]/ { dentro=0 }
+                dentro && $0 ~ "^[[:space:]]+" k "[[:space:]]*:" { achou=1 }
+                END { exit !achou }
+            ' "$cfg" || falha "referência de config inexistente em core-config.yaml: $ref"
+        done < <(grep -rhoE '`(qa|prd|architecture|ui|discovery|specs|runner)\.[a-zA-Z]+`' \
+                 "$SCRIPT_DIR/../tasks" 2>/dev/null | tr -d '`' \
+                 | grep -vE '\.(md|yaml|yml|sh|json|txt)$' | sort -u)
+    fi
+
+    # R5: todo template citado por uma task existe no disco
+    local tpl
+    while IFS= read -r tpl; do
+        [[ -n "$tpl" ]] || continue
+        [[ -f "$SCRIPT_DIR/../templates/$tpl" ]] \
+            || falha "template citado por task não existe: templates/$tpl"
+    done < <(grep -rhoE 'templates/[a-z0-9-]+-tmpl\.(md|yaml)|templates/[a-z0-9-]+-template\.md' \
+             "$SCRIPT_DIR/../tasks" 2>/dev/null | sed 's|templates/||' | sort -u)
+
     emitir "docs-paths"
 }
 
@@ -441,11 +495,12 @@ case "$SUB" in
     prerequisites) cmd_prerequisites ;;
     install)       cmd_install ;;
     docs-paths)    cmd_docs_paths ;;
+    single-source) cmd_single_source ;;
     self-check)    cmd_self_check ;;
     fixtures)      cmd_fixtures ;;
     all)
         rc=0
-        for s in install self-check docs-paths fixtures ship-ready; do
+        for s in install self-check docs-paths single-source fixtures ship-ready; do
             FALHAS=(); SPEC_ID=""; FASE=""
             "cmd_${s//-/_}" || rc=1
         done
