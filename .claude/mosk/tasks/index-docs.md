@@ -15,7 +15,7 @@ contributors. The file is auto-generated and combines:
 
 This task is invoked automatically at the end of `boot`, `specify`,
 `plan`, `tasks`, `implement`, `qa-gate`, `archive`, and
-`migrate-docs-structure.sh`. It can also be run manually via
+the `migrate-install` task. It can also be run manually via
 `/mosk-dev index-docs`.
 
 ## Task Instructions
@@ -158,7 +158,7 @@ The following tasks call this task at their final step:
 - `plan.md`, `tasks.md`, `implement.md`, `qa-gate.md` (after updating
   `current_phase` in `spec-meta.yaml`)
 - `archive.md` (after promotions + move to archive)
-- `migrate-docs-structure.sh` (after brownfield migration)
+- `migrate-install` (after brownfield migration)
 
 Invocation is silent (no extra prompts) unless broken links or stale
 entries are detected.
@@ -173,7 +173,7 @@ At the end, provide:
    an `index.md`.
 4. Newly indexed files (grouped by domain).
 5. Optional integrity check: run
-   `bash .claude/mosk/scripts/audit-docs-paths.sh --quiet` and surface
+   `bash .claude/mosk/scripts/validate.sh docs-paths --quiet` and surface
    any violations as warnings (do not block — exit 1 from the audit is
    informational here).
 5. Stale entries removed (and user choice for each).

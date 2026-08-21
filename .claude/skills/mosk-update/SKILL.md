@@ -72,7 +72,7 @@ bash "$TMP/.claude/mosk/scripts/reset-install.sh" --from "$TMP" --to .
 ### Step 6 — Codex parity
 
 ```bash
-bash .claude/mosk/scripts/link-codex-skills.sh --force
+bash .claude/mosk/scripts/sync.sh codex --force
 ```
 
 This clears orphan symlinks under `.codex/` and regenerates `AGENTS.md`. Skip it

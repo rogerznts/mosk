@@ -67,7 +67,7 @@ and activation instructions. Follow ALL instructions defined there exactly.
 > <!-- skill-description: <Área>: <ações principais em PT-BR, com gatilhos>. -->
 > ```
 >
-> `sync-agents-skills.sh` copies it into both the wrapper and the CC agent.
+> `sync.sh` copies it into both the wrapper and the CC agent.
 > It is deliberately separate from `## Mission`: the description is *routing*
 > metadata (when to load me), the Mission is *persona prose* (what I do once
 > loaded). Deriving one from the other truncated every curated description.
@@ -91,10 +91,10 @@ After creating or renaming a skill, run from the correct root:
 
 ```bash
 # agent skills: keep agents <-> skills <-> CC agents in sync
-bash .claude/mosk/scripts/sync-agents-skills.sh both --clean
+bash .claude/mosk/scripts/sync.sh skills both --clean
 
 # Codex parity (regenerates AGENTS.md + .codex symlinks)
-bash .claude/mosk/scripts/link-codex-skills.sh
+bash .claude/mosk/scripts/sync.sh codex
 ```
 
 > Paths are relative to the install root. Inside the MOSK template repo

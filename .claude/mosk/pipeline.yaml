@@ -1,0 +1,378 @@
+# pipeline.yaml — fonte única da regra do pipeline MOSK
+#
+# Autoridade: ADR-0021 (a regra é declarada, não programada).
+#
+# Este arquivo é lido pelo agente, que tem um parser de verdade. Nenhum script
+# o interpreta: quando um script precisa de um valor daqui, quem lê é o agente,
+# que passa o valor já resolvido por argumento (ADR-0021 §3). Por isso o
+# arquivo pode usar YAML inteiro — aspas, listas inline, blocos — sem a
+# gramática restrita que o ADR-0020 precisou impor enquanto o leitor era shell.
+#
+# Nenhuma task repete estas regras em prosa. Elas referenciam este arquivo.
+
+schema: 1
+
+# ---------------------------------------------------------------------------
+# Fases e arestas válidas
+#
+# Traduzido de `phase_transition_allowed` e `phase_command_matches_destination`
+# em common.sh. Seis arestas, nem uma a mais: o conjunto abaixo é exatamente o
+# que aquelas duas funções aceitavam.
+# ---------------------------------------------------------------------------
+
+phases:
+
+  specify:
+    order: 1
+    description: "A spec existe e descreve o problema."
+    # Fase inicial: criada por create-new-feature.sh, não alcançada por transição.
+    transitions_to: [plan]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+
+  plan:
+    order: 2
+    description: "Existe abordagem técnica para o que a spec pede."
+    transitions_to: [tasks]
+    confirmed_by: [plan]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+
+  tasks:
+    order: 3
+    description: "O plano virou trabalho ordenado e verificável."
+    transitions_to: [implement]
+    confirmed_by: [tasks]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: plan.md
+        non_empty: true
+        no_blocking_marker: true
+
+  implement:
+    order: 4
+    description: "O trabalho está sendo executado."
+    transitions_to: [qa-gate]
+    confirmed_by: [implement, apply-qa-fixes]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: plan.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: tasks.md
+        non_empty: true
+        no_blocking_marker: true
+    # Entrada vinda de qa-gate é retorno para correção, não avanço.
+    # Só é legítima quando o gate reprovou de fato.
+    when_from:
+      qa-gate:
+        gate_verdict_in: [FAIL, CONCERNS]
+        reason: >-
+          Retorno a implement exige gate FAIL ou CONCERNS. Um gate PASS que
+          volta para implement estaria descartando o veredito sem registro.
+
+  qa-gate:
+    order: 5
+    description: "QA emitiu veredito independente sobre o resultado."
+    transitions_to: [implement, archived]
+    confirmed_by: [qa-gate]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: plan.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: tasks.md
+        non_empty: true
+        no_blocking_marker: true
+        no_open_tasks: true
+      - artifact: gate.yaml
+        satisfies: gate.contract
+
+  archived:
+    order: 6
+    description: "Spec encerrada. Terminal."
+    transitions_to: []
+    confirmed_by: [archive]
+    requires:
+      - artifact: spec.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: plan.md
+        non_empty: true
+        no_blocking_marker: true
+      - artifact: tasks.md
+        non_empty: true
+        no_blocking_marker: true
+        no_open_tasks: true
+      - artifact: gate.yaml
+        satisfies: gate.allows_completion
+      - check: promotions.satisfied
+
+# ---------------------------------------------------------------------------
+# Arestas com restrição de comando
+#
+# `confirmed_by` acima já diz qual comando confirma cada fase. Esta seção
+# existe para a única aresta em que a restrição não é sobre a fase de destino,
+# mas sobre a combinação origem → destino.
+# ---------------------------------------------------------------------------
+
+restricted_edges:
+
+  - from: qa-gate
+    to: implement
+    allowed_commands: [apply-qa-fixes]
+    reason: >-
+      Voltar de qa-gate para implement é o caminho de correção depois de um
+      gate reprovado. Só apply-qa-fixes o percorre; qualquer outro comando
+      chegando por aqui está pulando o registro da correção.
+
+# Comando de exceção, herdado de `phase_command_matches_destination`, onde
+# `migration:*` confirmava qualquer destino.
+#
+# ATENÇÃO: isto é um curinga. Ele existe para migração de instalações antigas
+# (migrate-docs-structure), que precisa gravar a fase em que a spec já estava
+# sem simular a jornada inteira. Ele não é rota de uso normal, e o histórico
+# registra a origem como `migration` justamente para que o uso apareça.
+wildcard_commands:
+  - command: migration
+    confirms_any_phase: true
+    history_origin: migration
+
+# ---------------------------------------------------------------------------
+# Contrato do gate
+#
+# Traduzido de `validate_gate_contract` e `validate_gate_for_completion`.
+#
+# NÃO traduzido: as verificações de gramática YAML daquelas funções
+# (chaves canônicas, duplicidade, contagem por ocorrência). Elas não são regra
+# de domínio — são defesa do parser em shell, e desaparecem junto com ele.
+# Ver a conferência da T008 em docs/specs/016-*/rule-migration-audit.md.
+# ---------------------------------------------------------------------------
+
+gate:
+
+  schema_supported: [1, 2]
+
+  # Schema 1 é registro histórico. Só é aceito em spec fisicamente arquivada:
+  # status archived, current_phase archived e pasta sob docs/specs/archive/.
+  # As três condições juntas, nunca uma delas isolada.
+  legacy_schema_1:
+    accepted_only_when:
+      spec_status: archived
+      current_phase: archived
+      parent_dir: archive
+
+  verdicts: [PASS, CONCERNS, FAIL, WAIVED]
+
+  # Schema 2: campos obrigatórios, cada um exatamente uma vez.
+  required_fields:
+    - schema
+    - story
+    - story_title
+    - gate
+    - quality_score
+    - score_history
+    - status_reason
+    - reviewer
+    - updated
+    - evidence_ref
+    - waiver_active
+    - waiver_reason
+    - waiver_approved_by
+    - waiver_approved_at
+
+  # Destes, os que não podem estar vazios.
+  non_empty_fields: [story, story_title, status_reason, reviewer, updated, waiver_active]
+
+  field_rules:
+    quality_score:
+      type: integer
+      range: [0, 100]
+    score_history:
+      type: list_of_integers
+      range: [0, 100]
+      must_end_with: quality_score
+      reason: >-
+        O histórico termina no score vigente. Se não terminar, o gate foi
+        editado sem registrar a volta que o alterou.
+    updated:
+      type: timestamp_utc
+      format: "YYYY-MM-DDTHH:MM:SSZ"
+    waiver_active:
+      type: boolean
+    evidence_ref:
+      type: relative_path
+      must_exist_within_spec: true
+      reject: [absolute, traversal, double_slash]
+      reason: "Veredito sem evidência acessível é opinião registrada, não gate."
+
+  # Quais vereditos permitem encerrar a spec.
+  allows_completion:
+    PASS: true
+    WAIVED:
+      requires:
+        waiver_active: true
+        waiver_reason: non_empty
+        waiver_approved_by: non_empty
+        waiver_approved_at: timestamp_utc
+      reason: >-
+        Dispensar um gate é decisão humana e precisa de dono, motivo e data.
+        Um WAIVED sem os quatro campos é um FAIL sem registro.
+    CONCERNS: false
+    FAIL: false
+
+# ---------------------------------------------------------------------------
+# Promoções
+#
+# Traduzido de `validate_spec_promotions_satisfied`. A contenção do destino
+# (`validate_promotion_target`) permanece em common.sh: é caminho de sistema de
+# arquivos, não dado de domínio, e precisa resolver symlink de verdade.
+# ---------------------------------------------------------------------------
+
+promotions:
+
+  modes: [copy, append, manual]
+  default_mode: copy
+
+  target:
+    must_be_under: docs/
+    must_be_file: true
+    reject: [absolute, traversal, symlink_escape]
+
+  satisfied:
+    copy:
+      target_must_exist: true
+      target_must_equal_source: true
+    append:
+      target_must_exist: true
+      target_must_end_with_source_body: true
+      body_excludes_frontmatter: true
+    manual:
+      target_must_exist: false
+      reason: >-
+        `manual` é declaração de que a aplicação é humana. Exigir o arquivo
+        aqui transformaria a escolha em obrigação silenciosa.
+
+# ---------------------------------------------------------------------------
+# Marcador bloqueante
+# ---------------------------------------------------------------------------
+
+blocking_marker:
+  token: "[NEEDS CLARIFICATION"
+  applies_to: [spec.md, plan.md, tasks.md]
+  reason: "Avançar com esclarecimento aberto é decidir por omissão."
+
+open_task_pattern: "^- \\[ \\] T[0-9]{3}"
+
+# ---------------------------------------------------------------------------
+# Metadata da spec — spec-meta.yaml
+#
+# Traduzido de `validate_spec_metadata`. NÃO estava na tabela de 7 regras do
+# plano; foi encontrada na conferência da T008. Ver rule-migration-audit.md.
+# ---------------------------------------------------------------------------
+
+spec_meta:
+
+  schema_supported: [1, 2]
+
+  fields:
+    - schema
+    - spec_number
+    - spec_id
+    - type
+    - branch
+    - created_at
+    - created_by
+    - status
+    - current_phase
+    - last_phase_change
+    - archived_at
+    - history_origin_schema
+
+  types: [feature, fix, hotfix, gmud, refactor, experimental, extension]
+  status: [active, archived]
+  phases: [specify, plan, tasks, implement, qa-gate, archived]
+
+  # Vale nos dois schemas.
+  always:
+    spec_id_equals_dirname: true
+    branch_non_empty: true
+
+  # Schema 2 acrescenta forma e identidade cruzada.
+  schema_2:
+    spec_number: "^[0-9]{3}$"
+    spec_id: "^[0-9]{3}-(feature|fix|hotfix|gmud|refactor|experimental|extension)-[a-z0-9][a-z0-9-]*$"
+    branch: "^(feature|fix|hotfix|gmud|refactor|experimental|extension)/[0-9]{3}-[a-z0-9][a-z0-9-]*$"
+    created_at: timestamp_utc
+    last_phase_change: timestamp_utc
+    created_by: non_empty
+    history_origin_schema: [empty, 1]
+
+    # ADR-0017: branch e pasta são strings diferentes. A identidade não é
+    # igualdade de string — é concordância campo a campo.
+    #   pasta:  {NNN}-{tipo}-{nome}
+    #   branch: {tipo}/{NNN}-{nome}
+    cross_identity:
+      - spec_number == spec_id.number
+      - type == spec_id.type
+      - branch.number == spec_number
+      - branch.type == type
+      - branch.slug == spec_id.slug
+
+  archived_state:
+    coherent: "status e current_phase mudam juntos — nunca um sem o outro"
+    schema_2_requires: archived_at
+
+  history_required_when:
+    schema: 2
+    current_phase_not: specify
+
+# ---------------------------------------------------------------------------
+# Histórico de fases — phase-history.yaml
+#
+# Traduzido de `validate_phase_history`. Também ausente da tabela do plano.
+# ---------------------------------------------------------------------------
+
+phase_history:
+
+  schema: 1
+  origin: [specify, migration]
+  origin_required_when_meta_schema: 2
+  origin_default_when_absent: migration
+
+  event_fields: [at, from, to, command]   # exatamente um de cada, por evento
+  minimum_events: 1
+
+  event_rules:
+    at: timestamp_utc
+    edge_must_be_valid: true          # mesma lista de `phases[].transitions_to`
+    command_must_confirm_destination: true
+
+  chain:
+    continuous: "o `from` de um evento é o `to` do anterior"
+    monotonic_timestamps: "at nunca regride"
+
+  origin_consistency:
+    specify:
+      first_event_must_be: "specify -> plan"
+      reason: >-
+        Origem `specify` afirma que o histórico cobre a vida inteira da spec.
+        Se o primeiro evento não for o primeiro da jornada, ele está truncado.
+      forbids: history_origin_schema   # evidência de upgrade legado contradiz
+    migration:
+      requires_when_meta_schema_2: "history_origin_schema: 1"
+      reason: >-
+        Histórico que nasce de migração precisa da evidência do upgrade.
+        Sem ela, `migration` viraria a saída fácil para um histórico incompleto.
+
+  must_agree_with: last_phase_change

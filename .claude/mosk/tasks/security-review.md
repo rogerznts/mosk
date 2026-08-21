@@ -9,7 +9,6 @@ data:
   - output-contract.md # vocabulário de ids + formato de achado (obrigatório)
   - adaptive-work-contract.md
 scripts:
-  - classify-change.sh
 ```
 
 ## Goal
@@ -22,9 +21,8 @@ Analyze only the files changed on the current branch (`git diff` against the bas
 
 ## Workflow
 
-Before Phase 1, select signals from the diff and run
-`.claude/mosk/scripts/classify-change.sh` according to
-`.claude/mosk/data/adaptive-work-contract.md`. Use its `context_budget`,
+Before Phase 1, select signals from the diff and apply
+`.claude/mosk/data/adaptive-work-contract.md` yourself. Use its `context_budget`,
 `validation_floor` and `specialists` as minimums and record the profile plus a
 short evidence-based reason in the report. Reclassify if data flow tracing
 reveals broader scope or a more sensitive surface. An explicit security-review

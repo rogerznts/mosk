@@ -28,7 +28,7 @@ step the user can run immediately.
 
 1. Read every file in `.claude/rules/*.md` for durable project context.
 2. Resolve the active spec and phase:
-   - Run `bash .claude/mosk/scripts/check-prerequisites.sh --json --paths-only` (when available) to resolve `BRANCH`, `FEATURE_DIR`, and `AVAILABLE_DOCS`.
+   - Run `bash .claude/mosk/scripts/validate.sh prerequisites --json --paths-only` (when available) to resolve `BRANCH`, `FEATURE_DIR`, and `AVAILABLE_DOCS`.
    - If a `FEATURE_DIR` resolves, read its `spec-meta.yaml`: `spec_id`, `type`, `status`, `current_phase`.
    - Note which artifacts exist on disk: `spec.md`, `plan.md`, `tasks.md`, `stories/`, `tests/`, `gate.yaml`.
    - If `current_phase` is `qa-gate`, read `gate.yaml` to learn the verdict (`PASS` | `CONCERNS` | `FAIL` | `WAIVED`) and the `score_history`.
