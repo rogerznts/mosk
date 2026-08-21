@@ -38,7 +38,7 @@ First-time setup for a codebase:
 For Codex users, create symlinks after install:
 
 ```bash
-bash .claude/mosk/scripts/link-codex-skills.sh
+bash .claude/mosk/scripts/sync.sh codex
 ```
 
 Restart Claude Code after install so the new skills load.
@@ -181,7 +181,11 @@ docs/
 └── specs/            # per-spec folders + archive/
 ```
 
-The full canonical tree (including the per-spec internals like `spec-meta.yaml`, `stories/`, `tests/`, `gate.yaml`) is documented in [`mosk/.claude/mosk/templates/project-rule-tmpl.md`](mosk/.claude/mosk/templates/project-rule-tmpl.md), the file `/mosk-boot` uses to generate `.claude/rules/project.md` in every consuming project.
+The full tree — including the per-spec internals (`spec-meta.yaml`, `stories/`,
+`tests/`, `gate.yaml`) — lives in
+[`project-rule-tmpl.md`](mosk/.claude/mosk/templates/project-rule-tmpl.md), which
+`/mosk-boot` turns into `.claude/rules/project.md` in each consuming project.
+That file is the contract; this section is the summary.
 
 **Base vs spec decision rule**
 
@@ -208,10 +212,10 @@ promote_mode: copy
 
 Without `promote:`, the artifact freezes inside the archived spec.
 
-Promotion front-matter uses a root mapping whose first content starts in column
-zero. An entirely indented root mapping is rejected before scanning, including
-Unicode-escaped, explicit-key and tagged variants that a full YAML parser could
-otherwise interpret as `promote`.
+**Write the artifact for where it will live, not where it sits.** `copy` requires
+the target to stay byte-identical to the source, so a promoted file with relative
+links has to use paths that resolve at the **destination** — the depth is
+different there, and fixing them after the copy makes the check fail.
 
 ### Transforming raw drafts with `shard-doc`
 
@@ -245,18 +249,14 @@ current_phase: specify     # specify | plan | tasks | implement | qa-gate | arch
 last_phase_change: "2026-04-22T14:30:00Z"
 ```
 
-Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) confirm
-their post-condition through `transition-spec-phase.sh`. The transition validates
-the allowed edge, verifies artifact markers and pending promotions, updates
-`current_phase` with rollback on failures/signals and appends
-`phase-history.yaml`. New histories declare `origin: specify` and must start at
-`specify -> plan`; migrated histories declare `origin: migration` and require
-the metadata evidence `history_origin_schema: 1`, written only by a schema-1
-upgrade. Every top-level YAML key uses the plain canonical grammar—quoted,
-escaped, tagged or explicit variants fail—and `copy`/`append` promotions only
-count as applied when a regular target is materially equivalent. The CLI never
-chooses the next phase for the user. `index-docs`
-reads the current projection to build the Active Specs table in `docs/index.md`.
+Pipeline tasks (`plan`, `tasks`, `implement`, `qa-gate`, `archive`) confirm their
+post-condition by following `.claude/mosk/data/phase-transition-contract.md`,
+which reads the rule from **`.claude/mosk/pipeline.yaml`** — the single source for
+phases, valid edges, required artifacts, the gate contract and promotion modes.
+The task states the destination; nothing chooses the next phase for the user.
+
+`index-docs` reads the current metadata to build the Active Specs table in
+`docs/index.md`.
 
 ## Entry Point: `docs/index.md`
 
@@ -353,24 +353,21 @@ type. The bridge between the two strings is the `branch` field in
 (`012-feature-checkout-coupon`) is still resolved, but is not what
 `create-new-feature.sh` creates.
 
-Supported types:
+Supported types: `feature`, `fix`, `hotfix`, `gmud`, `refactor`,
+`experimental`, `extension`.
 
-- `feature`
-- `fix`
-- `hotfix`
-- `gmud`
-- `refactor`
-- `experimental`
+`extension` continues an already-archived spec without breaking archive
+immutability, and requires `--extends <spec-id>` pointing at the parent.
 
 
 ## Migrating Existing Projects
 
-Projects carrying older layouts (`docs/prd.md`, `docs/architecture.md`, `docs/stories/`) are migrated in place with a single idempotent script:
-
-```bash
-bash .claude/mosk/scripts/migrate-docs-structure.sh --dry-run   # preview
-bash .claude/mosk/scripts/migrate-docs-structure.sh              # apply
-```
+Projects carrying older layouts (`docs/prd.md`, `docs/architecture.md`,
+`docs/stories/`) are migrated in place by the **`migrate-install`** task. It is a
+task and not a script because deciding whether a loose `docs/notes.md` is
+discovery or architecture requires reading it — a script can only match
+filenames, which is why the old one carried a fixed list that never covered the
+project in front of it.
 
 The migration:
 
@@ -381,15 +378,13 @@ The migration:
 - rewrites `.claude/mosk/core-config.yaml` to the current schema (with a `.legacy` backup),
 - seeds `docs/index.md`.
 
-Flags: `--dry-run` (preview), `--keep-old` (copy instead of move), `--help`.
+Nothing moves without your confirmation, and it never overwrites: when a
+destination exists and differs, it reports the conflict and asks.
 
-After the script runs, residual files often remain — briefs at `docs/` root, a legacy `docs/epics/` folder, orphan stories without an epic match. Load the companion prompt `.claude/mosk/utils/post-migration-organize.md` in a Claude Code session to walk those resíduos into the canonical layout: it scans `docs/`, classifies each file by domain heuristics, allocates orphan stories/epics into existing or newly-created specs, and regenerates `docs/index.md` at the end. Nothing is moved without your confirmation.
+After the migration, residual files often remain — briefs at `docs/` root, a legacy `docs/epics/` folder, orphan stories without an epic match. Load the companion prompt `.claude/mosk/utils/post-migration-organize.md` in a Claude Code session to walk those resíduos into the canonical layout: it scans `docs/`, classifies each file by domain heuristics, allocates orphan stories/epics into existing or newly-created specs, and regenerates `docs/index.md` at the end. Nothing is moved without your confirmation.
 
-Projects with legacy `ctx-*` context skills can convert them to plain rules:
-
-```bash
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
-```
+The same task converts legacy `ctx-*` context skills into plain
+`.claude/rules/*.md`: skills are for actions, project context lives in rules.
 
 ## Installed Structure
 
@@ -397,13 +392,15 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
 your-project/
 ├── .claude/
 │   ├── agents/           # the 12 agent definitions (source of truth)
+│   ├── hooks/            # guard-spec-merge.sh — calls validate.sh on merge/PR
 │   ├── mosk/
+│   │   ├── pipeline.yaml   # single source for phases, edges, gate, promotions
 │   │   ├── tasks/
 │   │   ├── templates/
 │   │   ├── checklists/
-│   │   ├── data/           # reference material read by tasks
+│   │   ├── data/           # contracts + reference material read by tasks
 │   │   │   └── hallmark/   # vendored Hallmark (MIT) — see VENDOR.md
-│   │   ├── scripts/
+│   │   ├── scripts/        # five
 │   │   └── core-config.yaml
 │   ├── rules/            # generated by /mosk-boot — never touched by updates
 │   └── skills/           # generated wrappers: /mosk-<name>
@@ -428,25 +425,63 @@ your-project/
         └── archive/
 ```
 
+## Where a rule lives
+
+MOSK is a product made of prompts, and the shape follows from that. Rules live in
+**declarative YAML read by the agent**; shell covers only what an agent cannot do.
+Three questions, in order — the first "yes" decides:
+
+1. Must the fact be read by more than one consumer, or survive the session? → **YAML**
+2. Is it judgement about content — drafting, evaluating, deciding case by case? → **prompt**
+3. Does applying it need a race against another process on the remote, bulk
+   generation of derived files, or execution outside an agent session? → **script**
+
+That third list is closed, and widening it takes an ADR. The pipeline's own rule
+— phases, valid edges, required artifacts, gate contract, promotions — lives in
+`.claude/mosk/pipeline.yaml`. No task restates it in prose; they reference it.
+
+See [ADR-0021](./docs/architecture/adr/adr-0021-declarative-rule-minimal-shell.md)
+for why, including what it cost to learn.
+
 ## Maintenance Scripts
 
-Under `.claude/mosk/scripts/`:
+Five, under `.claude/mosk/scripts/`. The list is short by design.
 
-- `create-new-feature.sh` — spawns a new spec folder + branch + `spec-meta.yaml`, with push-atomic retry for concurrent usage. Accepts `--type`, `--short-name`, `--number`, `--no-push`, `--json`.
-- `sync-agents-skills.sh` — regenerates skill wrappers from agent definitions and vice-versa. Use `--clean` to prune orphans, `--dry-run` to preview. Existing wrappers are edited in place — only the `description:` line is refreshed, so extra front-matter keys and hand-written bodies survive. A skill's description is declared by the agent itself, on its first line (`<!-- skill-description: … -->`), deliberately separate from `## Mission`: one is routing metadata, the other is persona prose.
-- `sync-hallmark.sh` — updates the vendored Hallmark fork. Diffs the pinned upstream against the local copy to recover the MOSK adaptations, then replays them onto the new ref; a conflict leaves `.rej` files and **does not touch the vendor**. Accepts `--ref`, `--dry-run`.
-- `link-codex-skills.sh` — refreshes `.codex/skills/`, `.codex/rules/`, and `AGENTS.md` for Codex users.
-- `migrate-docs-structure.sh` — migrates a legacy `docs/` layout to the current one (idempotent).
-- `migrate-ctx-skills-to-rules.sh` — converts legacy `ctx-*` context skills to `.claude/rules/*.md`.
-- `audit-docs-paths.sh` — verifies that tasks, templates, and `core-config.yaml` declare outputs only under canonical `docs/` domains and that referenced config keys and template files exist. Five rules (R1–R5), exit 0 on `clean ✓` and exit 1 with a `path:line :: rule :: detail` list on violations. Modes: default and `--quiet`. Also reachable via `/mosk-dev audit`.
-- `reset-install.sh` — reinstalls the toolkit from scratch: deletes the previous install (including files that no longer exist upstream) before copying the new one. Used by `/mosk-update`, because `degit --force` overwrites but **never deletes**. Preserves `.claude/rules/`, settings, `docs/` and your own skills. Accepts `--from`, `--to`, `--dry-run`, `--json`.
-- `doctor.sh` — read-only integrity check for a clean installation: Bash syntax, self-tests, internal references, documentation paths, agent/skill sync, roster, and required files. Accepts `--json`; depends only on the toolkit's declared shell utilities.
-- `transition-spec-phase.sh` — deterministic phase transition CLI. Resolves a spec by number, id, or exact registered branch; cross-validates identity, schemas and pre/post-conditions; restores metadata plus history together on failures and handled signals; accepts `--json` and stable exit codes 0/1/2. Its state contract fails closed on spec-path symlinks, pending promotions, blocking clarification markers, duplicate critical YAML keys, malformed history chains, and legacy gates outside the archive.
-- `check-ship-ready.sh` — single source of "this spec is closed": phase archived, QA gate `PASS` or a fully documented `WAIVED`, safe `promote:` targets confined to `docs/`, promotions applied, and clean working tree. It resolves active and archived specs and fails closed when a numbered branch is missing or ambiguous. Accepts `--json`.
-- `selftest-common.sh` — the repo's automated check: spec numbering rules and `common.sh` path resolution in **bash and zsh**. Both have broken in production before.
-- `selftest-toolkit.sh` — fixture suite for gate decisions, fail-closed spec resolution, absolute/relative references, canonical paths, config keys, templates, and promotion-path containment.
-- `selftest-pipeline-state.sh` — exhaustive fixture matrix for all 36 phase pairs, schemas, identity, history, idempotency, promotion preconditions and rollback on failures/signals in Bash and zsh.
-- `check-prerequisites.sh`, `setup-plan.sh`, `update-agent-context.sh`, `common.sh` — helpers used by tasks.
+- **`validate.sh`** — the single verifier. `ship-ready` (spec closed and
+  mergeable), `prerequisites --for <phase>`, `install`, `docs-paths`,
+  `single-source`, `tasks-sync`, `fixtures`, `all`. Exit 0 valid, 1 violations,
+  2 usage error. No PyYAML, npm or pip.
+
+  It has a **named caller**, which is the point: `.claude/hooks/guard-spec-merge.sh`
+  intercepts PR and merge commands and runs `ship-ready`. A verification nobody
+  invokes has the force of a rule written in prose — this toolkit shipped a spec
+  to its default branch in `qa-gate` precisely because the verifier existed and
+  was never called.
+
+- **`create-new-feature.sh`** — reserves the spec number atomically on `origin`,
+  creates branch and folder, writes `spec-meta.yaml`, commits and pushes, with
+  renumbering and retry on collision. `--type`, `--short-name`, `--number`,
+  `--extends`, `--no-push`, `--json`.
+
+- **`sync.sh`** — materializes derived artifacts. `skills` (agents → wrappers),
+  `codex` (`.codex/` symlinks + `AGENTS.md`), `all`, with `--clean`, `--dry-run`,
+  `--force`. One direction only: the agent is the source, the skill is the
+  generated wrapper. A skill's `description:` is declared by the agent on its
+  first line (`<!-- skill-description: … -->`) — never edit a wrapper's
+  description directly.
+
+- **`reset-install.sh`** — reinstalls from scratch, deleting orphans that
+  `degit --force` would leave behind forever. Used by `/mosk-update`. Never
+  touches `.claude/rules/`, settings, `docs/`, `CLAUDE.md` or `AGENTS.md`. Always
+  run the freshly downloaded copy — it deletes the directory it lives in.
+
+- **`common.sh`** — shared library, never run directly. Resolves repo root,
+  branch and spec directory, and holds the path containment that has to resolve
+  symlinks against the real filesystem — which is why it stays in shell.
+
+Two capabilities that used to be scripts are now tasks, because both are
+judgement about content: **`migrate-install`** (brownfield migration) and
+**`sync-hallmark`** (updating the vendored fork).
 
 ## Optional Environment Tools
 
