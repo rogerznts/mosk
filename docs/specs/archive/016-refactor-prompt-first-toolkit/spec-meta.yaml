@@ -1,0 +1,11 @@
+schema: 2
+spec_number: "016"
+spec_id: "016-refactor-prompt-first-toolkit"
+type: "refactor"
+branch: "refactor/016-prompt-first-toolkit"
+created_at: "2026-08-19T21:11:12Z"
+created_by: "Roger <phpsaux@gmail.com>"
+status: archived
+current_phase: archived
+last_phase_change: "2026-08-21T05:05:43Z"
+archived_at: "2026-08-21T05:05:43Z"

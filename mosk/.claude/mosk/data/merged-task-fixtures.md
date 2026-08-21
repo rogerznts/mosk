@@ -2,7 +2,7 @@
 
 Estas fixtures provam que uma capacidade pública continua roteável depois que
 o arquivo legado desaparece. O bloco entre marcadores é lido por
-`audit-legacy-surface.sh`; mantenha seis campos TSV por linha.
+`validate.sh single-source`; mantenha seis campos TSV por linha.
 
 <!-- merged-task-fixtures:start -->
 legacy_task	capability	entrypoints	destinations	expected_result	evidence

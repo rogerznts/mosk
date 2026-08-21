@@ -14,7 +14,7 @@ Generate a lightweight checklist only when the user explicitly wants a structure
 
 ## Workflow
 
-1. Resolve the active feature directory with `.claude/mosk/scripts/check-prerequisites.sh --json --paths-only`.
+1. Resolve the active feature directory with `.claude/mosk/scripts/validate.sh prerequisites --json --paths-only`.
 
 2. Determine the checklist domain from the request or ask one short question if it is missing.
    Supported defaults:

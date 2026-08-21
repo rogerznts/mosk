@@ -13,7 +13,7 @@ Run the MOSK toolkit path audit and report findings.
 1. Run the audit script:
 
    ```bash
-   bash .claude/mosk/scripts/audit-docs-paths.sh
+   bash .claude/mosk/scripts/validate.sh docs-paths
    ```
 
    The script enforces five rules across the toolkit:

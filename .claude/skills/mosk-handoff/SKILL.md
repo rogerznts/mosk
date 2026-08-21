@@ -22,7 +22,7 @@ Compact the current conversation into a handoff document so a fresh agent can pi
 
 1. Read every file in `.claude/rules/*.md` for durable project context.
 2. Detect the documentation the user is currently working on:
-   - Run `bash .claude/mosk/scripts/check-prerequisites.sh --json --paths-only` (when available) to resolve `BRANCH`, `FEATURE_DIR`, and `AVAILABLE_DOCS`.
+   - Run `bash .claude/mosk/scripts/validate.sh prerequisites --json --paths-only` (when available) to resolve `BRANCH`, `FEATURE_DIR`, and `AVAILABLE_DOCS`.
    - If a `FEATURE_DIR` resolves, read its `spec-meta.yaml` (`spec_id`, `type`, `status`, `current_phase`) and note which artifacts exist (`spec.md`, `plan.md`, `tasks.md`, `stories/`, `gate.yaml`).
    - If no active spec, identify the base domain in play from the conversation (`docs/prd/`, `docs/architecture/`, `docs/ui/`, `docs/qa/`, …).
 3. Note which files were actually touched or discussed this session (`git status`, `git diff --stat`).

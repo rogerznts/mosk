@@ -1,3 +1,19 @@
+---
+# ESTADO CORRENTE da corrida. É isto que torna uma corrida interrompida
+# retomável em vez de recomeçável — ao reabrir, o runner lê `units_merged` e
+# não reimplementa nada que já está no disco.
+#
+# Substituiu o antigo `run-state.yaml`: um arquivo a menos, e o estado ao lado
+# do histórico que o explica. Atualize depois de CADA merge, antes de começar a
+# unidade seguinte.
+run_status: running          # running | paused | done
+current_wave: 0
+units_merged: []
+units_pending: []
+attempts: {}
+last_updated: ""
+---
+
 # Run log — decisões tomadas sem supervisão
 
 <!--

@@ -17,7 +17,6 @@ schemas:
 templates:
   - qa-gate-tmpl.yaml
 scripts:
-  - classify-change.sh
 ```
 
 ## Modes
@@ -38,9 +37,8 @@ readiness remains `review-story-draft`.
 2. Start from clean review context when the runtime supports isolation. Read all
    in-scope ACs/requirements and verify them against code, tests and running
    behavior. `[x]` records work claimed; it is not proof.
-3. Select observable signals from the delivered change and run
-   `.claude/mosk/scripts/classify-change.sh` according to
-   `.claude/mosk/data/adaptive-work-contract.md`. Record the profile and short
+3. Select observable signals from the delivered change and apply
+   `.claude/mosk/data/adaptive-work-contract.md` yourself. Record the profile and short
    justification. Its `context_budget`, `validation_floor` and `specialists`
    are minimums: QA may expand them, never reduce them. Reclassify upward if
    verification reveals broader scope, weaker evidence or a sensitive surface.
@@ -61,12 +59,9 @@ readiness remains `review-story-draft`.
    and concise reason. Preserve prior issue ids across rounds.
 8. Report verdict first, then one block per finding following
    `output-contract.md`. Every cited criterion carries its meaning.
-9. In spec mode only, record the phase and refresh the index:
-
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to qa-gate --command qa-gate
-   ```
+9. In spec mode only, confirm the transition to `qa-gate` with command
+   `qa-gate`, following `../data/phase-transition-contract.md`, and refresh the
+   index.
 
 10. Stop after the decision. On PASS/WAIVED suggest archive. On
    CONCERNS/FAIL show score history and the human choices: correct, review the

@@ -14,7 +14,7 @@ Reduce rework risk without turning clarification into a long interview.
 
 ## Workflow
 
-1. Run `.claude/mosk/scripts/check-prerequisites.sh --json --paths-only` once and parse:
+1. Run `.claude/mosk/scripts/validate.sh prerequisites --json --paths-only` once and parse:
    - `FEATURE_DIR`
    - `FEATURE_SPEC`
 

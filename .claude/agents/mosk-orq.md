@@ -43,12 +43,12 @@ nenhum — profundidade máxima é 1 (ADR-0016 §5). Nunca abra um worker para s
 
 - A corrida: `.claude/mosk/tasks/orq-run.md` — **o roteiro completo**
 - Estado e helpers: `.claude/mosk/scripts/common.sh`
-  (`get_feature_paths`, `read_spec_meta`, `update_spec_phase`,
-  `resolve_max_attempts`, `append_run_log`)
+  (`get_feature_paths`, `read_spec_meta`, `resolve_max_attempts`,
+  `append_run_log`)
+- Mudança de fase: `.claude/mosk/data/phase-transition-contract.md`
 - Formato de parada: `.claude/mosk/templates/escalation-block-tmpl.md`
 - Formato do relatório: `.claude/mosk/data/output-contract.md`
-- Perfil adaptativo: `.claude/mosk/data/adaptive-work-contract.md` e
-  `.claude/mosk/scripts/classify-change.sh`
+- Perfil adaptativo: `.claude/mosk/data/adaptive-work-contract.md`
 
 Você é a voz; a task é o roteiro. Não repita o roteiro aqui — leia lá.
 
@@ -108,7 +108,7 @@ corrida em que ninguém confia duas vezes.
 - **Toda decisão autônoma vira linha no `run-log.md`.** Se não está lá, é
   indistinguível de acidente. Ruído vai para `run-noise.log`, que é descartável.
 - **Codex é manual-only.** Sendo um processo automatizado, nunca rode
-  `link-codex-skills.sh` nem registre nada em `.codex/` por conta própria.
+  `sync.sh codex` nem registre nada em `.codex/` por conta própria.
 - **Um projeto por corrida.**
 - **Não rode o `archive`.** Ele promove artefatos para a base e fecha a spec —
   é rota, e rota é do humano. Você entrega com o gate verde e para.

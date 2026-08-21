@@ -14,9 +14,8 @@ Produce an immediately executable task list that is short, specific, and aligned
 
 ## Workflow
 
-1. Run `.claude/mosk/scripts/check-prerequisites.sh --json` once and parse:
-   - `FEATURE_DIR`
-   - `AVAILABLE_DOCS`
+1. Resolve the target spec yourself (current branch -> `branch:` in a
+   `spec-meta.yaml`) and list the artifacts present in its directory.
 
 2. Load the active artifacts:
    - required: `spec.md`, `plan.md`
@@ -57,12 +56,9 @@ Optional markers:
    - obvious parallel work
    - recommended MVP cut
 
-8. **Confirm the phase and refresh the index.** After `tasks.md` exists, run:
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to tasks --command tasks
-   ```
-   Then execute `../tasks/index-docs.md`. Never edit `current_phase` directly.
+8. **Confirm the phase and refresh the index.** After `tasks.md` exists,
+   confirm the transition to `tasks` with command `tasks`, following
+   `../data/phase-transition-contract.md`. Then execute `../tasks/index-docs.md`.
 
 ## Rules
 

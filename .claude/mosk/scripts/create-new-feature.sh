@@ -2,6 +2,13 @@
 
 set -e
 
+# `common.sh` traz o emissor canônico do `spec-meta.yaml`. Este script mantinha
+# uma segunda cópia do heredoc, e duas cópias de um emissor divergem — foi
+# assim que `type:` ganhou default em uma e não na outra, sendo o mesmo campo.
+MOSK_SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=common.sh
+. "$MOSK_SELF_DIR/common.sh"
+
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
@@ -12,124 +19,83 @@ MAX_RETRIES=3
 MAX_RESERVE_ATTEMPTS=5
 ARGS=()
 i=1
+# Lê o valor de uma flag que exige argumento. Sete flags repetiam este mesmo
+# bloco de catorze linhas, mudando só o nome — e uma delas (`--short-name`)
+# ainda carregava um comentário explicando o teste que as outras faziam calado.
+# Recusar um valor que começa com `--` é o que impede `--type --json` de virar
+# um tipo chamado "--json".
+require_value() {
+    local flag="$1" value="$2" has_next="$3"
+    if [ "$has_next" != "yes" ] || [ -z "$value" ] || [ "${value#--}" != "$value" ]; then
+        echo "Error: $flag requires a value" >&2
+        exit 1
+    fi
+    printf '%s' "$value"
+}
+
 while [ $i -le $# ]; do
-    arg="${!i}"
-    case "$arg" in
+    option="${!i}"
+    next_i=$((i + 1))
+    if [ $next_i -le $# ]; then next_arg="${!next_i}"; has_next=yes; else next_arg=""; has_next=no; fi
+    case "$option" in
         --json)
             JSON_MODE=true
-            ;;
-        --short-name)
-            if [ $((i + 1)) -gt $# ]; then
-                echo 'Error: --short-name requires a value' >&2
-                exit 1
-            fi
-            i=$((i + 1))
-            next_arg="${!i}"
-            # Check if the next argument is another option (starts with --)
-            if [[ "$next_arg" == --* ]]; then
-                echo 'Error: --short-name requires a value' >&2
-                exit 1
-            fi
-            SHORT_NAME="$next_arg"
-            ;;
-        --type)
-            if [ $((i + 1)) -gt $# ]; then
-                echo 'Error: --type requires a value' >&2
-                exit 1
-            fi
-            i=$((i + 1))
-            next_arg="${!i}"
-            if [[ "$next_arg" == --* ]]; then
-                echo 'Error: --type requires a value' >&2
-                exit 1
-            fi
-            # ADR-0017 §2: tipos por extenso, sem abreviação. Dois nomes para o
-            # mesmo tipo reintroduzem exatamente o problema que a convenção
-            # resolve — e agora o tipo vira SEGMENTO DE CAMINHO no branch, então
-            # um valor inválido produz um branch estruturalmente errado.
-            # Falhar aqui é barato; descobrir no merge, não.
-            case "$next_arg" in
-                feature|fix|hotfix|gmud|refactor|experimental|extension) ;;
-                feat|bug|hf|chore|doc|docs|ci|build)
-                    echo "Error: '--type $next_arg' nao e um tipo de spec valido." >&2
-                    echo "  Tipos por extenso: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
-                    echo "  Trabalho fora de spec usa branch '{tipo}/{nome}' SEM numero — nao precisa deste script." >&2
-                    exit 1
-                    ;;
-                *)
-                    echo "Error: tipo desconhecido '--type $next_arg'." >&2
-                    echo "  Validos: feature | fix | hotfix | gmud | refactor | experimental | extension" >&2
-                    exit 1
-                    ;;
-            esac
-            FEATURE_TYPE="$next_arg"
-            ;;
-        --extends)
-            if [ $((i + 1)) -gt $# ]; then
-                echo 'Error: --extends requires a value' >&2
-                exit 1
-            fi
-            i=$((i + 1))
-            next_arg="${!i}"
-            if [[ "$next_arg" == --* ]]; then
-                echo 'Error: --extends requires a value' >&2
-                exit 1
-            fi
-            EXTENDS="$next_arg"
-            ;;
-        --number)
-            if [ $((i + 1)) -gt $# ]; then
-                echo 'Error: --number requires a value' >&2
-                exit 1
-            fi
-            i=$((i + 1))
-            next_arg="${!i}"
-            if [[ "$next_arg" == --* ]]; then
-                echo 'Error: --number requires a value' >&2
-                exit 1
-            fi
-            if [[ ! "$next_arg" =~ ^[0-9]+$ ]]; then
-                echo 'Error: --number must be a non-negative integer' >&2
-                exit 1
-            fi
-            # Force base-10: a zero-padded value like "010" is TEN, not octal 8.
-            # Without this, `--number 010` reached printf as an octal constant and
-            # the script reserved 008.
-            BRANCH_NUMBER=$((10#$next_arg))
             ;;
         --no-push)
             NO_PUSH=true
             ;;
         --help|-h)
-            echo "Usage: $0 [--json] [--type <type>] [--extends <spec-id>] [--short-name <name>] [--number N] [--no-push] <feature_description>"
-            echo ""
-            echo "Options:"
-            echo "  --json              Output in JSON format"
-            echo "  --type <type>       Spec type: feature|fix|hotfix|gmud|refactor|experimental|extension"
-            echo "  --extends <spec-id> Parent spec this one extends (REQUIRED when --type=extension)"
-            echo "  --short-name <name> Provide a custom short name (2-4 words) for the branch"
-            echo "  --number N          Specify branch number manually (overrides auto-detection)"
-            echo "  --no-push           Do not push the new branch to origin (useful for forks or offline work)"
-            echo "  --help, -h          Show this help message"
-            echo ""
-            echo "Concurrency: before creating the branch, the script atomically"
-            echo "reserves the spec number on 'origin' via an immutable ref"
-            echo "(refs/spec-numbers/<NNN>). If another creator grabbed the same"
-            echo "number first, git rejects the reservation and the script renumbers"
-            echo "and retries. These refs are invisible to 'git branch'/'git tag' and"
-            echo "form a durable registry, so a number is never reused even after its"
-            echo "branch is merged and deleted. Remotes that reject custom refs fall"
-            echo "back to best-effort branch/dir detection."
-            echo ""
-            echo "Examples:"
-            echo "  $0 --type feature --short-name 'user-auth' 'Add user authentication system'"
-            echo "  $0 --type fix --short-name 'payment-timeout' 'Fix payment processing timeout'"
-            echo "  $0 --type gmud --number 5 'Deploy rollback procedure'"
-            echo "  $0 --type extension --extends 005-feature-checkout-coupon 'Add coupon usage cap per user'"
+            show_help
             exit 0
             ;;
+        --short-name)
+            SHORT_NAME="$(require_value --short-name "$next_arg" "$has_next")"
+            i=$next_i
+            ;;
+        --type)
+            FEATURE_TYPE="$(require_value --type "$next_arg" "$has_next")"
+            # ADR-0017 §2: tipos por extenso, sem abreviação. Dois nomes para o
+            # mesmo tipo reintroduzem exatamente o problema que a convenção
+            # resolve — e o tipo vira SEGMENTO DE CAMINHO no branch, então um
+            # valor inválido produz um branch estruturalmente errado. Falhar
+            # aqui é barato; descobrir no merge, não.
+            case "$FEATURE_TYPE" in
+                feature|fix|hotfix|gmud|refactor|experimental|extension) ;;
+                *)
+                    echo "Error: --type '$FEATURE_TYPE' invalido." >&2
+                    echo "  Validos: feature, fix, hotfix, gmud, refactor, experimental, extension." >&2
+                    exit 1
+                    ;;
+            esac
+            i=$next_i
+            ;;
+        --extends)
+            EXTENDS="$(require_value --extends "$next_arg" "$has_next")"
+            # `extends` era o UNICO campo do spec-meta que chegava cru da linha
+            # de comando ate o YAML (SEC-003 da spec 016 — injecao de chave por
+            # aspa e quebra de linha). Ele e um vinculo entre specs, nao
+            # decoracao: recusar aqui e a diferenca entre erro legivel na
+            # criacao e metadata corrompida que o leitor recusa depois.
+            if [[ ! "$EXTENDS" =~ ^[0-9]{3}-(feature|fix|hotfix|gmud|refactor|experimental|extension)-[a-z0-9][a-z0-9-]*$ ]]; then
+                echo "Error: --extends '$EXTENDS' nao e um spec-id valido." >&2
+                echo "  Esperado: identificador como '005-feature-checkout-coupon'." >&2
+                exit 1
+            fi
+            i=$next_i
+            ;;
+        --number)
+            BRANCH_NUMBER="$(require_value --number "$next_arg" "$has_next")"
+            if [[ ! "$BRANCH_NUMBER" =~ ^[0-9]+$ ]]; then
+                echo 'Error: --number must be a non-negative integer' >&2
+                exit 1
+            fi
+            # Base 10 explicita: sem isto, `--number 010` e constante octal e
+            # reserva 008 (spec 010).
+            BRANCH_NUMBER=$((10#$BRANCH_NUMBER))
+            i=$next_i
+            ;;
         *)
-            ARGS+=("$arg")
+            ARGS+=("$option")
             ;;
     esac
     i=$((i + 1))
@@ -506,43 +472,6 @@ acquire_spec_number() {
 
 acquire_spec_number
 
-# Write initial spec-meta.yaml for the new spec.
-write_initial_spec_meta() {
-    local spec_dir="$1"
-    local spec_number="$2"
-    local spec_id="$3"
-    local spec_type="$4"
-    local spec_branch="$5"
-    local spec_extends="$6"
-    local now
-    now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local created_by=""
-    if [ "$HAS_GIT" = true ]; then
-        local gu gm
-        gu=$(git config user.name 2>/dev/null || echo "")
-        gm=$(git config user.email 2>/dev/null || echo "")
-        if [ -n "$gu" ] && [ -n "$gm" ]; then
-            created_by="$gu <$gm>"
-        elif [ -n "$gu" ]; then
-            created_by="$gu"
-        fi
-    fi
-    cat > "$spec_dir/spec-meta.yaml" <<EOF
-schema: 2
-spec_number: "$spec_number"
-spec_id: "$spec_id"
-type: "${spec_type:-feature}"
-branch: "$spec_branch"
-created_at: "$now"
-created_by: "${created_by:-unknown}"
-status: active
-current_phase: specify
-last_phase_change: "$now"
-EOF
-    if [ -n "$spec_extends" ]; then
-        echo "extends: \"$spec_extends\"" >> "$spec_dir/spec-meta.yaml"
-    fi
-}
 
 # Set up branch + folder. In git mode, also push atomically with retry
 # on collision. Prints the final BRANCH_NAME that won the race.
@@ -573,7 +502,7 @@ create_branch_and_folder() {
         SPEC_FILE="$FEATURE_DIR/spec.md"
         if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"; fi
 
-        write_initial_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "${SPEC_DIR_NAME:-$BRANCH_NAME}" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
+        write_spec_meta "$FEATURE_DIR" "$FEATURE_NUM" "${SPEC_DIR_NAME:-$BRANCH_NAME}" "$FEATURE_TYPE" "$BRANCH_NAME" "$EXTENDS"
 
         # Try atomic push if git is present and user didn't opt out.
         if [ "$HAS_GIT" = true ] && [ "$NO_PUSH" = false ]; then

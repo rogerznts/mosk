@@ -30,14 +30,11 @@ Você **DEVE** considerar o input do usuário antes de prosseguir (se não estiv
 
 ### 2. Validar prontidão para arquivamento
 
-- Antes de qualquer promoção ou movimento, execute:
-  ```bash
-  source .claude/mosk/scripts/common.sh
-  validate_gate_for_completion "docs/specs/<id>"
-  ```
-- Se o validador falhar, **interrompa**. Esta condição não pode ser dispensada
-  por uma confirmação genérica: `WAIVED` exige `waiver_active: true`, motivo,
-  aprovador e timestamp no próprio `gate.yaml`.
+- Antes de qualquer promoção ou movimento, confira o `gate.yaml` contra
+  `gate.allows_completion` em `../pipeline.yaml`.
+- Se não passar, **interrompa**. Esta condição não pode ser dispensada por uma
+  confirmação genérica — os campos que um `WAIVED` exige estão declarados no
+  `pipeline.yaml`, não aqui.
 - Leia `docs/specs/<id>/tasks.md` e verifique se todas as tasks estão marcadas `- [x]`.
 - Se houver tasks pendentes, avise o usuário e peça confirmação explícita para arquivar mesmo assim.
 - **Verifique adendos abertos** em `docs/specs/<id>/artefacts/`:
@@ -102,13 +99,9 @@ Registre o que foi feito (promovido, pulado, pendente manual) — será usado na
 
 Depois do gate, das tasks e das promoções estarem satisfeitos, execute:
 
-```bash
-bash .claude/mosk/scripts/transition-spec-phase.sh \
-  --spec "<id>" --to archived --command archive
-```
-
-O comando grava `status`, `archived_at`, `current_phase` e o histórico de forma
-atômica. Nunca edite esses campos diretamente.
+Confirme a transição para `archived` com o comando `archive`, seguindo
+`../data/phase-transition-contract.md`. `status`, `archived_at` e
+`current_phase` mudam juntos — nunca um sem os outros.
 
 ### 6. Mover a pasta para o arquivo
 

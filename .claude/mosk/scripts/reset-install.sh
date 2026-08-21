@@ -45,6 +45,9 @@ O conjunto apagado e CALCULADO, nunca adivinhado:
   2. cada skill/agente que o template novo possui (serao substituidos)
   3. orfaos: skills `mosk-*` e agentes `mosk-*` instalados que sumiram upstream
 
+Hooks de .claude/hooks/ sao instalados e REPORTADOS. Um hook so passa a valer
+depois de registrado em .claude/settings.json — o relatorio avisa.
+
 NUNCA tocados: .claude/rules/, .claude/settings.json, .claude/settings.local.json,
 docs/, CLAUDE.md, AGENTS.md, .codex/ — e qualquer skill ou agente fora do
 conjunto acima (skills proprias do usuario nao sao do MOSK).
@@ -114,6 +117,21 @@ in_list() {  # in_list <needle> <haystack...>
     return 1
 }
 
+# ---------- 2b. hooks do template ----------
+# Hooks sao copiados pelo `cp -R` do final, mas precisavam aparecer no relatorio:
+# um hook so funciona depois de REGISTRADO no settings.json, e quem nao sabe que
+# recebeu nao registra. Foi assim que o guardrail de merge da spec 016 quase
+# chegou instalado e inerte nos projetos consumidores.
+new_hooks=()
+if [[ -d "$FROM/.claude/hooks" ]]; then
+    for f in "$FROM/.claude/hooks"/*.sh; do
+        [[ -e "$f" ]] || continue
+        n="$(basename "$f")"
+        new_hooks+=("$n")
+        [[ -e "$TO/.claude/hooks/$n" ]] && REPLACED+=(".claude/hooks/$n")
+    done
+fi
+
 # ---------- 3. orfaos ----------
 if [[ -d "$TO/.claude/skills" ]]; then
     for d in "$TO/.claude/skills"/*/; do
@@ -162,6 +180,13 @@ emit_human() {
     echo
     echo "preservados (${#PRESERVED[@]}):"
     for x in "${PRESERVED[@]+"${PRESERVED[@]}"}"; do echo "  = $x"; done
+    if [[ ${#new_hooks[@]} -gt 0 ]]; then
+        echo
+        echo "hooks instalados (${#new_hooks[@]}):"
+        for x in "${new_hooks[@]+"${new_hooks[@]}"}"; do echo "  + .claude/hooks/$x"; done
+        echo "  ATENCAO: hook so roda depois de registrado em .claude/settings.json."
+        echo "  Veja a Phase 2.55 de .claude/mosk/tasks/boot.md para o bloco a mesclar."
+    fi
     if [[ ${#AMBIGUOUS[@]} -gt 0 ]]; then
         echo
         echo "possivelmente orfaos — NAO removidos, decida voce (${#AMBIGUOUS[@]}):"
@@ -188,6 +213,8 @@ emit_json() {
     json_arr "${ORPHANS[@]+"${ORPHANS[@]}"}"
     printf ',"preserved":'
     json_arr "${PRESERVED[@]+"${PRESERVED[@]}"}"
+    printf ',"hooks_installed":'
+    json_arr "${new_hooks[@]+"${new_hooks[@]}"}"
     printf ',"ambiguous":'
     json_arr "${AMBIGUOUS[@]+"${AMBIGUOUS[@]}"}"
     printf '}\n'

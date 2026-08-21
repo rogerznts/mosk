@@ -1,6 +1,6 @@
 # Hallmark
 
-<!-- MOSK-HEADER:BEGIN — preserved by ../../scripts/sync-hallmark.sh -->
+<!-- MOSK-HEADER:BEGIN — preserved by the sync-hallmark task -->
 > Vendored from [Hallmark](https://github.com/Nutlope/hallmark) v1.1.0 by
 > Nutlope / Together AI — MIT. Pinned ref, licence and the full list of MOSK
 > modifications are in [`VENDOR.md`](VENDOR.md).
@@ -17,12 +17,12 @@ The differentiator: Hallmark insists on **structural variety**, not just visual 
 
 ---
 
-<!-- MOSK-INTEGRATION:BEGIN — preserved by ../../scripts/sync-hallmark.sh -->
+<!-- MOSK-INTEGRATION:BEGIN — preserved by the sync-hallmark task -->
 
 ## MOSK integration
 
 > **MOSK-authored section.** Not upstream. Preserved across re-syncs by
-> `../../scripts/sync-hallmark.sh`. It maps Hallmark's output contract onto
+> the `sync-hallmark` task. It maps Hallmark's output contract onto
 > the MOSK document layout — everything below it is upstream Hallmark, read
 > through these rules.
 

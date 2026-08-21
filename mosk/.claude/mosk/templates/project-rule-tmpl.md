@@ -261,15 +261,20 @@ current_phase: specify     # specify | plan | tasks | implement | qa-gate | arch
 ```
 
 Pipeline tasks (`plan.md`, `tasks.md`, `implement.md`, `qa-gate.md`,
-`archive.md`) confirm their post-condition through `transition-spec-phase.sh`.
-The state machine validates the edge and artifacts, writes metadata atomically
-and appends `phase-history.yaml`; it never chooses the next phase for the user.
-Resolution and writes reject symlink escapes, history is validated event by
-event from an explicit `specify|migration` origin, and migration requires the
-metadata evidence written by a schema-1 upgrade. Non-canonical top-level YAML
-keys—including quoted or escaped forms—fail closed; promotions require regular
-materially equivalent targets, and legacy gates are accepted only from
-physically archived specs.
+`archive.md`) confirm their post-condition by following
+`.claude/mosk/data/phase-transition-contract.md`, which reads the rule from
+`.claude/mosk/pipeline.yaml`. The task states the destination; the contract
+never chooses the next phase — that authority is human.
+
+`pipeline.yaml` is the single source for phases, valid edges, per-phase required
+artifacts, the gate contract (verdicts, waiver form, what allows completion),
+promotion modes, the `spec-meta.yaml` schema including the cross-identity between
+number/id/type/branch, and the `phase-history.yaml` rules. No task restates any
+of it in prose; they reference the file.
+
+Resolution and writes reject symlink escapes; history is validated event by event
+from an explicit `specify|migration` origin; promotions require materially
+equivalent targets; legacy gates are accepted only from physically archived specs.
 
 **Spec types:**
 
@@ -283,6 +288,57 @@ physically archived specs.
   archive immutability. **Requires** `extends: "<spec-id>"` pointing
   at the parent spec. Created via
   `create-new-feature.sh --type extension --extends <spec-id> "<desc>"`.
+
+## Language: speak in yours, write in English
+
+Two separate things, and conflating them is the recurring mistake.
+
+**Communication** follows the project's language (see *Idioma de comunicação*
+above). Messages, questions, summaries, status and escalation blocks.
+
+**Artifacts are always English.** Function, variable, constant, file, branch and
+YAML key names — every identifier that lands in the repository — regardless of
+the conversation's language. A Portuguese identifier inside an English codebase
+forces whoever maintains it to switch languages mid-line, and does not survive a
+contributor who does not speak it.
+
+**Every code cited carries its meaning on first mention.** `ADR-0021`, `FR-009`,
+`SC-001`, `QA-2` say nothing on their own. The first time an id appears in a
+reply, the gloss comes with it; later mentions in the same block can be bare.
+Full rule in `.claude/mosk/data/output-contract.md` (R1). The reader does not
+have the spec open beside them — an unglossed id hands them the lookup.
+
+## Where a rule lives (MOSK contract — ADR-0021)
+
+MOSK is a product made of prompts. When a rule needs to be guaranteed, the
+first option is **declarative YAML read by the agent** — not a script.
+
+Three questions, in order. The first "yes" decides the layer:
+
+| # | Question | Layer |
+|---|---|---|
+| 1 | Must the fact be read by more than one consumer, or survive the session? | **YAML** |
+| 2 | Is it judgement about content — drafting, evaluating, deciding case by case? | **Prompt** |
+| 3 | Does applying it need one of the three below? | **Script** |
+
+**What an agent cannot do — a closed list of three.** Widening it takes an ADR:
+
+1. **a race against another process on the remote** (spec number reservation);
+2. **bulk generation of derived files** (skill wrappers, Codex symlinks, reinstall);
+3. **execution outside an agent session** (hook, CI, branch protection).
+
+If a rule falls in none of the three, **it is not a script**. The absence of a
+declarative alternative must be demonstrated, not assumed.
+
+**A script does not read structured data.** The agent reads the YAML — it has a
+real parser — and passes the resolved value as an argument. `validate.sh` is the
+single declared exception, because it runs in hooks and CI where there is no
+agent to ask; it reads only closed-domain scalars, allowlisted and fail-closed,
+and never prose.
+
+**A guarantee with no caller is not a guarantee.** Every verification the toolkit
+offers must name who invokes it, and have at least one invocation point that does
+not depend on human discipline.
 
 ## docs/index.md as Entry Point
 

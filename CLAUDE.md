@@ -56,13 +56,10 @@ mosk/                        # installable template (source of truth)
 │   │   ├── checklists/
 │   │   ├── data/            # static reference material read by tasks
 │   │   │   └── hallmark/    # vendored Hallmark fork (MIT) — see VENDOR.md;
-│   │   │                    # update via scripts/sync-hallmark.sh, never by hand
-│   │   ├── scripts/         # create-new-feature.sh, sync-agents-skills.sh,
-│   │   │                    # link-codex-skills.sh, migrate-docs-structure.sh,
-│   │   │                    # migrate-ctx-skills-to-rules.sh, sync-hallmark.sh,
-│   │   │                    # reset-install.sh, doctor.sh,
-│   │   │                    # check-ship-ready.sh, selftest-common.sh,
-│   │   │                    # selftest-toolkit.sh, common.sh
+│   │   │                    # update via the sync-hallmark task, never by hand
+│   │   ├── pipeline.yaml    # FONTE ÚNICA da regra do pipeline (ADR-0021)
+│   │   ├── scripts/         # apenas 5: validate.sh, create-new-feature.sh,
+│   │   │                    # sync.sh, reset-install.sh, common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)
@@ -95,6 +92,30 @@ Preceded by an **optional preamble** (`analyst → pm → [architect | ux-expert
 
 `clarify`, `analyze`, and `checklist` are optional support tasks. `shard-doc` is an optional transformation for monolithic `raw.md` files written inside `docs/prd/` or `docs/architecture/`.
 
+## Where a rule lives (ADR-0021)
+
+MOSK is a product made of prompts. Rules live in **declarative YAML read by the
+agent**; shell covers only what an agent cannot do.
+
+Three questions, in order — the first "yes" decides:
+
+1. Must the fact be read by more than one consumer, or survive the session? → **YAML**
+2. Is it judgement about content — drafting, evaluating, deciding case by case? → **prompt**
+3. Does applying it need one of the three below? → **script**
+
+The closed list, and widening it takes an ADR: a **race against another process
+on the remote**; **bulk generation of derived files**; **execution outside an
+agent session** (hook, CI). Anything else is not a script.
+
+Corollary: **a script does not read structured data.** The agent reads the YAML
+and passes the resolved value as an argument. `validate.sh` is the one declared
+exception — it runs in hooks and CI, where there is no agent to ask — and it
+reads only closed-domain scalars, allowlisted and fail-closed, never prose.
+
+The pipeline's own rule — phases, valid edges, required artifacts, gate contract,
+promotions, spec metadata, phase history — lives in
+`mosk/.claude/mosk/pipeline.yaml`. No task restates it in prose; they reference it.
+
 ## Document Organization
 
 Consuming projects follow the MOSK v2 `docs/` layout with two mirrored layers: **base** (project-wide truth in `docs/<domain>/`) and **per-spec** (feature scope in `docs/specs/{id}/<domain>/`).
@@ -103,7 +124,7 @@ Artifacts born inside a spec that should become canonical carry a `promote:` fro
 
 Each spec carries a `spec-meta.yaml` (number, branch, status, `current_phase`). Pipeline tasks update `current_phase` as they run. `index-docs` reads all `spec-meta.yaml` files to build `docs/index.md` as the canonical entry point.
 
-Brownfield projects are migrated in place via `bash .claude/mosk/scripts/migrate-docs-structure.sh` (idempotent, supports `--dry-run` and `--keep-old`).
+Brownfield projects are migrated in place by the `migrate-install` task. It is a task and not a script because deciding whether a loose `docs/notes.md` is discovery or architecture requires reading it — a script can only match filenames.
 
 ## Agent Design
 
@@ -147,7 +168,7 @@ The default pack produced by `/mosk-boot`:
 
 Additional rules (`coding-standards.md`, `testing.md`, `migrations.md`, `permissions.md`, `deploy.md`, `api.md`) are suggested interactively when evidence in the codebase supports them.
 
-Legacy `ctx-*` context skills from older installs can be migrated via `mosk/.claude/mosk/scripts/migrate-ctx-skills-to-rules.sh`.
+Legacy `ctx-*` context skills from older installs are migrated by the same `migrate-install` task.
 
 The canonical template `mosk/.claude/mosk/templates/project-rule-tmpl.md` is the source `boot.md` uses to generate `project.md`. Keep MOSK-invariant sections (Document Organization, Promotion, Agent Roles, Escalation Policy, Spec Numbering, `docs/index.md`) untouched when editing the template.
 
@@ -166,8 +187,7 @@ Reference material a task reads at runtime lives in `mosk/.claude/mosk/data/`
 and is referenced by basename (see `design-tests.md` for the `## Dependencies`
 shape). `data/hallmark/` is different: it is a **vendored fork** of an upstream
 MIT project, not MOSK-authored content. Do not hand-edit it — every local change
-becomes part of the fork's diff. Update it with
-`bash mosk/.claude/mosk/scripts/sync-hallmark.sh` and read
+becomes part of the fork's diff. Update it with the `sync-hallmark` task, and read
 `data/hallmark/VENDOR.md` first.
 
 ## Agent descriptions
@@ -181,7 +201,7 @@ A skill's `description:` is **declared by the agent**, on its first line:
 It is deliberately separate from `## Mission`. The description is *routing*
 metadata (pt-BR, trigger-rich, read by the host to decide when to load the
 skill); the Mission is *persona prose* (English, multi-line, read by the model
-once loaded). `sync-agents-skills.sh` copies the declared line into both the
+once loaded). `sync.sh` copies the declared line into both the
 skill wrapper and the CC agent, and only ever rewrites the `description:` line
 of files that already exist — extra front-matter keys and hand-written bodies
 survive. Never edit a wrapper's description directly; edit the agent.
@@ -201,6 +221,6 @@ Validation here is mainly:
 The following project rules were generated by `/mosk-boot` and live in `.claude/rules/`:
 
 - `project.md` — MOSK toolkit master template: two-tier repo layout (`mosk/` is source of truth, root `.claude/` is local exec only), stack (Markdown/YAML/Bash, no compiled app, no test suite), folder conventions, manual validation flow, and the MOSK-invariant framework contract (Document Organization, Promotion, Agent Roles, Escalation, Spec Numbering, `docs/index.md`).
-- `scripts.md` — Reference for the Bash helpers under `mosk/.claude/mosk/scripts/` (including lifecycle, migrations, `doctor.sh`, ship-ready gates, self-tests, and `common.sh`): usage, flags, when to run each one, and the idempotency/help/`--dry-run` conventions.
+- `scripts.md` — The six remaining Bash helpers under `mosk/.claude/mosk/scripts/`, and — more importantly — **the decision rule** that says whether a new rule becomes YAML, a prompt, or a script (ADR-0021 §4). Read it before writing any script in this repo.
 
 MOSK agents read every file in `.claude/rules/*.md` automatically before executing any task. Re-run `/mosk-boot` to regenerate them if the project structure changes significantly.

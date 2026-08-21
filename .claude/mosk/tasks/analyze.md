@@ -21,7 +21,7 @@ Find contradictions, missing links, or readiness gaps before implementation.
 
 ## Workflow
 
-1. Resolve the active feature directory with `.claude/mosk/scripts/check-prerequisites.sh --json`.
+1. Resolve the active feature directory with `.claude/mosk/scripts/validate.sh prerequisites`.
 
 2. Read:
    - `spec.md`

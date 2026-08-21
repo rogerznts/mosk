@@ -8,7 +8,6 @@ Execute the active `tasks.md` and keep progress visible with minimal process ove
 data:
   - adaptive-work-contract.md
 scripts:
-  - classify-change.sh
 ```
 
 ## User Input
@@ -23,15 +22,17 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
 
 ## Workflow
 
-1. Run `.claude/mosk/scripts/check-prerequisites.sh --json --require-tasks --include-tasks` once.
+1. Resolve the target spec yourself (current branch -> `branch:` in a
+   `spec-meta.yaml`) and confirm `tasks.md` exists and is not empty. Stop if it
+   does not — implementation without an ordered task list is improvisation.
 
 2. Load only the artifacts needed for the active work:
    - required: `tasks.md`, `plan.md`
    - optional when referenced by the task: `spec.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
 
    Before expanding beyond those sources, select the observable change signals
-   and run `.claude/mosk/scripts/classify-change.sh` as defined by
-   `.claude/mosk/data/adaptive-work-contract.md`. Record one short line with the
+   and apply `.claude/mosk/data/adaptive-work-contract.md` yourself — the
+   scoring table and the floors are declared there. Record one short line with the
    selected signals, profile and reason. Use `context_budget` as the initial
    loading boundary and `validation_floor` as the minimum validation; neither
    grants permission to broaden the agreed scope.
@@ -103,12 +104,8 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - blockers or follow-up work
 
 9. **Update spec metadata and refresh index.**
-   ```bash
-   bash .claude/mosk/scripts/transition-spec-phase.sh \
-     --spec "$(basename "$FEATURE_DIR")" --to implement --command implement
-   ```
-   The command validates the completed task list and records the transition.
-   Then execute `../tasks/index-docs.md`. Never edit `current_phase` directly.
+   Confirm the transition to `implement` with command `implement`, following
+   `../data/phase-transition-contract.md`. Then execute `../tasks/index-docs.md`.
 
 10. **Security-review suggestion (conditional).**
     Inspect the diff you just implemented. If it touched security-sensitive

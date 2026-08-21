@@ -1,0 +1,48 @@
+# Quality gate — spec 016
+# Veredito independente de QA. Escrito e mantido apenas por /mosk-qa.
+# Score calculado, nao estimado: 100 - (20 x FAILs) - (10 x CONCERNS),
+# conforme ../../../mosk/.claude/mosk/data/qa-evidence-contract.md.
+# Volta 1: 0 FAIL, 2 CONCERNS -> 80.
+# Volta 2: QA-2 resolvido; QA-1 dispensado por decisao humana -> 90, WAIVED.
+
+schema: 2
+story: "016-refactor-prompt-first-toolkit"
+story_title: "Toolkit prompt-first"
+gate: "WAIVED"
+quality_score: 90
+score_history: [80, 90]
+status_reason: "QA-2 foi resolvido com o validate.sh tasks-sync, que fecha o elo tasks-constantes-pipeline.yaml e reprova em 6 de 6 mutacoes. QA-1 — o criterio SC-001 de no maximo 1.500 linhas de shell, contra 2.563 entregues — permanece aberto e foi dispensado pelo autor do projeto, com a justificativa registrada nos campos de waiver."
+reviewer: "Joaquim (MOSK QA)"
+updated: "2026-08-21T04:04:32Z"
+evidence_ref: "qa-notes.md"
+
+waiver_active: true
+waiver_reason: "O criterio de 1.500 linhas foi estimado antes de qualquer script ter sido lido e demonstrou-se inatingivel sem remover funcao. Chegar la exigiria apagar os comentarios que registram armadilhas ja pagas (as duas de numeracao da spec 010) e eliminar ao menos duas capacidades — integracao Codex, reinstalacao com remocao de orfaos ou as fixtures do proprio verificador. Os cinco scripts remanescentes somam 2.563 linhas e cada um existe por um caso da lista fechada do ADR-0021. O objetivo que o numero media foi cumprido: 7.912 para 2.563, 25 scripts para 5, zero self-test, zero script sem chamador, e os outros sete criterios de sucesso atingidos. O numero errado era a meta, nao a entrega — e a licao, registrada em cut-report.md, e que estimar corte sem abrir o arquivo errou quatro vezes nesta mesma spec."
+waiver_approved_by: "Roger"
+waiver_approved_at: "2026-08-21T04:04:32Z"
+
+# Perfil adaptativo desta revisao, aplicado a partir de
+# data/adaptive-work-contract.md. Sinais: escopo public_contract (o toolkit e
+# distribuido por degit), reversibilidade coordinated, superficie paths_state
+# (guardrail de merge e contencao de caminho), evidencia strong, ambiguidade
+# clear. Piso atendido: security independente (PASS) + QA independente (este).
+adaptive_profile:
+  profile: "elevated"
+  score: 6
+  floor: "compact"
+  context_budget: "elevated"
+  validation_floor: "independent"
+  specialists: ["qa", "security"]
+  floor_satisfied: true
+
+top_issues:
+  - id: "QA-1"
+    severity: "medium"
+    status: "waived"
+    finding: "SC-001 e FR-004 pedem no maximo 1.500 linhas de shell; o resultado e 2.563. A reducao real e de 68% e o objetivo da spec foi cumprido, mas o criterio declarado nao."
+    suggested_action: "Dispensado por Roger. A recomendacao remanescente e nao herdar o numero 1.500 em spec futura: se o teto voltar, que seja medido, nao estimado."
+  - id: "QA-2"
+    severity: "medium"
+    status: "resolved"
+    finding: "Nada verificava que as tasks seguem o pipeline.yaml. O self-check conferia apenas as constantes internas do validate.sh."
+    suggested_action: "Resolvido: validate.sh tasks-sync confere os dois sentidos — task que cita fase ou comando fora da regra reprova, e aresta declarada que nenhuma task exerce tambem reprova. Teste de mutacao 6/6."

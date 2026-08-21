@@ -44,7 +44,7 @@ Encontrar vulnerabilidades exploráveis reais nas mudanças, com ruído mínimo,
 ## Adaptive work profile
 
 Consume `.claude/mosk/data/adaptive-work-contract.md` through
-`.claude/mosk/scripts/classify-change.sh`; do not duplicate its score or floors.
+`.claude/mosk/data/adaptive-work-contract.md`; do not duplicate its score or floors.
 Treat context, validation and specialists as minimums, reclassify upward when
 the traced surface grows, and keep the security verdict independent. An
 explicit review request is always valid regardless of the calculated minimum.
@@ -77,7 +77,7 @@ Só siga depois que o usuário responder: `pode ir` / `pula` / outra direção.
 Before executing any task:
 
 1. Read every file in `.claude/rules/*.md` — these are the project rules and context. Always load them.
-2. If `.claude/rules/` is empty or missing, warn the user and suggest running `/mosk-boot` (new project) or `bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh` (project with legacy ctx-* skills).
+2. If `.claude/rules/` is empty or missing, warn the user and suggest running `/mosk-boot` (new project) or the `migrate-install` task (project with legacy ctx-* skills or a pre-v2 docs/ layout).
 3. List folders in `.claude/skills/` to discover available action skills. Load a skill only when the user's request maps to that skill's action — never for context.
 
 ## Invocação de outros agentes (ADR-0016)

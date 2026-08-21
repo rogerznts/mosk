@@ -23,7 +23,7 @@ work — without touching the parent spec's `spec.md`, `plan.md`,
 ## Workflow
 
 1. Resolve the active spec.
-   - Run `bash .claude/mosk/scripts/check-prerequisites.sh --json --paths-only` to obtain `FEATURE_DIR` and `BRANCH`.
+   - Run `bash .claude/mosk/scripts/validate.sh prerequisites --json --paths-only` to obtain `FEATURE_DIR` and `BRANCH`.
    - If the current branch is a base branch (`main`/`master`/`develop`/`dev`), stop with a clear message: artefacts can only be created on an active spec branch. Suggest the user switch to the spec branch first.
 
 2. Read `<FEATURE_DIR>/spec-meta.yaml` and check `status:`.

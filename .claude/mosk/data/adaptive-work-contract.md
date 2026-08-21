@@ -63,6 +63,21 @@ O script emite um objeto JSON com chaves e arrays em ordem estável:
 `reasons` contém somente valores controlados. Evidência em texto livre permanece
 no artefato consumidor e nunca vira argumento do classificador.
 
+## Pausa humana
+
+`human_pause` é `true` quando qualquer uma destas condições estiver presente:
+
+| Condição | Por quê |
+|---|---|
+| `ambiguity: material` | A resposta muda arquitetura, escopo, dados ou efeito externo. Decidir por default aqui é decidir a rota sem o humano. |
+| `reversibility: irreversible` | Rollback não restaura o efeito sem intervenção externa. |
+| `sensitive_surface: production_critical` | O erro chega ao usuário final antes de ser detectado. |
+
+A pausa é sobre **prosseguir**, não sobre o perfil: ela não eleva o piso nem
+amplia contexto. Um perfil `compact` com ambiguidade `material` continua
+`compact` e mesmo assim para.
+
+
 ## Budgets e validação
 
 | Perfil | Contexto inicial | Validação mínima | Especialistas mínimos |
@@ -106,7 +121,7 @@ Tudo acima, entre os comentários `contract-normative:start` e
 skill que precise dela **referencia este arquivo pelo caminho**; copiar o texto
 cria uma segunda fonte que passa a divergir em silêncio.
 
-`audit-legacy-surface.sh` falha quando três ou mais linhas normativas — as de 30
+`validate.sh single-source` falha quando três ou mais linhas normativas — as de 30
 caracteres ou mais, comparadas com espaçamento normalizado — reaparecem
 literalmente em outro arquivo do produto. Mencionar, linkar ou citar uma linha
 isolada continua correto e não dispara nada.

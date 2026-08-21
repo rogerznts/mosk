@@ -1,0 +1,23 @@
+schema: 1
+origin: specify
+transitions:
+  - at: "2026-08-15T23:21:29Z"
+    from: specify
+    to: plan
+    command: plan
+  - at: "2026-08-15T23:23:43Z"
+    from: plan
+    to: tasks
+    command: tasks
+  - at: "2026-08-15T23:44:03Z"
+    from: tasks
+    to: implement
+    command: implement
+  - at: "2026-08-16T04:32:42Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate
+  - at: "2026-08-19T22:27:05Z"
+    from: qa-gate
+    to: archived
+    command: archive
