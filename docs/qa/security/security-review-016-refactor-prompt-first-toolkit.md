@@ -111,3 +111,66 @@ Registro o que passou, porque num relatório curto o silêncio é ambíguo.
 Nada aqui impede a spec de seguir para o gate de QA, e nenhum achado é explorável por um terceiro. Mas o SEC-001 tem uma qualidade incômoda que a decisão de gate deveria pesar: **é a mesma classe de falha que a spec 016 foi escrita para corrigir.** A 014 passou porque o verificador não tinha chamador; agora o chamador existe, e não reconhece as formas comuns de invocar aquilo que deveria interceptar.
 
 Corrigir o SEC-001 e o SEC-002 é trabalho de horas, não de dias, e mantém a coerência entre o que a spec afirma e o que ela entrega.
+
+---
+
+# Resolução (2026-08-20, `apply-qa-fixes`)
+
+Os três achados foram corrigidos e verificados. **SECURITY: PASS.**
+
+## SEC-001 — resolvido
+
+A postura do hook foi **invertida de blocklist para fail-closed**. Antes ele perguntava "isto é uma invocação?" e ignorava o que não reconhecia; agora, se o comando menciona os verbos, a resposta padrão é **verificar**, e só ignora quando consegue provar que toda ocorrência é menção.
+
+Três mudanças concretas:
+
+1. **Heredoc é recortado pelo delimitador**, não pelo primeiro `<<`. O corte vai do fim da linha que abre até a linha que fecha, então `<<` dentro de string ou num operador aritmético não engana mais.
+2. **A sequência de tokens é procurada em qualquer posição**, com `basename` aplicado ao verbo. Prefixo de env, `command` e caminho absoluto deixam de deslocar o alvo para fora da janela.
+3. **Menção é distinguida por tokenização, não por posição.** Com `shlex(posix=True)`, `echo "gh pr merge"` produz um único token com espaços dentro, que nunca casa uma sequência adjacente. É o que separa citação de comando sem precisar saber onde a string começou.
+
+Verificação — a mesma sonda que encontrou os bypasses, agora com **9/9 bloqueados**:
+
+| tentativa | antes | depois |
+|---|---|---|
+| newline separando | passou | **bloqueou** |
+| prefixo de env | passou | **bloqueou** |
+| caminho absoluto | passou | **bloqueou** |
+| `command` builtin | passou | **bloqueou** |
+| `<<` em string | passou | **bloqueou** |
+| `<<` em redirecionamento | passou | **bloqueou** |
+| `<<` aritmético | passou | **bloqueou** |
+| aspas não fechadas | passou | **bloqueou** |
+| backslash solto | bloqueou | bloqueou |
+
+Sem regressão do falso positivo: os 8 casos de menção continuam ignorados.
+
+**A lacuna de teste foi fechada onde ela estava.** As fixtures cobriam só o falso positivo; agora cobrem os dois lados. O hook ganhou `GUARD_DECIDE_ONLY=1`, que imprime a decisão sem chamar o `validate.sh` — sem isso a fixture entraria em recursão (validate → fixtures → hook → validate) e o lado que importa continuaria sem cobertura. `validate.sh fixtures`: **22/22**.
+
+## SEC-002 — resolvido
+
+Sem `python3`, o hook agora **avisa em stderr e verifica**, em vez de sair limpo em silêncio.
+
+E a correção expôs um irmão do mesmo defeito, que estava na primeira linha do script: `grep -q ... || exit 0` trata `127` (grep ausente) igual a `1` (não encontrou), então a falta do `grep` derrubaria o guardrail inteiro. Agora só o código `1` significa ausência dos verbos; qualquer outro segue para verificação, com aviso.
+
+Verificado com `PATH` sem `python3`: o hook emite `python3 indisponivel — verificando por precaucao` e chega a bloquear.
+
+## SEC-003 — resolvido
+
+`--extends` validado em **duas camadas**, seguindo o padrão que `--type` e `--number` já usavam:
+
+- **Entrada** (`create-new-feature.sh`): recusa o que não casar `^[0-9]{3}-(feature|fix|hotfix|gmud|refactor|experimental|extension)-[a-z0-9][a-z0-9-]*$`, com mensagem que mostra a forma esperada.
+- **Emissor** (`write_spec_meta`): recusa de novo antes de escrever. Um valor fora do domínio aqui significa que alguém contornou a validação de entrada, e escrever seria injetar chave arbitrária no YAML.
+
+Verificação: **10/10** — injeção de chave YAML, tipo inválido, número malformado, texto livre e path traversal recusados nas duas camadas; spec-id válido e ausência de `extends` aceitos.
+
+## Estado final
+
+| verificação | resultado |
+|---|---|
+| `validate.sh all` (template e mirror) | limpo, `fixtures 22/22` |
+| matriz do hook (20 casos) | 20/20 |
+| sonda de bypass (9 vetores) | 9/9 bloqueados |
+| SEC-003 (10 casos, 2 camadas) | 10/10 |
+| contenção de caminho | 7/7 recusados *(inalterada)* |
+
+**SECURITY: PASS** — sem achados abertos.

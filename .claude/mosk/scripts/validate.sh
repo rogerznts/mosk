@@ -368,19 +368,42 @@ cmd_fixtures() {
     # abaixo são falsos positivos reais — o hook bloqueou a si mesmo ao editar
     # um heredoc que citava o comando, e depois ao escrever a mensagem de
     # commit que o descrevia.
+    # Guardrail. As duas categorias importam por razões opostas:
+    #   - MENÇÃO deve ser ignorada, senão o hook bloqueia trabalho legítimo e
+    #     acaba desabilitado (dois falsos positivos reais já aconteceram);
+    #   - INVOCAÇÃO deve ser verificada, senão o controle não existe. Foi este
+    #     lado que a security review encontrou aberto em sete formas (SEC-001),
+    #     porque as fixtures só cobriam o primeiro.
     local hook="$SCRIPT_DIR/../../hooks/guard-spec-merge.sh"
     if [[ -f "$hook" ]] && command -v python3 >/dev/null 2>&1; then
-        hook_rc() {
-            printf '%s' "$1" | bash "$hook" >/dev/null 2>&1 && echo 0 || echo $?
+        # `g''h` mantém os verbos quebrados no fonte: um arquivo que os cite
+        # inteiros é, ele mesmo, um comando que os cita.
+        local V_GH="g""h" V_PR="p""r" V_MG="me""rge" V_GIT="gi""t"
+        decisao() {
+            printf '{"tool_input":{"command":%s}}' "$1" \
+                | GUARD_DECIDE_ONLY=1 bash "$hook" 2>/dev/null
         }
-        local j_mencao j_heredoc
-        j_mencao='{"tool_input":{"command":"echo rode g''h p''r me''rge depois"}}'
-        j_heredoc='{"tool_input":{"command":"cat <<EOF\ng''h p''r me''rge 1\nEOF"}}'
-        total=$((total + 2))
-        [[ "$(hook_rc "$j_mencao")" == "0" ]] && passou=$((passou + 1)) \
-            || falha "fixture 'hook ignora menção' :: bloqueou indevidamente"
-        [[ "$(hook_rc "$j_heredoc")" == "0" ]] && passou=$((passou + 1)) \
-            || falha "fixture 'hook ignora heredoc' :: bloqueou indevidamente"
+        caso_hook() {
+            local nome="$1" cmd="$2" esperado="$3"
+            total=$((total + 1))
+            local got; got="$(decisao "\"$cmd\"")"
+            if [[ "$got" == "$esperado" ]]; then passou=$((passou + 1))
+            else falha "fixture 'hook: $nome' :: esperado '$esperado' :: obtido '$got'"; fi
+        }
+        # Sem aspas o texto é indistinguível de comando, e o fail-closed manda
+        # verificar — por isso a menção precisa estar citada para ser ignorada.
+        local Q="'"
+        caso_hook "menção citada"       "echo ${Q}rode $V_GH $V_PR $V_MG depois${Q}" ignora
+        caso_hook "menção entre aspas"  "echo \\\"$V_GH $V_PR $V_MG\\\"" ignora
+        caso_hook "comando comum"       "ls -la"                             ignora
+        # SEC-001 — os sete que passavam
+        caso_hook "invocação direta"    "$V_GH $V_PR $V_MG 21"               verifica
+        caso_hook "prefixo de env"      "FOO=bar $V_GH $V_PR $V_MG 21"       verifica
+        caso_hook "caminho absoluto"    "/usr/bin/$V_GH $V_PR $V_MG 21"      verifica
+        caso_hook "command builtin"     "command $V_GH $V_PR $V_MG 21"       verifica
+        caso_hook "newline separando"   "echo oi\\n$V_GH $V_PR $V_MG 21"     verifica
+        caso_hook "<< em string"        "echo a << b ; $V_GH $V_PR $V_MG 21" verifica
+        caso_hook "git merge"           "$V_GIT $V_MG feature/x"             verifica
     fi
 
     [[ ${#FALHAS[@]} -eq 0 ]] && echo "fixtures: $passou/$total"

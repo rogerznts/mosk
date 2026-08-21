@@ -307,6 +307,14 @@ write_spec_meta() {
             created_by="$gu"
         fi
     fi
+    # Defesa em profundidade (SEC-003): o chamador valida, e o emissor recusa
+    # de novo. Um valor fora do dominio aqui significa que alguem contornou a
+    # validacao de entrada, e escrever seria injetar chave arbitraria no YAML.
+    if [[ -n "$spec_extends" ]] && \
+       [[ ! "$spec_extends" =~ ^[0-9]{3}-[a-z]+-[a-z0-9][a-z0-9-]*$ ]]; then
+        echo "write_spec_meta: extends fora do dominio: '$spec_extends'" >&2
+        return 1
+    fi
     tmp="$(mktemp "$spec_dir/.spec-meta.XXXXXX")" || return 1
     {
         cat <<EOF

@@ -82,6 +82,16 @@ while [ $i -le $# ]; do
                 echo 'Error: --extends requires a value' >&2
                 exit 1
             fi
+            # `extends` e o UNICO campo do spec-meta que chegava cru da linha de
+            # comando ate o YAML (SEC-003). `--type` e `--number` ja eram
+            # validados; este nao era, e ele e um vinculo entre specs, nao
+            # decoracao. Recusar aqui e a diferenca entre erro legivel na
+            # criacao e metadata corrompida que o leitor recusa depois.
+            if [[ ! "$next_arg" =~ ^[0-9]{3}-(feature|fix|hotfix|gmud|refactor|experimental|extension)-[a-z0-9][a-z0-9-]*$ ]]; then
+                echo "Error: --extends '$next_arg' nao e um spec-id valido." >&2
+                echo "  Esperado: identificador como '005-feature-checkout-coupon'." >&2
+                exit 1
+            fi
             EXTENDS="$next_arg"
             ;;
         --number)
