@@ -21,3 +21,7 @@ transitions:
     from: qa-gate
     to: implement
     command: apply-qa-fixes
+  - at: "2026-08-21T04:04:08Z"
+    from: implement
+    to: qa-gate
+    command: qa-gate

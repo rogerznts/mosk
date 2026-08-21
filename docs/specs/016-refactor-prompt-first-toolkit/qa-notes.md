@@ -142,3 +142,58 @@ O achado permanece aberto para decisão humana, como o gate registrou: recalibra
 | `validate.sh all` (template e mirror) | limpo, incluindo `tasks-sync` |
 | fixtures | 22/22 |
 | mutação do `tasks-sync` | 6/6 |
+
+---
+
+# Volta 2 do gate — 2026-08-21
+
+## QA-2 — resolvido
+
+`validate.sh tasks-sync` fecha o elo `tasks ≡ constantes ≡ pipeline.yaml`, nos
+dois sentidos, e o teste de mutação prova que **reprova** em 6 de 6 casos. Aceito.
+
+Registro o que essa correção rendeu além do escopo: a verificação reprovou na
+primeira execução por um motivo real — `implement.md` quebrava a declaração de
+transição entre duas linhas — e o teste de mutação, ao ser blindado, revelou que
+duas de suas próprias mutações vinham passando sem serem aplicadas. Verificação
+que não falha quando deveria é o defeito que este achado descrevia; encontrá-lo
+dentro do próprio remédio é a confirmação de que o remédio era necessário.
+
+## QA-1 — dispensado (`WAIVED`)
+
+Não foi resolvido, e não foi resolvido por decisão registrada, não por omissão.
+
+O corte adicional foi executado no que era seguro — código morto, boilerplate do
+parse e blocos duplicados do `clean_orphans`, todos com bateria própria —
+levando 2.670 → **2.563**. A meta é 1.500.
+
+O autor do projeto dispensou o critério. A justificativa está nos campos de
+waiver do `gate.yaml`, e é a que a evidência sustenta: chegar a 1.500 exigiria
+apagar os comentários que registram armadilhas já pagas e eliminar ao menos duas
+capacidades do toolkit. Os cinco scripts remanescentes existem cada um por um
+caso da lista fechada do ADR-0021 — a decisão que restringe shell a corrida no
+remoto, geração de derivados e execução fora da sessão do agente.
+
+**O que aceito e o que não aceito.** Aceito que a meta era inatingível — verifiquei
+o custo item a item antes de concordar. Não aceito que isso vire precedente: uma
+meta ajustada depois de não ser atingida só é legítima quando a evidência mostra
+que ela media a coisa errada, e essa demonstração precisa vir antes da dispensa,
+não depois. Aqui veio.
+
+**Recomendação que sobrevive ao waiver:** não herdar o número 1.500 em spec
+futura. Se um teto de shell voltar a existir, que seja medido a partir do
+inventário, não estimado antes dele. Nesta spec, estimativa de corte errou
+**quatro vezes**, sempre para baixo — e é o padrão mais reaproveitável que ela
+produziu.
+
+## Score
+
+`0 FAIL, 1 CONCERNS` (QA-2 fechou) → **90**. Trajetória: `[80, 90]`.
+
+## Veredito
+
+**WAIVED** — `waiver_active: true`, aprovado por Roger, com motivo e timestamp
+registrados no `gate.yaml`, como `gate.allows_completion` exige.
+
+O gate deixa de bloquear a conclusão. Resta a promoção do ADR-0021 para
+`docs/architecture/adr/`, que o archive aplica.
