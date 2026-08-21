@@ -177,3 +177,11 @@ Como pessoa que vai planejar a próxima spec do MOSK, quero que o roadmap e os A
 - Alteração de personas, missão dos agentes ou do conjunto de 12 agentes.
 - Mudança no layout `docs/` ou na convenção de promoção.
 - Reescrita dos templates de documento (`*-tmpl.yaml`), exceto os do runner.
+
+---
+**Arquivado em:** 2026-08-21
+**Status final:** Concluído com `WAIVED`
+**Promoções aplicadas:** 1 `copy` — `adr-0021-declarative-rule-minimal-shell.md` → `docs/architecture/adr/`. Nenhuma `append`, nenhuma `manual`.
+**Gate:** `WAIVED`, score 90, trajetória `[80, 90]`. `SECURITY: PASS` após três achados corrigidos.
+**Waiver:** SC-001 (teto de 1.500 linhas de shell) dispensado por Roger — a meta foi estimada antes de qualquer script ser lido e demonstrou-se inatingível sem remover função. Entregue: 7.912 → 2.563 linhas, 25 scripts → 5.
+**Nota da promoção:** os links relativos do ADR foram reescritos para o destino canônico antes da cópia. `promote_mode: copy` exige alvo byte-idêntico à fonte, então um arquivo promovido precisa ser escrito para onde vai viver, não para onde repousa. Dentro desta pasta arquivada, os links do ADR apontam para `./adr-*.md` e só resolvem em `docs/architecture/adr/` — que é o exemplar canônico.

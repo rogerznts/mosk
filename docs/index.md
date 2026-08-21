@@ -45,7 +45,13 @@ Corporativo).
   ADR-0016 protocolo de invocação entre agentes (execução delega, rota não),
   ADR-0017 convenção de nome de branch `{tipo}/{NNN}-{nome}`,
   **ADR-0018 remoção da camada de orquestração** — o subagente nativo dos
-  runtimes tornou o atuador externo redundante) +
+  runtimes tornou o atuador externo redundante;
+  ADR-0019 runner autônomo de entrega,
+  ADR-0020 gramática canônica de YAML (spec 015, **nunca promovido** — vive na
+  branch daquela spec e é superseded pelo 0021);
+  **ADR-0021 a regra é declarada, não programada** — quem lê determina o que o
+  formato pode ser: regra em `pipeline.yaml`, script não lê dado estruturado, e
+  garantia sem chamador não conta como garantia (spec 016)) +
   [`glossary.md`](./architecture/glossary.md) (termos de domínio; promovido da spec 005).
 - **project/** — planejamento vivo do projeto:
   - [`plan.md`](./project/plan.md) — plano de projeto (6 épicos).
@@ -79,13 +85,13 @@ Corporativo).
 
 | # | Spec | Fase | Branch | Criada |
 |---|---|---|---|---|
-| 016 | [refactor-prompt-first-toolkit](./specs/016-refactor-prompt-first-toolkit/) (regra do pipeline em `pipeline.yaml`, agente como único leitor de dado estruturado, Bash de 7.912 → ~1.500 linhas — ADR-0021) | tasks | refactor/016-prompt-first-toolkit | 2026-08-19 |
 | 015 | [feature-structured-autonomous-runner](https://github.com/rogerznts/mosk/tree/feature/015-structured-autonomous-runner) (runner autônomo com estado no disco — **interrompida** em `implement` 32/44; requisitos migrados para a US4 da 016, material colhido em `specs/016-refactor-prompt-first-toolkit/harvest/`) | implement (parada) | feature/015-structured-autonomous-runner | 2026-08-16 |
 
 ### Arquivadas
 
 | # | Spec | Fase | Branch | Arquivada |
 |---|---|---|---|---|
+| 016 | [refactor-prompt-first-toolkit](./specs/archive/016-refactor-prompt-first-toolkit/) (regra do pipeline em `pipeline.yaml`; agente como único leitor de dado estruturado; Bash 7.912 → 2.563 e 25 scripts → 5 — [ADR-0021](./architecture/adr/adr-0021-declarative-rule-minimal-shell.md); gate `WAIVED`, score 90) | archived | refactor/016-prompt-first-toolkit | 2026-08-21 |
 | 014 | [feature-legacy-cleanup-adaptive-intelligence](./specs/archive/014-feature-legacy-cleanup-adaptive-intelligence/) (limpeza do legado, happy path direto e classificação adaptativa de risco/contexto — gate `PASS`, score 100; corpus 2641 → 618 linhas; PR #20; archive retroativo em 19/ago) | archived | feature/014-legacy-cleanup-adaptive-intelligence | 2026-08-19 |
 | 013 | [feature-deterministic-pipeline-state](./specs/archive/013-feature-deterministic-pipeline-state/) (máquina de estados determinística, schemas versionados, histórico atômico e validação fail-closed — gate `PASS`, score 100) | archived | feature/013-deterministic-pipeline-state | 2026-08-15 |
 | 012 | [feature-stabilize-toolkit-contracts](./specs/archive/012-feature-stabilize-toolkit-contracts/) (doctor autocontido, conclusão fail-closed e inventário para remover legado BMAD — gate `PASS`, score 100) | archived | feature/012-stabilize-toolkit-contracts | 2026-08-15 |

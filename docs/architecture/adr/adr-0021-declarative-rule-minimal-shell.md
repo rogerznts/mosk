@@ -8,10 +8,10 @@ promote_mode: copy
 - Status: aceito
 - Data: 2026-08-19
 - Autor: Vinicius (mosk-architect)
-- Contexto: revisão da premissa que governou as specs 012 a 015, cinco dias depois de o [adr-0018](./../../../architecture/adr/adr-0018-remove-orchestration-layer.md) ter removido uma camada pela mesma causa.
+- Contexto: revisão da premissa que governou as specs 012 a 015, cinco dias depois de o [adr-0018](./adr-0018-remove-orchestration-layer.md) ter removido uma camada pela mesma causa.
 - Supersede: ADR-0020 (gramática canônica de YAML, nunca promovido — vive em `specs/015-feature-structured-autonomous-runner/architecture/`).
-- Emenda: a Etapa 2 do `docs/discovery/toolkit-autonomy-assessment-roadmap.md` (premissa do núcleo determinístico) e, por consequência, as Etapas 3 a 5.
-- Preserva intactos: [adr-0012](./../../../architecture/adr/adr-0012-route-decision-vs-phase-execution.md), [adr-0015](./../../../architecture/adr/adr-0015-agent-as-source-skill-as-wrapper.md), [adr-0016](./../../../architecture/adr/adr-0016-agent-invocation-protocol.md), [adr-0019](./../../../architecture/adr/adr-0019-autonomous-delivery-runner.md).
+- Emenda: a Etapa 2 do `../../discovery/toolkit-autonomy-assessment-roadmap.md` (premissa do núcleo determinístico) e, por consequência, as Etapas 3 a 5.
+- Preserva intactos: [adr-0012](./adr-0012-route-decision-vs-phase-execution.md), [adr-0015](./adr-0015-agent-as-source-skill-as-wrapper.md), [adr-0016](./adr-0016-agent-invocation-protocol.md), [adr-0019](./adr-0019-autonomous-delivery-runner.md).
 
 ## Contexto
 
