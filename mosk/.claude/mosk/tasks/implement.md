@@ -103,8 +103,8 @@ Implement the current spec phase by phase, validate the result, and keep `tasks.
    - validations run
    - blockers or follow-up work
 
-9. **Update spec metadata and refresh index.** Confirm the transition to
-   `implement` with command `implement`, following
+9. **Update spec metadata and refresh index.**
+   Confirm the transition to `implement` with command `implement`, following
    `../data/phase-transition-contract.md`. Then execute `../tasks/index-docs.md`.
 
 10. **Security-review suggestion (conditional).**

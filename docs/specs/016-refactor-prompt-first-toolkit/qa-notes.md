@@ -92,3 +92,53 @@ Não é `PASS` porque um critério de sucesso declarado não foi atingido (QA-1)
 Não é `FAIL` porque a entrega é substancial, verificada e coerente: a regra está declarada, o corte aconteceu, o guardrail funciona e foi endurecido sob review independente, e nenhum requisito da spec anterior foi perdido.
 
 As escolhas humanas são: corrigir QA-2 e recalibrar SC-001, aceitar ambos com registro, ou formalizar um `WAIVED`.
+
+---
+
+# Correção da volta 1 (`apply-qa-fixes`, 2026-08-21)
+
+## QA-2 — resolvido
+
+Criado `validate.sh tasks-sync`, que fecha o elo que faltava:
+
+```
+tasks  ≡  constantes do validate.sh  ≡  pipeline.yaml
+   └── tasks-sync ──┘        └── self-check ──┘
+```
+
+O `tasks-sync` extrai de cada task as declarações `transition to \`<fase>\` with command \`<cmd>\`` (e a forma em português) e confere contra `CONFIRMA`, a constante que espelha `phases[].confirmed_by`. Verifica os dois sentidos:
+
+- **task → regra**: fase inexistente ou comando que não confirma aquela fase reprovam;
+- **regra → task**: aresta declarada que nenhuma task exerce reprova, porque é aresta morta — ou a regra sobra, ou a task sumiu.
+
+O `self-check` foi estendido para ancorar `CONFIRMA` no `pipeline.yaml`. Sem isso o `tasks-sync` validaria as tasks contra uma constante que poderia ter derivado da fonte sem ninguém notar.
+
+Roda em shell puro, sem parser: compara contra as constantes, e é o `self-check` que as prende à fonte.
+
+**Achado na primeira execução.** A verificação reprovou de saída: `implement.md` quebrava a declaração entre duas linhas e o padrão não casava, então a transição `implement:implement` aparecia como aresta sem quem a exercesse. Corrigido na task. A verificação encontrou uma inconsistência real antes de ter sido usada uma única vez de propósito.
+
+**Teste de mutação — 6/6.** Uma verificação que nunca falha não prova nada, que é justamente o defeito que esta foi criada para corrigir. As quatro mutações e o baseline:
+
+| mutação | esperado | resultado |
+|---|---|---|
+| *(baseline, sem mutação)* | passa | passou |
+| `confirmed_by` alterado no `pipeline.yaml` | `self-check` reprova | reprovou |
+| task declara comando que não confirma a fase | `tasks-sync` reprova | reprovou |
+| task declara fase inexistente | `tasks-sync` reprova | reprovou |
+| aresta na regra sem task que a exerça | `tasks-sync` reprova | reprovou |
+
+## QA-1 — não resolvido, e por decisão
+
+O corte adicional identificado no `cut-report.md` (~150 linhas, fundindo as quatro funções de resolução sobrepostas em `common.sh`) **não foi executado**.
+
+Razão: ele levaria 2.798 → ~2.650, contra uma meta de 1.500. Não fecha o critério, e mexe em `resolve_spec_dir`, que está coberto e funcionando. Trocar risco por um número que continua fora da meta não é uma melhora — é movimento.
+
+O achado permanece aberto para decisão humana, como o gate registrou: recalibrar o critério com o número real, aceitar o desvio, ou financiar um corte que chegue de fato a 1.500 (o que exigiria remover função, não gordura).
+
+## Estado após a correção
+
+| bateria | resultado |
+|---|---|
+| `validate.sh all` (template e mirror) | limpo, incluindo `tasks-sync` |
+| fixtures | 22/22 |
+| mutação do `tasks-sync` | 6/6 |

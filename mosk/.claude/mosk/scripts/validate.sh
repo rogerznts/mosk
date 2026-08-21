@@ -42,6 +42,9 @@ FASES="specify plan tasks implement qa-gate archived"
 VEREDITOS="PASS CONCERNS FAIL WAIVED"
 VEREDITOS_QUE_CONCLUEM="PASS WAIVED"
 STATUS_VALIDOS="active archived"
+# Duplas <fase>:<comando> que confirmam cada destino, espelhando
+# `phases[].confirmed_by` do pipeline.yaml. O `self-check` confere a sincronia.
+CONFIRMA="plan:plan tasks:tasks implement:implement implement:apply-qa-fixes qa-gate:qa-gate archived:archive"
 MARCADOR_BLOQUEANTE='[NEEDS CLARIFICATION'
 PADRAO_TASK_ABERTA='^- \[ \] T[0-9]{3}'
 TS_UTC='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
@@ -60,6 +63,7 @@ Subcomandos:
   install          integridade da instalação do toolkit
   docs-paths       saídas declaradas ficam sob os domínios canônicos de docs/
   single-source    redação normativa dos contratos não foi copiada
+  tasks-sync       as tasks concordam com as fases e comandos do pipeline.yaml
   self-check       constantes deste script batem com pipeline.yaml
   fixtures         fixtures de contrato (autoteste)
   all              todos os acima
@@ -295,9 +299,9 @@ cmd_self_check() {
         emitir "self-check"; return $?
     fi
     local saida
-    saida="$(python3 - "$PIPELINE_YAML" "$FASES" "$VEREDITOS" "$VEREDITOS_QUE_CONCLUEM" <<'PY'
+    saida="$(python3 - "$PIPELINE_YAML" "$FASES" "$VEREDITOS" "$VEREDITOS_QUE_CONCLUEM" "$CONFIRMA" <<'PY'
 import sys, yaml
-p, fases, vereditos, conclui = sys.argv[1:5]
+p, fases, vereditos, conclui, confirma = sys.argv[1:6]
 d = yaml.safe_load(open(p))
 erros = []
 if list(d['phases'].keys()) != fases.split():
@@ -307,6 +311,16 @@ if d['gate']['verdicts'] != vereditos.split():
 ok_yaml = sorted(k for k, v in d['gate']['allows_completion'].items() if v is not False)
 if ok_yaml != sorted(conclui.split()):
     erros.append(f"VEREDITOS_QUE_CONCLUEM divergem: script={sorted(conclui.split())} yaml={ok_yaml}")
+# CONFIRMA ancora o `tasks-sync` na fonte: sem esta comparação, aquele
+# subcomando validaria as tasks contra uma constante que poderia ter derivado
+# do pipeline.yaml sem ninguém notar.
+pares_yaml = sorted(
+    f"{nome}:{cmd}"
+    for nome, ph in d["phases"].items()
+    for cmd in (ph.get("confirmed_by") or [])
+)
+if pares_yaml != sorted(confirma.split()):
+    erros.append(f"CONFIRMA diverge: script={sorted(confirma.split())} yaml={pares_yaml}")
 print("\n".join(erros))
 PY
 )" || { falha "self-check não pôde rodar"; emitir "self-check"; return $?; }
@@ -408,6 +422,48 @@ cmd_fixtures() {
 
     [[ ${#FALHAS[@]} -eq 0 ]] && echo "fixtures: $passou/$total"
     emitir "fixtures"
+}
+
+# --- subcomando: tasks-sync -------------------------------------------------
+# Fecha o laço da tese da spec 016 (achado QA-2). A regra virou dado, e o
+# `self-check` confere que as constantes deste script batem com o pipeline.yaml
+# — mas nada conferia que as TASKS batem com a regra. Se uma aresta mudasse no
+# YAML e as seis tasks de fase mantivessem o fluxo antigo, nenhuma verificação
+# acusava.
+#
+# Encadeando as duas: tasks ≡ constantes ≡ pipeline.yaml.
+# Roda em shell puro, sem parser: compara contra as constantes, não contra o
+# YAML — é o `self-check` que ancora as constantes na fonte.
+cmd_tasks_sync() {
+    SPEC_ID=""; FASE=""
+    local dir_tasks="$SCRIPT_DIR/../tasks" arq base linha fase cmd par achou d
+    local encontradas=""
+    for arq in "$dir_tasks"/*.md; do
+        base="$(basename "$arq")"
+        # Formas declaradas nas tasks, em inglês e em português.
+        while IFS= read -r linha; do
+            [[ -n "$linha" ]] || continue
+            fase="$(printf '%s' "$linha" | sed -nE 's/.*(transition to|transição para) `([a-z-]+)`.*/\2/p')"
+            cmd="$(printf '%s' "$linha" | sed -nE 's/.*(with command|com o comando) `([a-z-]+)`.*/\2/p')"
+            [[ -n "$fase" && -n "$cmd" ]] || continue
+            encontradas="$encontradas $fase:$cmd"
+            em_dominio "$fase" $FASES \
+                || { falha "$base :: fase inexistente no pipeline: '$fase'"; continue; }
+            achou=0
+            for par in $CONFIRMA; do [[ "$par" == "$fase:$cmd" ]] && achou=1; done
+            [[ $achou -eq 1 ]] \
+                || falha "$base :: comando '$cmd' não confirma a fase '$fase' (ver confirmed_by em pipeline.yaml)"
+        done < <(grep -hoE '(transition to|transição para) `[a-z-]+` (with command|com o comando) `[a-z-]+`' "$arq" 2>/dev/null)
+    done
+    # O outro lado: toda dupla declarada na regra tem alguma task que a exerce?
+    # Uma aresta sem task é aresta morta — ou a regra sobra, ou a task sumiu.
+    for par in $CONFIRMA; do
+        case " $encontradas " in
+            *" $par "*) ;;
+            *) falha "nenhuma task declara a transição '$par' — aresta sem quem a exerça" ;;
+        esac
+    done
+    emitir "tasks-sync"
 }
 
 # --- subcomando: single-source ----------------------------------------------
@@ -519,11 +575,12 @@ case "$SUB" in
     install)       cmd_install ;;
     docs-paths)    cmd_docs_paths ;;
     single-source) cmd_single_source ;;
+    tasks-sync)    cmd_tasks_sync ;;
     self-check)    cmd_self_check ;;
     fixtures)      cmd_fixtures ;;
     all)
         rc=0
-        for s in install self-check docs-paths single-source fixtures ship-ready; do
+        for s in install self-check docs-paths single-source tasks-sync fixtures ship-ready; do
             FALHAS=(); SPEC_ID=""; FASE=""
             "cmd_${s//-/_}" || rc=1
         done
