@@ -280,75 +280,54 @@ clean_orphans() {
         removed=$((removed + 1))
     }
 
-    # 1. Clean orphan skill wrappers (mosk-* only, skip standalone like boot/help/tea-*)
-    if [[ -d "$SKILLS_DIR" ]]; then
-        for skill_dir in "$SKILLS_DIR"/mosk-*/; do
+    # Quatro varreduras faziam a mesma coisa: skills e agentes órfãos, aqui e no
+    # repositório-pai. Os dois blocos do pai eram cópia literal dos daqui, com o
+    # caminho trocado e o rótulo com ", parent" no fim. Viraram duas funções
+    # chamadas para cada raiz.
+    sweep_skills() {
+        local dir="$1" suffix="$2" skill_dir skill_name base_name skill_file
+        [[ -d "$dir" ]] || return 0
+        for skill_dir in "$dir"/mosk-*/; do
             [[ -d "$skill_dir" ]] || continue
-            local skill_name base_name skill_file
             skill_name="$(basename "$skill_dir")"
             base_name="${skill_name#mosk-}"
             skill_file="$skill_dir/SKILL.md"
-
-            # Never remove an allowlisted standalone skill.
+            # Nunca remover uma standalone da allowlist: o teste de "agent
+            # definition" abaixo casa skills que apenas DOCUMENTAM como se
+            # escreve um wrapper (mosk-write-skill), e elas seriam apagadas.
             is_standalone "$skill_name" && continue
-
-            # Only target agent wrappers (contain "agent definition")
-            if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
-                if ! in_roster "$base_name"; then
-                    do_remove "$skill_dir" "$skill_name/ (orphan skill)"
-                fi
-            fi
+            # Só wrappers de agente são alvo.
+            [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null || continue
+            in_roster "$base_name" || do_remove "$skill_dir" "$skill_name/ (orphan skill$suffix)"
         done
-    fi
+    }
 
-    # 2. Clean orphan CC agents (mosk-* only)
-    if [[ -d "$CC_AGENTS_DIR" ]]; then
-        for agent_file in "$CC_AGENTS_DIR"/mosk-*.md; do
+    sweep_agents() {
+        local dir="$1" suffix="$2" agent_file skill_name base_name
+        [[ -d "$dir" ]] || return 0
+        for agent_file in "$dir"/mosk-*.md; do
             [[ -f "$agent_file" ]] || continue
-            local skill_name base_name
             skill_name="$(basename "$agent_file" .md)"
             base_name="${skill_name#mosk-}"
-
-            if ! in_roster "$base_name"; then
-                do_remove "$agent_file" "$skill_name.md (orphan CC agent)"
-            fi
+            in_roster "$base_name" || do_remove "$agent_file" "$skill_name.md (orphan CC agent$suffix)"
         done
-    fi
+    }
 
-    # 3. Also check dev repo fallback: parent .claude/agents/ and .claude/skills/
-    local _parent_root
-    _parent_root="$(cd "$INSTALL_ROOT/.." 2>/dev/null && pwd)" || true
-    if [[ -n "$_parent_root" && "$_parent_root" != "$INSTALL_ROOT" ]]; then
-        local _parent_agents_dir="$_parent_root/.claude/agents"
-        local _parent_skills_dir="$_parent_root/.claude/skills"
+    sweep_skills "$SKILLS_DIR" ""
+    # NOTA (spec 016): esta varredura e no-op por construcao, e sempre foi.
+    # O roster acima e montado a partir de $CC_AGENTS_DIR, entao todo agente
+    # daqui esta no proprio roster e `in_roster` nunca falha. Mantida porque
+    # remove-la muda comportamento em cenarios nao mapeados, e o custo e uma
+    # chamada barata. Quem de fato apaga agente que sumiu upstream e o
+    # `reset-install.sh`, que compara o template novo contra o instalado.
+    sweep_agents "$CC_AGENTS_DIR" ""
 
-        if [[ -d "$_parent_agents_dir" ]]; then
-            for agent_file in "$_parent_agents_dir"/mosk-*.md; do
-                [[ -f "$agent_file" ]] || continue
-                local skill_name base_name
-                skill_name="$(basename "$agent_file" .md)"
-                base_name="${skill_name#mosk-}"
-                if ! in_roster "$base_name"; then
-                    do_remove "$agent_file" "$skill_name.md (orphan CC agent, parent)"
-                fi
-            done
-        fi
-
-        if [[ -d "$_parent_skills_dir" ]]; then
-            for skill_dir in "$_parent_skills_dir"/mosk-*/; do
-                [[ -d "$skill_dir" ]] || continue
-                local skill_name base_name skill_file
-                skill_name="$(basename "$skill_dir")"
-                base_name="${skill_name#mosk-}"
-                skill_file="$skill_dir/SKILL.md"
-                is_standalone "$skill_name" && continue
-                if [[ -f "$skill_file" ]] && grep -q "agent definition" "$skill_file" 2>/dev/null; then
-                    if ! in_roster "$base_name"; then
-                        do_remove "$skill_dir" "$skill_name/ (orphan skill, parent)"
-                    fi
-                fi
-            done
-        fi
+    # Fallback do repo de desenvolvimento: o mesmo par, uma pasta acima.
+    local parent_root
+    parent_root="$(cd "$INSTALL_ROOT/.." 2>/dev/null && pwd)" || true
+    if [[ -n "$parent_root" && "$parent_root" != "$INSTALL_ROOT" ]]; then
+        sweep_agents "$parent_root/.claude/agents" ", parent"
+        sweep_skills "$parent_root/.claude/skills" ", parent"
     fi
 
     echo

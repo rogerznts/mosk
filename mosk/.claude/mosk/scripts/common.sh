@@ -102,14 +102,6 @@ core_config_file() {
     echo "$MOSK_SCRIPTS_DIR/../core-config.yaml"
 }
 
-infer_repo_root_from_spec_dir() {
-    local spec_dir="${1%/}" parent docs_root
-    parent="$(dirname "$spec_dir")"
-    [[ "$(basename "$parent")" == specs ]] || return 1
-    docs_root="$(dirname "$parent")"
-    [[ "$(basename "$docs_root")" == docs ]] || return 1
-    dirname "$docs_root"
-}
 
 find_feature_dir_by_prefix() {
     local repo_root="$1"
@@ -159,33 +151,6 @@ find_feature_dir_by_prefix() {
     fi
 }
 
-find_feature_dir_by_prefix_any() {
-    local repo_root="$1"
-    local branch_name="$2"
-    local specs_dir="$repo_root/docs/specs"
-
-    if [[ ! "$branch_name" =~ ^([a-z][a-z-]*/)?([0-9]{3})- ]]; then
-        return 1
-    fi
-
-    local prefix="${BASH_REMATCH[2]}"
-    local matches=()
-    local dir
-    for dir in "$specs_dir"/"$prefix"-* "$specs_dir/archive"/"$prefix"-*; do
-        [[ -d "$dir" ]] && matches+=("$dir")
-    done
-
-    if [[ ${#matches[@]} -eq 1 ]]; then
-        echo "${matches[0]}"
-        return 0
-    fi
-    if [[ ${#matches[@]} -gt 1 ]]; then
-        echo "ERROR: Multiple active/archived specs found with prefix '$prefix': ${matches[*]}" >&2
-    fi
-    return 1
-}
-
-get_feature_dir() { echo "$1/docs/specs/$2"; }
 
 # Find feature directory by numeric prefix instead of exact branch match
 # This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
