@@ -146,11 +146,8 @@ Project context lives in `.claude/rules/*.md` as plain markdown. MOSK agents rea
 
 It may also suggest, with evidence from the code, `coding-standards.md`, `testing.md`, `migrations.md`, `permissions.md`, `deploy.md`, or `api.md`.
 
-Legacy `ctx-*` context skills from older installs can be converted:
-
-```bash
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
-```
+Legacy `ctx-*` context skills from older installs are converted by the
+`migrate-install` task, which also migrates a pre-v2 `docs/` layout.
 
 ## Scripts
 

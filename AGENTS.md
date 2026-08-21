@@ -44,8 +44,5 @@ conventions, and constraints. MOSK agents running through Claude Code read
 `.claude/rules/*.md` directly; Codex CLI should follow the `.codex/rules/` symlinks.
 
 Run `/mosk-boot` to generate project rules if they don't exist yet. To migrate a
-project from legacy `ctx-*` context skills into the new rule layout, run:
-
-```bash
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
-```
+project from legacy `ctx-*` context skills into the new rule layout, run the
+`migrate-install` task.

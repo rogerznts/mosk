@@ -73,7 +73,7 @@ if [[ -d "$SKILLS_DIR" ]]; then
     if [[ ${#_legacy_ctx[@]} -gt 0 ]]; then
         echo "NOTE: found ${#_legacy_ctx[@]} legacy ctx-* skill(s) in $SKILLS_DIR"
         echo "      Project context now lives in .claude/rules/*.md."
-        echo "      Migrate with: bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh"
+        echo "      Migre com a task migrate-install."
         echo
     fi
 fi
@@ -434,7 +434,7 @@ skipped=0
 link_codex() {
     mkdir -p "$TARGET_DIR"
 # --- Phase 0: Clean orphan entries in .codex/skills ---
-# Legacy ctx-* skills may have been removed (e.g., by migrate-ctx-skills-to-rules.sh);
+# Legacy ctx-* skills may have been removed (e.g., by the migrate-install task);
 # agent-wrapped skills leave a DIRECTORY containing a SKILL.md symlink whose target
 # (a CC agent or a skill's SKILL.md) may no longer exist. Remove both shapes:
 #   1) a top-level symlink entry whose target is gone;
@@ -571,11 +571,8 @@ conventions, and constraints. MOSK agents running through Claude Code read
 `.claude/rules/*.md` directly; Codex CLI should follow the `.codex/rules/` symlinks.
 
 Run `/mosk-boot` to generate project rules if they don't exist yet. To migrate a
-project from legacy `ctx-*` context skills into the new rule layout, run:
-
-```bash
-bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
-```
+project from legacy `ctx-*` context skills into the new rule layout, run the
+`migrate-install` task.
 FOOTER
 } > "$AGENTS_MD"
 

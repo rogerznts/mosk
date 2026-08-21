@@ -325,7 +325,7 @@ Manual regeneration: `/mosk-dev index-docs`.
 - Bash scripts under `mosk/.claude/mosk/scripts/` must remain idempotent
   and prefer `--dry-run` switches for destructive operations.
 - `AGENTS.md` is auto-generated. Do not hand-edit; regenerate via
-  `bash mosk/.claude/mosk/scripts/link-codex-skills.sh`.
+  `bash mosk/.claude/mosk/scripts/sync.sh codex`.
 - Validation is manual (no test suite). After edits, read adjacent
   files and cross-references; do a smoke install in a scratch directory
   for non-trivial structural changes.
