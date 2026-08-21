@@ -453,7 +453,8 @@ Five, under `.claude/mosk/scripts/`. The list is short by design.
   2 usage error. No PyYAML, npm or pip.
 
   It has a **named caller**, which is the point: `.claude/hooks/guard-spec-merge.sh`
-  intercepts PR and merge commands and runs `ship-ready`. A verification nobody
+  intercepts PR-open and merge commands — GitHub (`gh`), Gitea (`tea`) and
+  `git merge` — and runs `ship-ready`. A verification nobody
   invokes has the force of a rule written in prose — this toolkit shipped a spec
   to its default branch in `qa-gate` precisely because the verifier existed and
   was never called.

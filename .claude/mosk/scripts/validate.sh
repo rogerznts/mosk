@@ -392,7 +392,7 @@ cmd_fixtures() {
     if [[ -f "$hook" ]] && command -v python3 >/dev/null 2>&1; then
         # `g''h` mantém os verbos quebrados no fonte: um file_path que os cite
         # inteiros é, ele mesmo, um comando que os cita.
-        local V_GH="g""h" V_PR="p""r" V_MG="me""rge" V_GIT="gi""t"
+        local V_GH="g""h" V_PR="p""r" V_MG="me""rge" V_GIT="gi""t" V_TEA="te""a"
         decision() {
             printf '{"tool_input":{"command":%s}}' "$1" \
                 | GUARD_DECIDE_ONLY=1 bash "$hook" 2>/dev/null
@@ -412,12 +412,21 @@ cmd_fixtures() {
         hook_case "comando comum"       "ls -la"                             ignora
         # SEC-001 — os sete que passavam
         hook_case "invocação direta"    "$V_GH $V_PR $V_MG 21"               verifica
-        hook_case "prefix de env"      "FOO=bar $V_GH $V_PR $V_MG 21"       verifica
+        hook_case "prefixo de env"     "FOO=bar $V_GH $V_PR $V_MG 21"       verifica
         hook_case "caminho absoluto"    "/usr/bin/$V_GH $V_PR $V_MG 21"      verifica
         hook_case "command builtin"     "command $V_GH $V_PR $V_MG 21"       verifica
         hook_case "newline separando"   "echo oi\\n$V_GH $V_PR $V_MG 21"     verifica
         hook_case "<< em string"        "echo a << b ; $V_GH $V_PR $V_MG 21" verifica
         hook_case "git merge"           "$V_GIT $V_MG feature/x"             verifica
+        # Gitea. O guardrail conhecia só o GitHub e `tea pr create` passava
+        # inteiro — este repositório usa os dois. O CLI aceita `pulls|pull|pr`
+        # e `create|c` / `merge|m`, então o reconhecimento é por conjunto e não
+        # por tupla enumerada: enumerar foi como a forma escapou.
+        hook_case "tea pr create"       "$V_TEA $V_PR create"                verifica
+        hook_case "tea pr merge"        "$V_TEA $V_PR $V_MG 12"              verifica
+        hook_case "tea pulls create"    "$V_TEA pulls create"                verifica
+        hook_case "tea alias c"         "$V_TEA $V_PR c"                     verifica
+        hook_case "tea pr list"         "$V_TEA $V_PR list"                  ignora
     fi
 
     [[ ${#FAILURES[@]} -eq 0 ]] && echo "fixtures: $passed/$total"

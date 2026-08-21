@@ -64,10 +64,16 @@ considerou permanentemente correta; o que se abandonou foi tentar reconhecer
 toda forma exótica do YAML.
 
 **Quem o invoca** (ADR-0021 §5 — verificação sem chamador não conta):
-`.claude/hooks/guard-spec-merge.sh` intercepta `gh pr merge`, `gh pr create` e
-`git merge`. Ele distingue **invocação de menção**: descarta heredoc, quebra por
-separador e olha só o primeiro token de cada segmento. As duas versões
-anteriores casavam substring e bloquearam o próprio trabalho que as descrevia.
+`.claude/hooks/guard-spec-merge.sh` intercepta a abertura e o merge de PR no
+**GitHub (`gh`) e no Gitea (`tea`)**, mais `git merge`. O reconhecimento é por
+**conjunto, não por tupla enumerada** — o `tea` aceita `pulls|pull|pr` e
+`create|c` / `merge|m`, e foi enumerando tupla a tupla que o guardrail deixou
+`tea pr create` passar inteiro.
+
+Ele distingue **invocação de menção**: descarta o corpo do heredoc, quebra por
+separador e compara sequências de tokens adjacentes, com `basename` no verbo.
+Postura **fail-closed** — sem prova de que é menção, verifica. As duas primeiras
+versões faziam o contrário e bloquearam o próprio trabalho que as descrevia.
 
 ### `create-new-feature.sh`
 

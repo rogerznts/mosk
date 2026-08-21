@@ -5,7 +5,8 @@
 # com o verificador instalado, correto e nunca invocado.
 #
 # Bloqueia (exit 2) a INVOCAÇÃO de merge/PR quando a spec do branch não está
-# fechada.
+# fechada. Cobre GitHub (`gh`) e Gitea (`tea`), com os aliases de cada um, mais
+# `git merge`.
 #
 # --- Postura: fail-CLOSED (corrige SEC-001 e SEC-002) ------------------------
 #
@@ -41,7 +42,7 @@ INPUT="$(cat)"
 # `|| exit 0` seria fail-open aqui: `grep` ausente devolve 127, indistinguível
 # de "não encontrou" (1), e o guardrail inteiro sairia limpo. Só o 1 significa
 # ausência dos verbos; qualquer outro código segue para verificação.
-printf '%s' "$INPUT" | grep -qE 'pr[^"]{0,4}(merge|create)|git[^"]{0,4}merge'
+printf '%s' "$INPUT" | grep -qE '(gh|tea)[^"]{0,4}(pr|pull)|git[^"]{0,4}merge'
 GREP_RC=$?
 if [ "$GREP_RC" -eq 1 ]; then
     [ "${GUARD_DECIDE_ONLY:-0}" = "1" ] && echo "ignora"
@@ -108,15 +109,23 @@ def nome(tok):
     # `/usr/bin/gh` e `gh` são o mesmo comando.
     return tok.rsplit("/", 1)[-1]
 
-ALVOS = [("gh", "pr", "merge"), ("gh", "pr", "create"), ("git", "merge")]
+# Conjuntos, nao tuplas fixas: `tea` aceita `pulls|pull|pr` para o mesmo
+# comando e `create|c` / `merge|m` como acoes, o que daria doze tuplas so para
+# ele. Enumerar tupla por tupla e como o guardrail perdeu `tea pr create`
+# inteiro — a forma cresce e a lista nao acompanha.
+FERRAMENTAS = {"gh", "tea"}
+SUB_PR = {"pr", "pulls", "pull"}
+ACOES = {"create", "c", "merge", "m"}
 
 for i, tok in enumerate(tokens):
     base = nome(tok)
-    for alvo in ALVOS:
-        if base != alvo[0]:
-            continue
-        seguintes = tokens[i + 1 : i + len(alvo)]
-        if [t for t in seguintes] == list(alvo[1:]):
+    # git merge
+    if base == "git" and tokens[i + 1 : i + 2] == ["merge"]:
+        print("verifica"); sys.exit(0)
+    # gh/tea <pr> <create|merge>, com os aliases de cada um
+    if base in FERRAMENTAS:
+        resto = tokens[i + 1 : i + 3]
+        if len(resto) == 2 and resto[0] in SUB_PR and resto[1] in ACOES:
             print("verifica"); sys.exit(0)
 
 print("ignora")
