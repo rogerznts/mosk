@@ -1,0 +1,45 @@
+# Quality gate — spec 016
+# Veredito independente de QA. Escrito e mantido apenas por /mosk-qa.
+# Score calculado, nao estimado: 100 - (20 x FAILs) - (10 x CONCERNS),
+# conforme ../../../mosk/.claude/mosk/data/qa-evidence-contract.md.
+# Volta 1: 0 FAIL, 2 CONCERNS -> 80.
+
+schema: 2
+story: "016-refactor-prompt-first-toolkit"
+story_title: "Toolkit prompt-first"
+gate: "CONCERNS"
+quality_score: 80
+score_history: [80]
+status_reason: "Entrega verificada contra o disco e substancial — 7.912 para 2.798 linhas de shell, 25 scripts para 6, sete dos oito criterios atingidos e SECURITY PASS apos tres achados corrigidos. Dois pontos exigem decisao humana: SC-001 pede 1.500 linhas e o resultado e 2.798, e nenhuma verificacao confere que as tasks seguem o pipeline.yaml, que e a tese central da spec."
+reviewer: "Joaquim (MOSK QA)"
+updated: "2026-08-21T01:23:54Z"
+evidence_ref: "qa-notes.md"
+
+waiver_active: false
+waiver_reason: ""
+waiver_approved_by: ""
+waiver_approved_at: ""
+
+# Perfil adaptativo desta revisao, aplicado a partir de
+# data/adaptive-work-contract.md. Sinais: escopo public_contract (o toolkit e
+# distribuido por degit), reversibilidade coordinated, superficie paths_state
+# (guardrail de merge e contencao de caminho), evidencia strong, ambiguidade
+# clear. Piso atendido: security independente (PASS) + QA independente (este).
+adaptive_profile:
+  profile: "elevated"
+  score: 6
+  floor: "compact"
+  context_budget: "elevated"
+  validation_floor: "independent"
+  specialists: ["qa", "security"]
+  floor_satisfied: true
+
+top_issues:
+  - id: "QA-1"
+    severity: "medium"
+    finding: "SC-001 e FR-004 pedem no maximo 1.500 linhas de shell; o resultado e 2.798. A reducao real e de 65% e o objetivo da spec foi cumprido, mas o criterio declarado nao. A meta foi estimada antes de os scripts serem lidos — o mesmo erro aparece tres vezes na spec — e restam apenas ~150 linhas cortaveis sem perda de funcao, o que nao fecha a diferenca."
+    suggested_action: "Decisao humana: recalibrar o criterio com o numero real, aceitar o desvio com registro, ou financiar corte adicional. Nao e decisao de QA."
+  - id: "QA-2"
+    severity: "medium"
+    finding: "Nada verifica que as tasks seguem o pipeline.yaml. O self-check confere apenas as constantes internas do validate.sh contra o YAML; se uma aresta mudar no arquivo e as seis tasks de fase mantiverem o fluxo antigo, nenhuma verificacao acusa. O AS-4 da US1 foi provado uma vez, manualmente, na T014, sem fixture remanescente."
+    suggested_action: "Acrescentar ao validate.sh uma verificacao que extraia fases e arestas do pipeline.yaml e recuse task que cite transicao fora do declarado. Escopo pequeno; fecha o laco da tese central da spec."
