@@ -167,9 +167,9 @@ hand.
 | `apply-qa-fixes` | Consumes QA gate/assessments and applies code/test changes. |
 | `archive` | Promotes canonical artifacts and moves the spec to `docs/specs/archive/`. |
 | `execute-checklist` | Runs the delivery checklist. |
-| `audit-docs-paths` | Path-integrity audit (5 rules, exit 1 on violations). Also `/mosk-dev audit`. |
-| `doctor` | Runs the complete read-only toolkit integrity check (`doctor.sh`), including syntax, self-tests, references, sync and roster. |
-| `transition-spec-phase` | Confirms a user-requested pipeline transition through the canonical state machine, with strict identity, schema/precondition validation, signal-safe rollback and append-only history. |
+| `audit-docs-paths` | Path-integrity audit (`validate.sh docs-paths`, 5 rules). Also `/mosk-dev audit`. |
+| `validate` | Full toolkit check (`validate.sh all`): install, rule sync, doc paths, single-source, tasks-vs-pipeline and contract fixtures. |
+| `migrate-install` | Migrates a legacy install: pre-v2 `docs/` layout and `ctx-*` skills into `.claude/rules/`. |
 | `index-docs` | Regenerates `docs/index.md`. |
 
 ```
@@ -178,6 +178,10 @@ hand.
 /mosk-dev index-docs
 /mosk-dev audit
 ```
+
+Phase transitions are no longer a command: the task confirming a phase follows
+`.claude/mosk/data/phase-transition-contract.md`, which reads the rule from
+`.claude/mosk/pipeline.yaml`.
 
 ### `/mosk-qa` — Joaquim · gates, test strategy, reviews
 
