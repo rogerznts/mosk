@@ -289,6 +289,25 @@ equivalent targets; legacy gates are accepted only from physically archived spec
   at the parent spec. Created via
   `create-new-feature.sh --type extension --extends <spec-id> "<desc>"`.
 
+## Language: speak in yours, write in English
+
+Two separate things, and conflating them is the recurring mistake.
+
+**Communication** follows the project's language (see *Idioma de comunicação*
+above). Messages, questions, summaries, status and escalation blocks.
+
+**Artifacts are always English.** Function, variable, constant, file, branch and
+YAML key names — every identifier that lands in the repository — regardless of
+the conversation's language. A Portuguese identifier inside an English codebase
+forces whoever maintains it to switch languages mid-line, and does not survive a
+contributor who does not speak it.
+
+**Every code cited carries its meaning on first mention.** `ADR-0021`, `FR-009`,
+`SC-001`, `QA-2` say nothing on their own. The first time an id appears in a
+reply, the gloss comes with it; later mentions in the same block can be bare.
+Full rule in `.claude/mosk/data/output-contract.md` (R1). The reader does not
+have the spec open beside them — an unglossed id hands them the lookup.
+
 ## Where a rule lives (MOSK contract — ADR-0021)
 
 MOSK is a product made of prompts. When a rule needs to be guaranteed, the

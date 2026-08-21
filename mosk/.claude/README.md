@@ -154,7 +154,7 @@ bash .claude/mosk/scripts/migrate-ctx-skills-to-rules.sh
 
 ## Scripts
 
-Six scripts, all under `.claude/mosk/scripts/`. The list is short by design:
+Five scripts, all under `.claude/mosk/scripts/`. The list is short by design:
 since [ADR-0021](../../docs/architecture/adr/), rules live in `pipeline.yaml`
 and are read by the agent, so shell only covers what an agent genuinely cannot
 do — a race against another process on the remote, bulk generation of derived
@@ -227,15 +227,9 @@ bash <tmp>/.claude/mosk/scripts/reset-install.sh --from <tmp> --to <project> [--
 Never touches `.claude/rules/`, `settings.json`, `docs/`, `CLAUDE.md` or
 `AGENTS.md`.
 
-### sync-hallmark.sh
-
-Re-syncs the vendored Hallmark fork by diff/replay against the pinned upstream
-ref. Any conflict aborts without touching the vendor. Never copy upstream over
-the directory by hand — that erases the MOSK integration.
-
-```bash
-bash .claude/mosk/scripts/sync-hallmark.sh [--ref <sha|tag|branch>] [--dry-run]
-```
+> Atualizar o vendor do Hallmark deixou de ser script: é a task
+> `.claude/mosk/tasks/sync-hallmark.md`, que faz o mesmo diff/replay contra o
+> ref pinado em `VENDOR.md` e aborta sem tocar no vendor em caso de conflito.
 
 ### common.sh
 

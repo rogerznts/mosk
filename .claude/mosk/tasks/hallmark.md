@@ -117,4 +117,4 @@ The 20 catalog themes get their concrete OKLCH values from
   root.** They are machine state, not documentation — they do not move into
   `docs/`.
 - **Do not hand-edit `.claude/mosk/data/hallmark/`.** It is a vendored fork; use
-  `.claude/mosk/scripts/sync-hallmark.sh` to update it. See `hallmark/VENDOR.md`.
+  `.claude/mosk/tasks/sync-hallmark.md` to update it. See `hallmark/VENDOR.md`.

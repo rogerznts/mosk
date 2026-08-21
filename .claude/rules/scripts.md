@@ -130,14 +130,11 @@ bash <tmp>/.claude/mosk/scripts/reset-install.sh --from <tmp> --to <raiz> [--dry
 diretório onde ele mesmo mora. Nunca toca `.claude/rules/`, `settings.json`,
 `docs/`, `CLAUDE.md`, `AGENTS.md` nem `.codex/`.
 
-### `sync-hallmark.sh`
+### ~~`sync-hallmark.sh`~~ → task `sync-hallmark`
 
-Re-sincroniza o vendor do Hallmark por diff/replay contra o ref pinado em
-`VENDOR.md`. Qualquer conflito **aborta sem tocar no vendor**.
-
-```bash
-bash .claude/mosk/scripts/sync-hallmark.sh [--ref <sha|tag|branch>] [--dry-run]
-```
+O script foi removido; a capacidade virou a task `tasks/sync-hallmark.md`, que
+executa o mesmo diff/replay contra o ref pinado em `VENDOR.md`. Qualquer
+conflito **aborta sem tocar no vendor**.
 
 Nunca copie o upstream por cima do diretório na mão: isso apaga a integração MOSK.
 
@@ -200,4 +197,4 @@ symlink aponta sem consultar o disco. É verificação de sistema, não de dado.
 | Adicionou/removeu agente | `sync.sh all --clean` |
 | Atualizar o toolkit num consumidor | `reset-install.sh` (via `/mosk-update`) |
 | Migrar instalação legada | task `migrate-install` |
-| Atualizar/conferir o Hallmark | `sync-hallmark.sh --dry-run` primeiro |
+| Atualizar/conferir o Hallmark | task `sync-hallmark` |

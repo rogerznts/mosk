@@ -18,11 +18,11 @@ content; see "Re-syncing" below.
 
 Fetched from the repository tarball at that ref (`skills/hallmark/`, plus
 `site/css/tokens.css` and `LICENSE`, which live outside the skill upstream).
-`../../scripts/sync-hallmark.sh` does this for you — see "Re-syncing".
+The `sync-hallmark` task does this for you — see "Re-syncing".
 
 ## Modifications applied to the upstream copy
 
-These are not reapplied by a hand-written patch list: `sync-hallmark.sh`
+These are not reapplied by a hand-written patch list: the `sync-hallmark` task
 derives them as a **diff between the pinned upstream and this directory**,
 then replays that diff onto the new ref. So this section is documentation for
 humans — the script stays correct even if the list below drifts. What matters
@@ -67,9 +67,8 @@ Not vendored: `docs/screenshots/` (18 JPEGs, 1.5 MB), the `site/` build,
 ## Re-syncing
 
 ```bash
-bash .claude/mosk/scripts/sync-hallmark.sh --dry-run          # preview
-bash .claude/mosk/scripts/sync-hallmark.sh                    # same pinned ref
-bash .claude/mosk/scripts/sync-hallmark.sh --ref <sha-or-tag> # bump upstream
+Run the `sync-hallmark` task (`.claude/mosk/tasks/sync-hallmark.md`).
+It takes the new upstream ref; with none, it re-checks the pinned one.
 ```
 
 The script fetches the pinned ref, diffs it against this directory to recover

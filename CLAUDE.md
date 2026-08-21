@@ -56,11 +56,10 @@ mosk/                        # installable template (source of truth)
 │   │   ├── checklists/
 │   │   ├── data/            # static reference material read by tasks
 │   │   │   └── hallmark/    # vendored Hallmark fork (MIT) — see VENDOR.md;
-│   │   │                    # update via scripts/sync-hallmark.sh, never by hand
+│   │   │                    # update via the sync-hallmark task, never by hand
 │   │   ├── pipeline.yaml    # FONTE ÚNICA da regra do pipeline (ADR-0021)
-│   │   ├── scripts/         # apenas 6: validate.sh, create-new-feature.sh,
-│   │   │                    # sync.sh, reset-install.sh, sync-hallmark.sh,
-│   │   │                    # common.sh
+│   │   ├── scripts/         # apenas 5: validate.sh, create-new-feature.sh,
+│   │   │                    # sync.sh, reset-install.sh, common.sh
 │   │   └── core-config.yaml
 │   └── skills/              # slash-command wrappers (e.g. /mosk-po, /mosk-dev)
 └── (installed project's docs/ layout — not part of the template itself)
@@ -188,8 +187,7 @@ Reference material a task reads at runtime lives in `mosk/.claude/mosk/data/`
 and is referenced by basename (see `design-tests.md` for the `## Dependencies`
 shape). `data/hallmark/` is different: it is a **vendored fork** of an upstream
 MIT project, not MOSK-authored content. Do not hand-edit it — every local change
-becomes part of the fork's diff. Update it with
-`bash mosk/.claude/mosk/scripts/sync-hallmark.sh` and read
+becomes part of the fork's diff. Update it with the `sync-hallmark` task, and read
 `data/hallmark/VENDOR.md` first.
 
 ## Agent descriptions

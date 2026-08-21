@@ -73,6 +73,19 @@ SC-004 — "toda busca deve estreitar por collection"
 Aspas = citação literal do artefato. Sem aspas = paráfrase de até ~12 palavras.
 Menções seguintes no mesmo bloco podem ser secas.
 
+**Vale para todo id, não só para os de spec.** `ADR-0021`, `T014`, `QA-2`,
+`SEC-001`, `Q7`, `R1`, `D3` — a regra é a mesma. O teste é simples: se a pessoa
+precisa abrir outro arquivo para entender a frase, a glossa faltou.
+
+> ~~"o `SEC-001` foi corrigido e o `FR-009` continua atendido"~~
+> **"o SEC-001 — guardrail contornável por sete caminhos — foi corrigido, e o
+> FR-009 — nenhuma regra sai antes do equivalente declarativo — continua
+> atendido"**
+
+Isto é a regra mais violada do contrato, e o motivo é sempre o mesmo: quem
+escreve acabou de ler o artefato e o id lhe parece autoexplicativo. Para quem
+lê, não é.
+
 ### R2 — Id nunca é sujeito de uma afirmação
 
 O leitor tem de entender a frase sem sair dela.
